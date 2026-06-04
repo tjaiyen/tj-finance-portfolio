@@ -1,0 +1,37 @@
+version: 2
+
+models:
+  - name: fct_account_variance
+    description: >
+      Account-level prior-vs-current variance with absolute/percent change and a materiality flag.
+      One row per account. Governance: every account here must exist in the staging source
+      (relationship test), and no number is produced outside dbt.
+    columns:
+      - name: account
+        description: "GL account name (grain: one row per account)."
+        tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('stg_financials')
+                field: account
+      - name: prior_amount
+        description: "Prior-period amount (var: prior_period)."
+      - name: current_amount
+        description: "Current-period amount (var: current_period)."
+        tests:
+          - not_null
+      - name: variance_abs
+        description: "current_amount - prior_amount."
+        tests:
+          - not_null
+      - name: variance_pct
+        description: "variance_abs / prior_amount, rounded to 4 dp."
+      - name: is_material
+        description: "True when |variance_pct| >= materiality_threshold (default 5%)."
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true, false]

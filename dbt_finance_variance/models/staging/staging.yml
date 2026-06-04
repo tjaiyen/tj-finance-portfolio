@@ -1,0 +1,18 @@
+version: 2
+
+models:
+  - name: stg_financials
+    description: "Typed, cleaned GL line items — one row per account and period."
+    columns:
+      - name: account
+        description: "GL account name."
+        tests:
+          - not_null
+      - name: period
+        description: "Fiscal period label (e.g., 2026Q1)."
+        tests:
+          - not_null
+      - name: amount
+        description: "Period amount in USD."
+        tests:
+          - not_null

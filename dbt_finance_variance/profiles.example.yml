@@ -1,0 +1,9 @@
+# Copy to ~/.dbt/profiles.yml, or run with DBT_PROFILES_DIR pointed at this folder.
+# DuckDB = local file database, no cloud warehouse needed.
+finance_variance:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: finance_variance.duckdb
+      threads: 4

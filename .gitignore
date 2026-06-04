@@ -1,0 +1,18 @@
+# dbt
+target/
+dbt_packages/
+logs/
+*.duckdb
+*.duckdb.wal
+.user.yml
+profiles.yml
+
+# python
+__pycache__/
+*.pyc
+.env
+output/
+
+# os
+.DS_Store
+Thumbs.db

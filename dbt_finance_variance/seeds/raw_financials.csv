@@ -1,0 +1,25 @@
+account,period,amount
+Direct Materials,2026Q1,1250000
+Direct Materials,2026Q2,1310000
+Direct Labor,2026Q1,540000
+Direct Labor,2026Q2,612000
+Manufacturing Overhead,2026Q1,430000
+Manufacturing Overhead,2026Q2,438000
+Purchase Price Variance,2026Q1,18000
+Purchase Price Variance,2026Q2,46500
+Labor Efficiency Variance,2026Q1,12000
+Labor Efficiency Variance,2026Q2,31800
+Scrap & Rework,2026Q1,22000
+Scrap & Rework,2026Q2,21500
+Freight In,2026Q1,38000
+Freight In,2026Q2,52000
+Indirect Labor,2026Q1,96000
+Indirect Labor,2026Q2,98500
+Depreciation,2026Q1,75000
+Depreciation,2026Q2,75000
+Warranty Reserve,2026Q1,40000
+Warranty Reserve,2026Q2,33000
+WIP Inventory,2026Q1,610000
+WIP Inventory,2026Q2,548000
+Finished Goods Inventory,2026Q1,820000
+Finished Goods Inventory,2026Q2,905000

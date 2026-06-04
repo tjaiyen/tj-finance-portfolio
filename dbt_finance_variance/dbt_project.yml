@@ -1,0 +1,35 @@
+name: 'finance_variance'
+version: '1.0.0'
+config-version: 2
+
+profile: 'finance_variance'
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+vars:
+  # Configurable without touching SQL — override with --vars at run time.
+  materiality_threshold: 0.05
+  prior_period: '2026Q1'
+  current_period: '2026Q2'
+
+models:
+  finance_variance:
+    staging:
+      +materialized: view
+    marts:
+      +materialized: table
+
+seeds:
+  finance_variance:
+    raw_financials:
+      +column_types:
+        account: varchar
+        period: varchar
+        amount: double
