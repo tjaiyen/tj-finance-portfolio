@@ -28,7 +28,7 @@ from pathlib import Path
 from airflow.decorators import task
 from airflow.models.dag import DAG
 
-from cosmos import DbtTaskGroup, ExecutionConfig, ProfileConfig, ProjectConfig
+from cosmos import DbtTaskGroup, ProfileConfig, ProjectConfig
 
 # dags/ -> airflow_orchestration/ -> repo root
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -61,14 +61,12 @@ with DAG(
     # Seed -> staging -> mart -> tests, each as its own retryable Airflow task.
     transform = DbtTaskGroup(
         group_id="dbt_finance_variance",
+        # dbt_project_path lives ONLY here -- Cosmos rejects it if duplicated
+        # in ExecutionConfig/RenderConfig (mutually exclusive by design).
         project_config=ProjectConfig(dbt_project_path=DBT_PROJECT_DIR),
         profile_config=profile_config,
-        execution_config=ExecutionConfig(
-            dbt_project_path=DBT_PROJECT_DIR,
-        ),
         operator_args={
             "install_deps": False,  # no packages.yml -- skip dbt deps
-            "full_refresh": False,
         },
     )
 
