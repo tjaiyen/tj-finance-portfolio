@@ -32,6 +32,7 @@ from cosmos import DbtTaskGroup, ProfileConfig, ProjectConfig
 
 # dags/ -> airflow_orchestration/ -> repo root
 REPO_ROOT = Path(__file__).resolve().parents[2]
+AIRFLOW_DIR = REPO_ROOT / "airflow_orchestration"
 DBT_PROJECT_DIR = REPO_ROOT / "dbt_finance_variance"
 DUCKDB_PATH = DBT_PROJECT_DIR / "finance_variance.duckdb"
 
@@ -39,7 +40,9 @@ profile_config = ProfileConfig(
     profile_name="finance_variance",
     target_name="dev",
     # DuckDB profile ships with the repo -- no warehouse, no secrets.
-    profiles_yml_filepath=DBT_PROJECT_DIR / "profiles.example.yml",
+    # dbt resolves profiles by directory and requires the literal filename
+    # profiles.yml, so the example file can't be referenced directly.
+    profiles_yml_filepath=AIRFLOW_DIR / "profiles.yml",
 )
 
 default_args = {
