@@ -50,6 +50,9 @@ jobs:
       - name: DAG import test (DagBag)
         env:
           AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+          # No Airflow metadata DB in CI -- disable Cosmos's Variable-backed
+          # dbt-ls cache (a parse-time optimization, not needed to validate).
+          AIRFLOW__COSMOS__ENABLE_CACHE: "False"
         run: |
           python - <<'EOF'
           from airflow.models import DagBag
