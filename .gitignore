@@ -16,3 +16,6 @@ output/
 # os
 .DS_Store
 Thumbs.db
+
+# Exception: the Cosmos DAG profile is DuckDB-only, no secrets
+!airflow_orchestration/profiles.yml

@@ -1,0 +1,9 @@
+# dbt profile used by the Cosmos DAG (dbt requires the file be named profiles.yml).
+# DuckDB = local file database; no warehouse, no secrets -- safe to commit.
+finance_variance:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: finance_variance.duckdb
+      threads: 4
