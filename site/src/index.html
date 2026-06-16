@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Finance + AI Engineering — Case Study</title>
+  <meta name="description" content="A cost accountant building the trustworthy data + AI layer beneath financial reporting: deterministic logic for the numbers, LLMs for judgment, automated tests as the sign-off gate." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <script type="module" src="./js/main.js"></script>
+</head>
+<body class="bg-bg-primary text-text-primary">
+
+  <!-- ===== NAV ===== -->
+  <header class="sticky top-0 z-30 border-b border-accent/15 bg-bg-primary/90 backdrop-blur">
+    <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
+      <a href="#top" class="font-mono text-sm text-text-code">finance·∩·ai</a>
+      <nav class="hidden gap-6 text-sm text-text-secondary lg:flex">
+        <a href="#thesis" class="hover:text-text-primary">Thesis</a>
+        <a href="#translation" class="hover:text-text-primary">Translation</a>
+        <a href="#projects" class="hover:text-text-primary">Projects</a>
+        <a href="#sandbox" class="hover:text-text-primary">Sandbox</a>
+        <a href="#contact" class="hover:text-text-primary">Contact</a>
+      </nav>
+      <button id="nav-toggle" aria-label="Toggle menu" class="lg:hidden" style="min-width:44px;min-height:44px;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+    </div>
+    <div id="nav-menu" class="hidden border-t border-accent/15 lg:hidden">
+      <div class="mx-auto flex max-w-6xl flex-col px-4 py-2 text-text-secondary">
+        <a href="#thesis" class="py-2">Thesis</a>
+        <a href="#translation" class="py-2">Translation</a>
+        <a href="#projects" class="py-2">Projects</a>
+        <a href="#sandbox" class="py-2">Sandbox</a>
+        <a href="#contact" class="py-2">Contact</a>
+      </div>
+    </div>
+  </header>
+
+  <main id="top" class="mx-auto max-w-6xl px-4">
+
+    <!-- ===== HERO ===== -->
+    <section class="py-16 sm:py-24">
+      <p class="badge mb-4">Finance + AI · Case Study</p>
+      <h1 class="text-3xl font-extrabold leading-tight sm:text-5xl">
+        I build the <span class="text-accent">trustworthy data &amp; AI layer</span><br class="hidden sm:block" />
+        beneath financial reporting.
+      </h1>
+      <p class="mt-5 max-w-2xl text-base text-text-secondary sm:text-lg">
+        A cost accountant's instinct for <em>which number is wrong and how to catch it</em> — encoded as
+        deterministic logic for the figures, an LLM used only for judgment and language, and automated tests
+        as the sign-off gate. Two small, <strong class="text-text-primary">runnable</strong> projects prove it.
+      </p>
+      <div class="mt-7 flex flex-wrap gap-3">
+        <a href="#projects" class="btn-primary">See the projects</a>
+        <a href="#sandbox" class="btn-secondary">Try the live sandbox</a>
+      </div>
+      <div class="mt-8 flex flex-wrap gap-2">
+        <span class="badge">Python</span>
+        <span class="badge">Anthropic SDK</span>
+        <span class="badge">dbt</span>
+        <span class="badge">DuckDB</span>
+        <span class="badge">SQL</span>
+        <span class="badge">Data governance</span>
+        <span class="badge">FinOps thinking</span>
+      </div>
+    </section>
+
+    <!-- ===== THESIS ===== -->
+    <section id="thesis" class="border-t border-accent/15 py-14">
+      <h2 class="text-2xl font-bold sm:text-3xl">The thesis</h2>
+      <p class="mt-4 max-w-3xl text-text-secondary">
+        An AI that's right 95% of the time is unusable in finance if you can't tell which 5% is wrong. So the
+        architecture is always the same three moves — and they generalize far past finance:
+      </p>
+      <div class="mt-6 grid gap-4 md:grid-cols-3">
+        <div class="card">
+          <div class="font-mono text-text-code">01</div>
+          <h3 class="mt-1 text-lg">Compute facts in code</h3>
+          <p class="mt-2 text-sm text-text-secondary">Every number — variances, materiality, margins — is deterministic. The model never produces a figure that lands in a total.</p>
+        </div>
+        <div class="card">
+          <div class="font-mono text-text-code">02</div>
+          <h3 class="mt-1 text-lg">Use the model for judgment</h3>
+          <p class="mt-2 text-sm text-text-secondary">Root-cause hypotheses, materiality calls, plain-English narrative for a CFO — the parts an LLM is genuinely good at.</p>
+        </div>
+        <div class="card">
+          <div class="font-mono text-text-code">03</div>
+          <h3 class="mt-1 text-lg">Verify before trust</h3>
+          <p class="mt-2 text-sm text-text-secondary">Guardrails and tests that <strong class="text-text-primary">fail loudly</strong> — hallucination, coverage, and schema checks; dbt data <em>and</em> unit tests in CI.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== TRANSLATION MATRIX ===== -->
+    <section id="translation" class="border-t border-accent/15 py-14">
+      <h2 class="text-2xl font-bold sm:text-3xl">Cost accounting → data &amp; AI platform</h2>
+      <p class="mt-4 max-w-3xl text-text-secondary">
+        The transfer isn't a slogan — it's one-to-one. Each row is captioned by a real artifact in the repos below.
+      </p>
+      <div class="mt-6 overflow-x-auto">
+        <table class="w-full min-w-[640px] border-collapse text-sm">
+          <thead>
+            <tr class="bg-bg-card text-left text-text-secondary">
+              <th class="border-b border-accent/15 p-3 font-semibold">Cost-accounting concept</th>
+              <th class="border-b border-accent/15 p-3 font-semibold">Data / AI-platform equivalent</th>
+              <th class="border-b border-accent/15 p-3 font-semibold">Where to see it</th>
+            </tr>
+          </thead>
+          <tbody class="text-text-primary">
+            <tr><td class="border-b border-accent/10 p-3">Subledger → GL reconciliation</td><td class="border-b border-accent/10 p-3">dbt <code class="text-text-code">relationships</code> test — a mart row can't reference a missing key</td><td class="border-b border-accent/10 p-3 text-text-secondary">dbt project · marts.yml</td></tr>
+            <tr><td class="border-b border-accent/10 p-3">Standard-vs-actual variance</td><td class="border-b border-accent/10 p-3">Anomaly detection on spend vs. a budgeted baseline</td><td class="border-b border-accent/10 p-3 text-text-secondary">both projects</td></tr>
+            <tr><td class="border-b border-accent/10 p-3">Materiality threshold</td><td class="border-b border-accent/10 p-3">Cost-attribution / spend-alert thresholds</td><td class="border-b border-accent/10 p-3 text-text-secondary">live sandbox ↓</td></tr>
+            <tr><td class="border-b border-accent/10 p-3">Overhead absorption across cost pools</td><td class="border-b border-accent/10 p-3">Allocating shared GPU idle capacity across tenants</td><td class="border-b border-accent/10 p-3 text-text-secondary"><a href="https://github.com/tjaiyen/tj-finance-portfolio/tree/main/dbt_gpu_cost_attribution" class="text-accent hover:underline">dbt project · runnable</a></td></tr>
+            <tr><td class="border-b border-accent/10 p-3">"Nothing ships unless it ties out"</td><td class="border-b border-accent/10 p-3"><code class="text-text-code">dbt build</code> gate — data + unit tests must pass</td><td class="border-b border-accent/10 p-3 text-text-secondary">dbt project · CI</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ===== PROJECTS ===== -->
+    <section id="projects" class="border-t border-accent/15 py-14">
+      <h2 class="text-2xl font-bold sm:text-3xl">The projects</h2>
+      <p class="mt-2 text-sm text-text-secondary">Both are synthetic-data only, clone-and-build, and verifiable — no warehouse account required.</p>
+
+      <div class="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <!-- Project 1 -->
+        <article class="card">
+          <h3 class="text-xl">Claude Finance Variance Agent</h3>
+          <p class="mt-1 font-mono text-xs text-text-code">Python · Anthropic SDK</p>
+          <p class="mt-3 text-sm text-text-secondary">
+            Two periods of GL line items in → a CFO-ready variance narrative + structured exception flags out.
+            Variance math is deterministic; the model is used only for judgment and language.
+          </p>
+          <ul class="mt-3 space-y-1 text-sm text-text-primary">
+            <li>• <span class="text-text-secondary">Hallucination check</span> — named accounts must exist in source</li>
+            <li>• <span class="text-text-secondary">Coverage check</span> — every material variance addressed</li>
+            <li>• <span class="text-text-secondary">Schema check</span> — JSON validates or the run aborts</li>
+          </ul>
+          <a href="https://github.com/tjaiyen/tj-finance-portfolio/tree/main/claude_finance_agent" class="btn-secondary mt-4 text-sm">View repo →</a>
+        </article>
+
+        <!-- Project 2 -->
+        <article class="card">
+          <h3 class="text-xl">dbt Finance Variance</h3>
+          <p class="mt-1 font-mono text-xs text-text-code">dbt · DuckDB</p>
+          <p class="mt-3 text-sm text-text-secondary">
+            The same logic, modern-data-stack way: sources → staging → marts, governed by two tiers of tests.
+            <code class="text-text-code">dbt build</code> runs locally in under a minute.
+          </p>
+          <ul class="mt-3 space-y-1 text-sm text-text-primary">
+            <li>• <span class="text-text-secondary">Data tests</span> — not_null, unique, accepted_values, relationships</li>
+            <li>• <span class="text-text-secondary">Unit test</span> — pins variance math &amp; the materiality boundary in CI</li>
+            <li>• <span class="text-text-secondary">Configurable</span> — threshold &amp; periods via <code class="text-text-code">--vars</code></li>
+          </ul>
+          <a href="https://github.com/tjaiyen/tj-finance-portfolio/tree/main/dbt_finance_variance" class="btn-secondary mt-4 text-sm">View repo →</a>
+        </article>
+
+        <!-- Project 3 -->
+        <article class="card">
+          <h3 class="text-xl">dbt GPU Cost Attribution</h3>
+          <p class="mt-1 font-mono text-xs text-text-code">dbt · DuckDB · FinOps</p>
+          <p class="mt-3 text-sm text-text-secondary">
+            The same discipline, taken into AI unit economics: attribute shared GPU cost to tenants and compute
+            per-tenant margin. Idle capacity is absorbed like factory overhead.
+          </p>
+          <ul class="mt-3 space-y-1 text-sm text-text-primary">
+            <li>• <span class="text-text-secondary">Absorption key</span> — idle GPU cost split by token share</li>
+            <li>• <span class="text-text-secondary">Three test tiers</span> — data + unit + singular tests</li>
+            <li>• <span class="text-text-secondary">Surfaces the loss</span> — flags the unprofitable tenant by margin zone</li>
+          </ul>
+          <a href="https://github.com/tjaiyen/tj-finance-portfolio/tree/main/dbt_gpu_cost_attribution" class="btn-secondary mt-4 text-sm">View repo →</a>
+        </article>
+      </div>
+
+      <!-- DAG -->
+      <div class="card mt-6">
+        <h3 class="text-lg">Lineage (dbt project)</h3>
+        <p class="mt-1 text-sm text-text-secondary">Seed → staging → mart, with two test tiers gating the build. Static diagram — no warehouse connection.</p>
+        <div class="mt-4 overflow-x-auto">
+          <svg viewBox="0 0 760 220" class="w-full min-w-[640px]" role="img" aria-label="dbt lineage: raw_financials seed to stg_financials to fct_account_variance, gated by data and unit tests">
+            <defs>
+              <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+                <path d="M0,0 L8,3 L0,6 Z" fill="#94A3B8"/>
+              </marker>
+            </defs>
+            <line x1="190" y1="80" x2="270" y2="80" stroke="#94A3B8" stroke-width="2" marker-end="url(#arrow)"/>
+            <line x1="450" y1="80" x2="530" y2="80" stroke="#94A3B8" stroke-width="2" marker-end="url(#arrow)"/>
+            <!-- seed -->
+            <rect x="30" y="55" width="160" height="50" rx="8" fill="#1E293B" stroke="#A78BFA" stroke-width="1.5"/>
+            <text x="110" y="78" text-anchor="middle" fill="#F1F5F9" font-family="JetBrains Mono, monospace" font-size="12">raw_financials</text>
+            <text x="110" y="94" text-anchor="middle" fill="#94A3B8" font-family="Inter, sans-serif" font-size="10">seed (synthetic GL)</text>
+            <!-- staging -->
+            <rect x="290" y="55" width="160" height="50" rx="8" fill="#1E293B" stroke="#06B6D4" stroke-width="1.5"/>
+            <text x="370" y="78" text-anchor="middle" fill="#F1F5F9" font-family="JetBrains Mono, monospace" font-size="12">stg_financials</text>
+            <text x="370" y="94" text-anchor="middle" fill="#94A3B8" font-family="Inter, sans-serif" font-size="10">staging · typed/cleaned</text>
+            <!-- mart -->
+            <rect x="550" y="55" width="180" height="50" rx="8" fill="#1E293B" stroke="#10B981" stroke-width="1.5"/>
+            <text x="640" y="78" text-anchor="middle" fill="#F1F5F9" font-family="JetBrains Mono, monospace" font-size="12">fct_account_variance</text>
+            <text x="640" y="94" text-anchor="middle" fill="#94A3B8" font-family="Inter, sans-serif" font-size="10">mart · variance + materiality</text>
+            <!-- tests gate -->
+            <line x1="370" y1="105" x2="370" y2="150" stroke="#94A3B8" stroke-width="1" stroke-dasharray="3 3"/>
+            <line x1="640" y1="105" x2="640" y2="150" stroke="#94A3B8" stroke-width="1" stroke-dasharray="3 3"/>
+            <rect x="300" y="150" width="140" height="40" rx="8" fill="#0A0F1D" stroke="#F59E0B" stroke-width="1.5"/>
+            <text x="370" y="174" text-anchor="middle" fill="#F59E0B" font-family="JetBrains Mono, monospace" font-size="11">data tests</text>
+            <rect x="560" y="150" width="160" height="40" rx="8" fill="#0A0F1D" stroke="#F59E0B" stroke-width="1.5"/>
+            <text x="640" y="174" text-anchor="middle" fill="#F59E0B" font-family="JetBrains Mono, monospace" font-size="11">unit test (CI)</text>
+          </svg>
+        </div>
+        <div class="mt-3 flex flex-wrap gap-4 text-xs text-text-secondary">
+          <span><span style="color:#A78BFA">■</span> seed</span>
+          <span><span style="color:#06B6D4">■</span> staging</span>
+          <span><span style="color:#10B981">■</span> mart</span>
+          <span><span style="color:#F59E0B">■</span> tests</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== SANDBOX ===== -->
+    <section id="sandbox" class="border-t border-accent/15 py-14">
+      <h2 class="text-2xl font-bold sm:text-3xl">Live sandbox</h2>
+      <p class="mt-2 max-w-3xl text-sm text-text-secondary">
+        The exact logic from the projects, computed in your browser — deterministic, no model calls. Formulas
+        are documented in <code class="text-text-code">src/js/calculator.js</code>.
+      </p>
+
+      <div class="mt-6 grid gap-6 md:grid-cols-2">
+        <!-- Variance calc -->
+        <div class="card">
+          <h3 class="text-lg">Variance &amp; materiality</h3>
+          <p class="mt-1 text-xs text-text-secondary">Mirrors <code class="text-text-code">fct_account_variance</code>.</p>
+          <div class="mt-4 grid grid-cols-2 gap-3">
+            <div><label class="field-label" for="v-prior">Prior amount</label><input id="v-prior" class="field-input" type="number" value="1000000" /></div>
+            <div><label class="field-label" for="v-current">Current amount</label><input id="v-current" class="field-input" type="number" value="1100000" /></div>
+            <div class="col-span-2"><label class="field-label" for="v-threshold">Materiality threshold (%)</label><input id="v-threshold" class="field-input" type="number" value="5" step="0.5" /></div>
+          </div>
+          <div class="mt-4 grid grid-cols-3 gap-3 text-center">
+            <div class="rounded-md bg-bg-primary p-3"><div class="field-label">Variance</div><div id="v-abs" class="font-mono text-text-primary">—</div></div>
+            <div class="rounded-md bg-bg-primary p-3"><div class="field-label">% change</div><div id="v-pct" class="font-mono text-text-primary">—</div></div>
+            <div class="rounded-md bg-bg-primary p-3"><div class="field-label">Flag</div><div class="mt-1"><span id="v-material" class="badge">—</span></div></div>
+          </div>
+        </div>
+
+        <!-- Margin calc -->
+        <div class="card">
+          <h3 class="text-lg">Gross margin &amp; zone</h3>
+          <p class="mt-1 text-xs text-text-secondary">FinOps framing — inference COGS only. Benchmarks are point-in-time (2026).</p>
+          <div class="mt-4 grid grid-cols-2 gap-3">
+            <div><label class="field-label" for="m-revenue">Revenue</label><input id="m-revenue" class="field-input" type="number" value="100000" /></div>
+            <div><label class="field-label" for="m-cost">Cost (COGS)</label><input id="m-cost" class="field-input" type="number" value="48000" /></div>
+          </div>
+          <div class="mt-4">
+            <div class="flex items-end justify-between">
+              <span class="field-label">Gross margin</span>
+              <span id="m-margin" class="font-mono text-2xl text-text-primary">—</span>
+            </div>
+            <div class="mt-2 h-3 w-full overflow-hidden rounded-full bg-bg-primary">
+              <div id="m-bar" class="h-full rounded-full bg-warning" style="width:0%"></div>
+            </div>
+            <div id="m-zone" class="mt-2 text-sm text-text-secondary">—</div>
+            <div class="mt-2 flex justify-between text-[10px] text-text-secondary"><span>0%</span><span>40%</span><span>65%</span><span>100%</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== CONTACT ===== -->
+    <section id="contact" class="border-t border-accent/15 py-14">
+      <h2 class="text-2xl font-bold sm:text-3xl">Get in touch</h2>
+      <p class="mt-3 max-w-2xl text-text-secondary">
+        The accountant-to-analytics-engineer path is real and well-trodden (Sam Harting, CPA → Analytics
+        Engineer at dbt Labs). I'm building the artifacts to prove I'm already on the data side of it.
+      </p>
+      <div class="mt-5 flex flex-wrap gap-3">
+        <a href="https://github.com/tjaiyen/tj-finance-portfolio" class="btn-primary">GitHub</a>
+        <a href="https://www.linkedin.com/in/jaiyentheerayut" class="btn-secondary">LinkedIn</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-accent/15 py-8 text-center text-xs text-text-secondary">
+    Built with Vite + Tailwind · synthetic data only · benchmarks point-in-time (2026)
+  </footer>
+</body>
+</html>
