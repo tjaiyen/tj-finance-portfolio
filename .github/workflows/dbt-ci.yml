@@ -31,6 +31,31 @@ jobs:
           DBT_PROFILES_DIR: .
         run: dbt build
 
+  dbt-build-gpu:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: dbt_gpu_cost_attribution
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dbt-duckdb
+        run: pip install dbt-duckdb
+
+      - name: Set up dbt profile
+        run: cp profiles.example.yml profiles.yml
+
+      - name: dbt build (seed + models + data/unit/singular tests)
+        env:
+          DBT_PROFILES_DIR: .
+        run: dbt build
+
   airflow-dag-validate:
     runs-on: ubuntu-latest
     steps:
