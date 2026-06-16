@@ -13,6 +13,10 @@ __pycache__/
 .env
 output/
 
+# node / site (site/ is a Vite app)
+node_modules/
+dist/
+
 # os
 .DS_Store
 Thumbs.db
