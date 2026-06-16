@@ -35,3 +35,36 @@ models:
           - accepted_values:
               arguments:
                 values: [true, false]
+
+# ---------------------------------------------------------------------------
+# Unit test (dbt 1.8+): validates the SQL *logic* against mocked inputs in CI,
+# separate from the data tests above that validate the *data* on every run.
+# Data tests catch bad data; this unit test catches bad logic (a regression in
+# the variance math or the materiality threshold) before it reaches the warehouse.
+# Uses the project's default vars (prior_period=2026Q1, current_period=2026Q2,
+# materiality_threshold=0.05).
+# ---------------------------------------------------------------------------
+unit_tests:
+  - name: test_variance_and_materiality_logic
+    description: >
+      Pins the variance math (abs + %) and the materiality flag against mocked
+      staging rows, independent of the seed. A change that breaks the threshold
+      boundary or the percent formula fails here in CI, not in production.
+    model: fct_account_variance
+    given:
+      - input: ref('stg_financials')
+        rows:
+          # +10% -> material (>= 5% threshold)
+          - { account: "Direct Materials", period: "2026Q1", amount: 1000000 }
+          - { account: "Direct Materials", period: "2026Q2", amount: 1100000 }
+          # 0% -> not material (flat depreciation)
+          - { account: "Depreciation", period: "2026Q1", amount: 75000 }
+          - { account: "Depreciation", period: "2026Q2", amount: 75000 }
+          # +2.5% -> not material (just under the 5% threshold — boundary guard)
+          - { account: "Freight In", period: "2026Q1", amount: 40000 }
+          - { account: "Freight In", period: "2026Q2", amount: 41000 }
+    expect:
+      rows:
+        - { account: "Direct Materials", prior_amount: 1000000, current_amount: 1100000, variance_abs: 100000, variance_pct: 0.1,   is_material: true }
+        - { account: "Depreciation",     prior_amount: 75000,   current_amount: 75000,   variance_abs: 0,      variance_pct: 0.0,   is_material: false }
+        - { account: "Freight In",       prior_amount: 40000,   current_amount: 41000,   variance_abs: 1000,   variance_pct: 0.025, is_material: false }
