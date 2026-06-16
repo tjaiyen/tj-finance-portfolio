@@ -1,0 +1,4 @@
+customer_id,input_token_rate,output_token_rate
+cust_a,0.00004,0.00006
+cust_b,0.00005,0.00008
+cust_c,0.000015,0.00002

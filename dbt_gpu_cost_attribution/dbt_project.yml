@@ -1,0 +1,53 @@
+name: 'gpu_cost_attribution'
+version: '1.0.0'
+config-version: 2
+
+profile: 'gpu_cost_attribution'
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+vars:
+  # Override with --vars at run time without touching SQL.
+  inference_fleet: 'inference'   # training compute is R&D, excluded from COGS
+  margin_warning_below: 0.40     # < 40% gross margin  -> warning zone
+  margin_best_above: 0.65        # > 65% gross margin  -> best-in-class zone
+
+models:
+  gpu_cost_attribution:
+    staging:
+      +materialized: view
+    intermediate:
+      +materialized: view
+    marts:
+      +materialized: table
+
+seeds:
+  gpu_cost_attribution:
+    raw_api_usage:
+      +column_types:
+        usage_date: date
+        customer_id: varchar
+        model_id: varchar
+        input_tokens: bigint
+        output_tokens: bigint
+        query_count: integer
+    raw_gpu_billing:
+      +column_types:
+        usage_date: date
+        fleet_type: varchar
+        gpu_type: varchar
+        hours_provisioned: double
+        hours_used: double
+        hourly_rate: double
+    raw_contracts:
+      +column_types:
+        customer_id: varchar
+        input_token_rate: double
+        output_token_rate: double

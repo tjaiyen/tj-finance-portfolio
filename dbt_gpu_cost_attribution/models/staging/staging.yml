@@ -1,0 +1,38 @@
+version: 2
+
+models:
+  - name: stg_api_usage
+    description: "Typed API usage telemetry — one row per usage_date / customer / model."
+    columns:
+      - name: usage_date
+        tests: [not_null]
+      - name: customer_id
+        tests: [not_null]
+      - name: input_tokens
+        tests: [not_null]
+      - name: output_tokens
+        tests: [not_null]
+
+  - name: stg_gpu_billing
+    description: "Typed GPU billing rows; fleet_type separates inference (COGS) from training (R&D)."
+    columns:
+      - name: usage_date
+        tests: [not_null]
+      - name: fleet_type
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['inference', 'training']
+      - name: hourly_rate
+        tests: [not_null]
+
+  - name: stg_contracts
+    description: "Per-customer usage-based pricing."
+    columns:
+      - name: customer_id
+        tests: [not_null, unique]
+      - name: input_token_rate
+        tests: [not_null]
+      - name: output_token_rate
+        tests: [not_null]

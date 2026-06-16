@@ -1,0 +1,7 @@
+usage_date,fleet_type,gpu_type,hours_provisioned,hours_used,hourly_rate
+2026-05-01,inference,T4,24,18,0.35
+2026-05-01,inference,L4,24,20,0.72
+2026-05-01,training,A100,8,6,2.49
+2026-05-02,inference,T4,24,20,0.35
+2026-05-02,inference,L4,24,22,0.72
+2026-05-02,training,A100,8,5,2.49

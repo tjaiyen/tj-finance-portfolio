@@ -1,0 +1,69 @@
+version: 2
+
+models:
+  - name: fct_daily_tenant_costs
+    description: >
+      Per-tenant, per-day fully-loaded cost (direct compute + absorbed idle overhead),
+      revenue, gross margin, and a margin zone. Grain: one row per customer per usage_date.
+      Governance: every customer must exist in contracts (relationship test); no figure is
+      produced outside dbt.
+    columns:
+      - name: cost_sk
+        description: "Surrogate key: md5(customer_id | usage_date)."
+        tests:
+          - not_null
+          - unique
+      - name: customer_id
+        description: "Tenant natural key."
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_contracts')
+                field: customer_id
+      - name: usage_date
+        tests:
+          - not_null
+      - name: allocated_idle_cost
+        description: "Absorbed share of idle GPU capacity (allocation_ratio x idle_cost)."
+        tests:
+          - not_null
+      - name: total_cost
+        description: "direct_cost + allocated_idle_cost."
+        tests:
+          - not_null
+      - name: margin_zone
+        description: "warning (<40%) / standard (40-65%) / best_in_class (>65%)."
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['warning', 'standard', 'best_in_class']
+
+# ---------------------------------------------------------------------------
+# Unit test (dbt 1.8+): validates the allocation + margin *logic* against mocked
+# intermediate inputs in CI — independent of the seed. Data tests above guard the
+# data; this guards the math (a regression in the absorption key or the zone
+# thresholds fails here before it reaches the warehouse).
+# ---------------------------------------------------------------------------
+unit_tests:
+  - name: test_idle_allocation_and_margin
+    description: >
+      Two tenants split a day's cluster cost by token share (0.75 / 0.25) over an
+      active pool of 1000 and an idle pool of 100. Asserts the absorbed overhead,
+      the loaded total, and the resulting margin zone for two different revenues.
+    model: fct_daily_tenant_costs
+    given:
+      - input: ref('int_tenant_allocation')
+        rows:
+          - { usage_date: "2026-05-01", customer_id: "cust_x", tenant_tokens: 750, allocation_ratio: 0.75, revenue: 1500 }
+          - { usage_date: "2026-05-01", customer_id: "cust_y", tenant_tokens: 250, allocation_ratio: 0.25, revenue: 1000 }
+      - input: ref('int_daily_cluster_cost')
+        rows:
+          - { usage_date: "2026-05-01", active_cost: 1000, idle_cost: 100 }
+    expect:
+      rows:
+        # 0.75 x 1000 = 750 direct, 0.75 x 100 = 75 idle, total 825; (1500-825)/1500 = 0.45 -> standard
+        - { customer_id: "cust_x", direct_cost: 750.0, allocated_idle_cost: 75.0, total_cost: 825.0, gross_margin_pct: 0.45, margin_zone: "standard" }
+        # 0.25 x 1000 = 250 direct, 0.25 x 100 = 25 idle, total 275; (1000-275)/1000 = 0.725 -> best_in_class
+        - { customer_id: "cust_y", direct_cost: 250.0, allocated_idle_cost: 25.0, total_cost: 275.0, gross_margin_pct: 0.725, margin_zone: "best_in_class" }

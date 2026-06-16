@@ -1,0 +1,7 @@
+usage_date,customer_id,model_id,input_tokens,output_tokens,query_count
+2026-05-01,cust_a,claude-3-sonnet,600000,200000,1200
+2026-05-01,cust_b,claude-3-haiku,300000,100000,800
+2026-05-01,cust_c,llama-3-70b,150000,50000,400
+2026-05-02,cust_a,claude-3-sonnet,500000,150000,1050
+2026-05-02,cust_b,claude-3-haiku,400000,120000,950
+2026-05-02,cust_c,llama-3-70b,200000,80000,520

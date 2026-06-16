@@ -1,0 +1,9 @@
+# Copy to ~/.dbt/profiles.yml, or run with DBT_PROFILES_DIR pointed at this folder.
+# DuckDB = local file database, no cloud warehouse needed.
+gpu_cost_attribution:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: gpu_cost_attribution.duckdb
+      threads: 4
