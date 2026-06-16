@@ -1,0 +1,3 @@
+# Keep GitHub's language bar focused on the data/AI code (Python, SQL/dbt),
+# not the static case-study site under site/.
+site/** linguist-vendored=true
