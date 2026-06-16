@@ -36,7 +36,23 @@ judgment and language; and a **hallucination guardrail** rejects any output that
 the source. The point isn't "AI writes text" — it's knowing where AI earns trust in a close and where a human
 must verify.
 
+## [`dbt_gpu_cost_attribution/`](./dbt_gpu_cost_attribution) — <!-- TODO TJ: one-line title in your voice -->
+<!-- TJ: write this section in your own voice. Factual bullets to draw from:
+  - Ports the same discipline into AI cloud unit economics (FinOps).
+  - Allocates shared GPU idle capacity across tenants by token share = overhead absorption (job-order costing).
+  - Computes per-tenant gross margin + margin zones; on synthetic data it surfaces an unprofitable tenant.
+  - dbt + DuckDB; three test tiers (data tests + a unit test + 2 singular tests); `dbt build` -> 33 pass. -->
+
+## [`site/`](./site) — <!-- TODO TJ: one-line title in your voice -->
+<!-- TJ: write this section in your own voice. Factual bullets:
+  - Vite + Tailwind static case-study page; live at https://tjaiyen.github.io/tj-finance-portfolio/
+  - Ties the projects together; includes an interactive client-side variance/margin sandbox.
+  - Auto-deploys to GitHub Pages via .github/workflows/deploy.yml. -->
+
 ## Why these three together
+<!-- TODO TJ: this framing + the ASCII diagram above describe THREE layers, but the repo now also includes
+     dbt_gpu_cost_attribution/ and site/ (five top-level pieces). The "both projects" synthetic-data line below
+     is also stale. Update the framing / diagram / count in your own voice. -->
 Same finance logic, three layers: dbt for the trustworthy modeled data, Airflow/Cosmos for reliable
 scheduling and recovery, an AI layer on top for narrative and triage. Deterministic numbers, tested models,
 orchestrated runs, AI for judgment — with guardrails at every step.
