@@ -36,18 +36,22 @@ judgment and language; and a **hallucination guardrail** rejects any output that
 the source. The point isn't "AI writes text" — it's knowing where AI earns trust in a close and where a human
 must verify.
 
-## [`dbt_gpu_cost_attribution/`](./dbt_gpu_cost_attribution) — <!-- TODO TJ: one-line title in your voice -->
-<!-- TJ: write this section in your own voice. Factual bullets to draw from:
-  - Ports the same discipline into AI cloud unit economics (FinOps).
-  - Allocates shared GPU idle capacity across tenants by token share = overhead absorption (job-order costing).
-  - Computes per-tenant gross margin + margin zones; on synthetic data it surfaces an unprofitable tenant.
-  - dbt + DuckDB; three test tiers (data tests + a unit test + 2 singular tests); `dbt build` -> 33 pass. -->
+## [`dbt_gpu_cost_attribution/`](./dbt_gpu_cost_attribution) — the same discipline, applied to AI cloud cost
+<!-- DRAFT (agent-written documentation per TJ's go-ahead) — polish into your voice. -->
+The cost-accounting discipline pointed at AI unit economics. A **dbt** project that attributes shared GPU cost
+to tenants: idle cluster capacity is absorbed across tenants by token share — the same **overhead-absorption**
+method used to spread shared factory cost in job-order costing — and per-tenant **gross margin** plus a
+**margin zone** fall out. Three test tiers guard it: data tests, a **unit test** on the allocation/margin
+logic, and **singular tests** (allocation ratios must sum to 1; no negative costs). On the synthetic data it
+surfaces a tenant running at a negative margin — the *which customer is unprofitable, and why* question, answered
+by tested models. Runs locally on **DuckDB**: `pip install dbt-duckdb` then `dbt build` → 33 tests pass.
 
-## [`site/`](./site) — <!-- TODO TJ: one-line title in your voice -->
-<!-- TJ: write this section in your own voice. Factual bullets:
-  - Vite + Tailwind static case-study page; live at https://tjaiyen.github.io/tj-finance-portfolio/
-  - Ties the projects together; includes an interactive client-side variance/margin sandbox.
-  - Auto-deploys to GitHub Pages via .github/workflows/deploy.yml. -->
+## [`site/`](./site) — interactive case-study site (live)
+<!-- DRAFT (agent-written documentation per TJ's go-ahead) — polish into your voice. -->
+A static **Vite + Tailwind** page that ties the projects together for a hiring-reviewer audience, with an
+interactive **variance / margin sandbox** that runs the same math the dbt mart computes — client-side, no
+backend. Auto-deploys to **GitHub Pages** via `.github/workflows/deploy.yml`.
+🔗 Live: **https://tjaiyen.github.io/tj-finance-portfolio/**
 
 ## Why these three together
 <!-- TODO TJ: this framing + the ASCII diagram above describe THREE layers, but the repo now also includes
