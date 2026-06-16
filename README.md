@@ -21,7 +21,7 @@ raw GL (seed) ──> dbt: staging ──> fct_account_variance (tested mart)
 A real **dbt** project: raw GL seed → typed **staging** model → a tested **`fct_account_variance`** mart
 (prior-vs-current variance, % change, materiality flag). Includes schema tests plus a **relationship test**
 so the mart can never reference an account that isn't in the source — data governance enforced in CI.
-Runs locally on **DuckDB** (no warehouse): `pip install dbt-duckdb` then `dbt build` → 13 tests pass.
+Runs locally on **DuckDB** (no warehouse): `pip install dbt-duckdb` then `dbt build` → 14 tests pass.
 
 ## [`airflow_orchestration/`](./airflow_orchestration) — Airflow + Astronomer Cosmos
 The dbt project rendered into **native Airflow tasks via Cosmos**: every seed, model, and test is its own
