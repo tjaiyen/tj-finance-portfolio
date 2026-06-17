@@ -1,0 +1,26 @@
+name: agent-ci
+
+# Runs the Claude finance agent's deterministic guardrail tests on every commit.
+# No API key / no SDK needed — the pure logic is decoupled from the Anthropic call,
+# so this gates the verification layer for free (proves hallucination + coverage +
+# schema guardrails fire, and the variance math is correct).
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  guardrail-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: claude_finance_agent
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install pytest
+        run: pip install pytest
+      - name: Run guardrail eval tests
+        run: pytest tests/ -v

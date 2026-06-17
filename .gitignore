@@ -17,6 +17,11 @@ output/
 node_modules/
 dist/
 
+# generated eval run-artifacts (regenerated from a real run; the harness + cases are tracked)
+claude_finance_agent/evals/eval_report.md
+claude_finance_agent/evals/eval_results.json
+.pytest_cache/
+
 # os
 .DS_Store
 Thumbs.db

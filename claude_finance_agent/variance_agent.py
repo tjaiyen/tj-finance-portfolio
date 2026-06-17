@@ -22,8 +22,6 @@ import os
 import sys
 from pathlib import Path
 
-import anthropic
-
 # Set to a model available on your account. Adjust as Anthropic releases new versions.
 DEFAULT_MODEL = "claude-sonnet-4-5"
 
@@ -102,6 +100,7 @@ def build_prompt(variances, threshold):
 
 
 def call_claude(prompt, model):
+    import anthropic  # imported here so the pure logic + tests don't require the SDK
     client = anthropic.Anthropic()  # reads ANTHROPIC_API_KEY from env
     msg = client.messages.create(
         model=model,
