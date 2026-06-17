@@ -1,0 +1,12 @@
+{
+  "_doc": "Optional ground-truth account types for direction scoring only. account -> revenue|cost|neutral. Cases/accounts not listed are skipped for the direction metric (all other metrics need no labels).",
+  "clean.csv": {
+    "Revenue": "revenue",
+    "Direct Labor": "cost",
+    "Office Supplies": "cost"
+  },
+  "big_swing.csv": {
+    "Warranty Reserve": "cost",
+    "Scrap": "cost"
+  }
+}

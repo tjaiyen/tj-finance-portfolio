@@ -33,6 +33,48 @@ cp .env.example .env        # add your ANTHROPIC_API_KEY
 python variance_agent.py sample_data/financials_q1_q2.csv --threshold 0.05
 ```
 
+## Tested — the guardrails are proven, not just claimed
+
+A guardrail is only worth as much as the evidence it fires. This repo ships a deterministic
+test suite that proves each one, with **no API calls** (so it runs free on every commit in CI):
+
+```bash
+pip install pytest
+pytest tests/ -v        # 12 tests
+```
+
+The suite (`tests/test_guardrails.py`) verifies:
+- **Hallucination guardrail** flags a model output that references an account not in the source
+- **Coverage guardrail** flags a material variance the model failed to address
+- **Schema guardrail** flags bad enums / missing narrative / malformed structure
+- **Variance math** is correct, including the zero-prior (divide-by-zero) edge case
+- **Tolerant JSON parsing** handles raw and code-fenced model output
+- **Facts win** — code-computed numbers override anything the model says in the merged report
+
+CI (`.github/workflows/agent-ci.yml`) runs this on every push. The pure logic is decoupled
+from the Anthropic SDK so the verification layer needs neither the SDK nor a key.
+
+### Behavioral eval (scored, over an adversarial dataset)
+
+Beyond the unit tests, a behavioral eval runs the agent over a golden, partly-adversarial
+dataset (`evals/cases/` — near-threshold variances, a zero-prior account, a huge swing, an
+all-immaterial period, and a name that tempts the model to shorten a GL account) and scores
+its behavior against **deterministic ground truth derived from the input** — the variance math
+is the answer key, so the core metrics need no hand-labeling:
+
+```bash
+python evals/run_eval.py --mock     # offline, deterministic stub — proves the scorer (no API)
+python evals/run_eval.py            # real: calls Claude (needs ANTHROPIC_API_KEY)
+python evals/run_eval.py --runs 3   # repeat each case for stability
+```
+
+Metrics written to `evals/eval_report.md`: **schema-validity rate, hallucination-attempt rate,
+coverage recall, guardrail catch rate** (target 100%), and **direction accuracy** (favorable/
+unfavorable vs ground truth, using optional account-type labels in `evals/labels.json`).
+
+This is the part most "AI agent" demos skip: automated validation and QA of AI-generated
+outputs, measured — not asserted.
+
 ## Notes
 
 - Sample data is **synthetic** — no employer or confidential data is included.
