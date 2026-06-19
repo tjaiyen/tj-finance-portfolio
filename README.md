@@ -2,7 +2,7 @@
 
 [![dbt CI](https://github.com/tjaiyen/tj-finance-portfolio/actions/workflows/dbt-ci.yml/badge.svg)](https://github.com/tjaiyen/tj-finance-portfolio/actions/workflows/dbt-ci.yml)
 
-Three small, runnable layers that show how I work: a cost accountant who builds the data, orchestration,
+Five small, runnable projects that show how I work: a cost accountant who builds the data, orchestration,
 and AI layers behind finance reporting, with correctness and governance built in — not bolted on.
 
 **Business context:** every month-end close asks the same question — *which accounts moved, are the moves
@@ -10,11 +10,14 @@ material, and why?* This repo answers it the way a production finance-data team 
 for the numbers, Airflow for the schedule and recovery, an LLM only for the judgment layer — never the math.
 
 ```
-raw GL (seed) ──> dbt: staging ──> fct_account_variance (tested mart)
-                        ▲                    │
-        Airflow + Cosmos orchestration       ▼
-        (per-model tasks & retries)   Claude variance agent
-                                      (narrative + exception flags, guardrailed)
+raw GL (seed) ──> dbt_finance_variance ──> fct_account_variance (tested mart)
+                        ▲                             │
+        Airflow + Cosmos orchestration                ▼
+        (per-model tasks & retries)         Claude variance agent
+                        ▲                  (narrative + exception flags, guardrailed)
+GPU events (seed) ──> dbt_gpu_cost_attribution ──> gpu_cost_by_tenant
+
+site/ ──> interactive sandbox (same variance + margin math, runs client-side)
 ```
 
 ## [`dbt_finance_variance/`](./dbt_finance_variance) — modern-data-stack variance modeling
@@ -37,7 +40,6 @@ the source. The point isn't "AI writes text" — it's knowing where AI earns tru
 must verify.
 
 ## [`dbt_gpu_cost_attribution/`](./dbt_gpu_cost_attribution) — the same discipline, applied to AI cloud cost
-<!-- DRAFT (agent-written documentation per TJ's go-ahead) — polish into your voice. -->
 The cost-accounting discipline pointed at AI unit economics. A **dbt** project that attributes shared GPU cost
 to tenants: idle cluster capacity is absorbed across tenants by token share — the same **overhead-absorption**
 method used to spread shared factory cost in job-order costing — and per-tenant **gross margin** plus a
@@ -47,20 +49,18 @@ surfaces a tenant running at a negative margin — the *which customer is unprof
 by tested models. Runs locally on **DuckDB**: `pip install dbt-duckdb` then `dbt build` → 33 tests pass.
 
 ## [`site/`](./site) — interactive case-study site (live)
-<!-- DRAFT (agent-written documentation per TJ's go-ahead) — polish into your voice. -->
 A static **Vite + Tailwind** page that ties the projects together for a hiring-reviewer audience, with an
 interactive **variance / margin sandbox** that runs the same math the dbt mart computes — client-side, no
 backend. Auto-deploys to **GitHub Pages** via `.github/workflows/deploy.yml`.
 🔗 Live: **https://tjaiyen.github.io/tj-finance-portfolio/**
 
-## Why these three together
-<!-- TODO TJ: this framing + the ASCII diagram above describe THREE layers, but the repo now also includes
-     dbt_gpu_cost_attribution/ and site/ (five top-level pieces). The "both projects" synthetic-data line below
-     is also stale. Update the framing / diagram / count in your own voice. -->
-Same finance logic, three layers: dbt for the trustworthy modeled data, Airflow/Cosmos for reliable
-scheduling and recovery, an AI layer on top for narrative and triage. Deterministic numbers, tested models,
-orchestrated runs, AI for judgment — with guardrails at every step.
+## Why these five together
+Five pieces, same discipline: two dbt projects for the modeled numbers, Airflow/Cosmos for reliable
+scheduling and recovery, a Claude agent for the narrative layer, and site/ to tie it together for a
+hiring reviewer. The finance variance track and the GPU cost track use the same method — tested models,
+deterministic math, orchestrated runs. The AI layer touches only judgment and language; the guardrail
+rejects any output that references an account not in the source.
 
-*Data in both projects is synthetic. No employer or confidential information is included.*
+*Data in all projects is synthetic. No employer or confidential information is included.*
 
 — Theerayut (TJ) Jaiyen · linkedin.com/in/jaiyentheerayut
