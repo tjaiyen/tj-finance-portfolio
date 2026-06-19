@@ -22,6 +22,12 @@ claude_finance_agent/evals/eval_report.md
 claude_finance_agent/evals/eval_results.json
 .pytest_cache/
 
+# quarto decks
+decks/_site/
+decks/.quarto/
+decks/*_files/
+decks/.venv/
+
 # os
 .DS_Store
 Thumbs.db

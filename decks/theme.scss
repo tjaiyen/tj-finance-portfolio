@@ -1,0 +1,18 @@
+/*-- scss:defaults --*/
+// Clean, professional reveal.js theme for the finance + AI portfolio decks.
+$font-family-sans-serif: "Helvetica Neue", "Inter", Arial, sans-serif;
+$presentation-heading-font: "Helvetica Neue", "Inter", Arial, sans-serif;
+$body-color: #1a1a1a;
+$presentation-heading-color: #0b2545;   // deep navy
+$link-color: #1f6feb;                    // restrained blue accent
+$selection-bg: #cde4ff;
+$presentation-heading-font-weight: 600;
+
+/*-- scss:rules --*/
+.reveal h1, .reveal h2, .reveal h3 { letter-spacing: -0.01em; }
+.reveal .slide-number { font-size: 0.6em; opacity: 0.6; }
+.reveal .footer { color: #9aa0a6; font-size: 0.6em; }
+.reveal section img { border-radius: 6px; }
+.reveal pre code { font-size: 0.82em; line-height: 1.35; }
+.reveal blockquote { border-left: 3px solid $link-color; font-style: normal; }
+.reveal .accent { color: $link-color; }

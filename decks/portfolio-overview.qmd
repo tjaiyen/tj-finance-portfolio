@@ -1,0 +1,134 @@
+---
+title: "Finance Data & AI Portfolio"
+subtitle: "Tested models · orchestrated runs · AI for judgment — never the math"
+author: "Theerayut (TJ) Jaiyen"
+date: today
+format:
+  revealjs:
+    theme: [default, theme.scss]
+    embed-resources: true     # single self-contained .html — easy to share/present offline
+    slide-number: true
+    footer: "TJ Jaiyen · linkedin.com/in/jaiyentheerayut"
+    transition: fade
+    width: 1280
+    height: 720
+jupyter: python3
+---
+
+## The question every close asks {.center}
+
+> *Which accounts moved, are the moves material, and why?*
+
+A cost accountant who builds the **data, orchestration, and AI layers** behind finance
+reporting — with correctness and governance **built in, not bolted on**.
+
+::: notes
+Anchor on the business problem first, not the tech. Every month-end close is this one question.
+:::
+
+## The approach
+
+- **Tested dbt models** for the numbers — never a spreadsheet
+- **Airflow + Cosmos** for the schedule, retries, and recovery
+- **An LLM only for the judgment layer** — narrative and exception flags, guardrailed
+
+. . .
+
+The AI touches **judgment and language**. The math is deterministic and tested.
+
+## How it fits together
+
+```{mermaid}
+flowchart LR
+  G[raw GL seed] --> V[dbt_finance_variance]
+  V --> M[fct_account_variance · tested mart]
+  A[Airflow + Cosmos] -.per-model tasks & retries.-> V
+  M --> C[Claude variance agent · guardrailed]
+  P[GPU events seed] --> X[dbt_gpu_cost_attribution] --> T[gpu_cost_by_tenant]
+  M --> S[site/ · client-side sandbox]
+```
+
+## dbt_finance_variance — the modeled numbers
+
+Raw GL → typed **staging** → a tested **`fct_account_variance`** mart
+(prior-vs-current variance, % change, materiality flag).
+
+- A **relationship test** means the mart can never reference an account absent from the source —
+  **data governance enforced in CI**
+- Runs locally on **DuckDB**, no warehouse: `dbt build` → **14 tests pass**
+
+## What the mart surfaces {.smaller}
+
+```{python}
+#| label: variance-chart
+#| echo: false
+#| fig-align: center
+import pandas as pd, matplotlib.pyplot as plt
+df = pd.read_csv("../dbt_finance_variance/seeds/raw_financials.csv")
+piv = df.pivot_table(index="account", columns="period", values="amount")
+piv["pct"] = (piv["2026Q2"] - piv["2026Q1"]) / piv["2026Q1"] * 100
+top = piv.reindex(piv["pct"].abs().sort_values(ascending=False).index).head(8)[::-1]
+colors = ["#c0392b" if v > 0 else "#1e8449" for v in top["pct"]]
+fig, ax = plt.subplots(figsize=(10, 4.6))
+ax.barh(top.index, top["pct"], color=colors)
+ax.axvline(0, color="#888", lw=0.8)
+ax.set_xlabel("Q1 → Q2 variance (%)"); ax.set_title("Top account movers — prior vs current period")
+for s in ["top", "right"]: ax.spines[s].set_visible(False)
+for y, v in enumerate(top["pct"]):
+    ax.text(v + (3 if v >= 0 else -3), y, f"{v:+.0f}%", va="center",
+            ha="left" if v >= 0 else "right", fontsize=9)
+plt.tight_layout(); plt.show()
+```
+
+Purchase Price Variance and Labor Efficiency Variance are the swings a controller flags first.
+
+## dbt_gpu_cost_attribution — same discipline, AI cloud cost
+
+The cost-accounting method pointed at **AI unit economics**.
+
+- Idle GPU capacity absorbed across tenants **by token share** — the same **overhead-absorption**
+  logic that spreads shared factory cost in job-order costing
+- Per-tenant **gross margin** + a **margin zone** fall out
+- Three test tiers (data, a **unit test** on the allocation math, **singular tests**: ratios sum to 1,
+  no negative cost) → **33 tests pass**. It surfaces a **tenant running negative margin**.
+
+## airflow_orchestration — reliable runs
+
+The dbt project rendered into **native Airflow tasks via Astronomer Cosmos**.
+
+- Every seed, model, and test is **its own task** — isolated retries, model-level observability,
+  not one opaque `dbt build`
+- A downstream task hands the fresh mart to the Claude agent, and **degrades gracefully** with no API key
+- CI runs a **DagBag import test** on every push — a broken DAG can't land on `main`
+
+## claude_finance_agent — AI with guardrails
+
+Two periods of financials → a **CFO-ready narrative** + structured exception flags (Anthropic SDK).
+
+- Variances computed **deterministically in code**; the model is used **only for judgment and language**
+- A **hallucination guardrail** rejects any output referencing an account not in the source
+
+. . .
+
+> The point isn't "AI writes text" — it's knowing **where AI earns trust** in a close, and where a human must verify.
+
+## site/ — interactive case study {.smaller}
+
+A static **Vite + Tailwind** page tying the projects together for a hiring reviewer, with a
+**variance / margin sandbox** running the same math the dbt mart computes — client-side, no backend.
+Auto-deploys to **GitHub Pages**.
+
+🔗 **https://tjaiyen.github.io/tj-finance-portfolio/**
+
+## Why these five together {.center}
+
+Two dbt projects for the modeled numbers · Airflow/Cosmos for reliable runs · a guardrailed Claude
+agent for the narrative · a site to tie it together.
+
+**Same discipline throughout: tested models, deterministic math, AI only where it earns trust.**
+
+— Theerayut (TJ) Jaiyen · [linkedin.com/in/jaiyentheerayut](https://linkedin.com/in/jaiyentheerayut)
+
+::: notes
+Data in all projects is synthetic — no employer or confidential information.
+:::
