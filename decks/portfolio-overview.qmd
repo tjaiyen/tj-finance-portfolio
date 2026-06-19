@@ -40,12 +40,12 @@ The AI touches **judgment and language**. The math is deterministic and tested.
 
 ```{mermaid}
 flowchart LR
-  G[raw GL seed] --> V[dbt_finance_variance]
-  V --> M[fct_account_variance · tested mart]
-  A[Airflow + Cosmos] -.per-model tasks & retries.-> V
-  M --> C[Claude variance agent · guardrailed]
-  P[GPU events seed] --> X[dbt_gpu_cost_attribution] --> T[gpu_cost_by_tenant]
-  M --> S[site/ · client-side sandbox]
+  G[raw GL] --> V[dbt_finance_variance]
+  V --> M[fct_account_variance]
+  A[Airflow + Cosmos] -.->|orchestrates| V
+  M --> C[Claude agent]
+  P[GPU events] --> X[dbt_gpu_cost_attribution] --> T[gpu_cost_by_tenant]
+  M --> S[site sandbox]
 ```
 
 ## dbt_finance_variance — the modeled numbers

@@ -30,12 +30,12 @@ This is the FinOps extension of the finance-variance work — same method, diffe
 
 ```{mermaid}
 flowchart LR
-  U[raw_api_usage · tokens] --> A[int_tenant_allocation · token-share key + revenue]
-  B[raw_gpu_billing · provisioned vs used] --> C[int_daily_cluster_cost · active + idle pools]
-  K[raw_contracts · usage rates] --> A
+  U[raw_api_usage] --> A[int_tenant_allocation]
+  B[raw_gpu_billing] --> C[int_daily_cluster_cost]
+  K[raw_contracts] --> A
   A --> M[fct_daily_tenant_costs]
   C --> M
-  M --> Z[per-tenant margin + margin_zone]
+  M --> Z[per-tenant margin]
 ```
 
 `fleet_type` keeps **training compute (R&D) out of COGS** — only the inference fleet is absorbed.

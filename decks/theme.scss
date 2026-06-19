@@ -16,3 +16,7 @@ $presentation-heading-font-weight: 600;
 .reveal pre code { font-size: 0.82em; line-height: 1.35; }
 .reveal blockquote { border-left: 3px solid $link-color; font-style: normal; }
 .reveal .accent { color: $link-color; }
+
+// Keep Mermaid diagrams centered and contained within the slide (no overflow).
+.reveal .mermaid { display: flex; justify-content: center; }
+.reveal .mermaid svg { max-width: 100%; max-height: 68vh; height: auto; }
