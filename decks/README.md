@@ -3,6 +3,11 @@
 Interview-grade slide decks built from Markdown with [Quarto](https://quarto.org) (reveal.js).
 Off-Drive, version-controlled, and **data-driven** — charts run from the repo's real seed data.
 
+**Decks**
+- `portfolio-overview.qmd` — the whole portfolio in ~10 slides (variance chart from `dbt_finance_variance`).
+- `gpu-cost-attribution.qmd` — FinOps deep-dive: overhead absorption on GPU spend; per-tenant margin chart
+  that surfaces the negative-margin tenant.
+
 ## One-time setup
 - **Quarto CLI** lives at `~/.local/bin/quarto` (installed from the macOS tarball — no sudo). Put it on
   PATH: `export PATH="$HOME/.local/bin:$PATH"`. (Or `brew install quarto`, which needs a sudo password.)

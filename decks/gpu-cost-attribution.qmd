@@ -1,0 +1,119 @@
+---
+title: "GPU Cost Attribution"
+subtitle: "Factory overhead-absorption, pointed at a shared GPU cluster"
+author: "Theerayut (TJ) Jaiyen"
+date: today
+format:
+  revealjs:
+    theme: [default, theme.scss]
+    embed-resources: true
+    slide-number: true
+    footer: "TJ Jaiyen · linkedin.com/in/jaiyentheerayut"
+    transition: fade
+    width: 1280
+    height: 720
+jupyter: python3
+---
+
+## The idea in one line {.center}
+
+> Idle GPU capacity is **factory overhead**. You absorb it across tenants by an allocation key
+> (token volume) — exactly like spreading shared equipment cost across job orders by machine-hours.
+
+The cost-accounting discipline, pointed at **AI unit economics**.
+
+::: notes
+This is the FinOps extension of the finance-variance work — same method, different ledger.
+:::
+
+## The pipeline
+
+```{mermaid}
+flowchart LR
+  U[raw_api_usage · tokens] --> A[int_tenant_allocation · token-share key + revenue]
+  B[raw_gpu_billing · provisioned vs used] --> C[int_daily_cluster_cost · active + idle pools]
+  K[raw_contracts · usage rates] --> A
+  A --> M[fct_daily_tenant_costs]
+  C --> M
+  M --> Z[per-tenant margin + margin_zone]
+```
+
+`fleet_type` keeps **training compute (R&D) out of COGS** — only the inference fleet is absorbed.
+
+## The absorption method
+
+- **Idle pool** = provisioned − used GPU hours → the overhead to absorb
+- **Allocation key** = `tenant_tokens / daily_total_tokens` → each tenant's share
+- **Revenue** = tokens × contract rates; **margin** = revenue − absorbed cost
+
+. . .
+
+| Cost accounting | → | FinOps |
+|---|---|---|
+| overhead absorption | → | idle-capacity allocation |
+| standard-vs-actual variance | → | spend anomaly |
+| subledger-to-GL reconciliation | → | `relationships` test |
+
+## Which tenant is unprofitable — and why {.smaller}
+
+```{python}
+#| label: margin-chart
+#| echo: false
+#| fig-align: center
+import pandas as pd, matplotlib.pyplot as plt
+base = "../dbt_gpu_cost_attribution/seeds"
+bill = pd.read_csv(f"{base}/raw_gpu_billing.csv")
+use  = pd.read_csv(f"{base}/raw_api_usage.csv")
+con  = pd.read_csv(f"{base}/raw_contracts.csv")
+
+# COGS = inference fleet only (training is R&D); you pay for provisioned hours
+inf = bill[bill.fleet_type == "inference"].copy()
+inf["cost"] = inf.hours_provisioned * inf.hourly_rate
+day_cost = inf.groupby("usage_date")["cost"].sum().rename("cluster_cost")
+
+use["tokens"] = use.input_tokens + use.output_tokens
+day_tok = use.groupby("usage_date")["tokens"].sum().rename("day_tokens")
+u = use.merge(day_tok, on="usage_date").merge(day_cost, on="usage_date")
+u["alloc_cost"] = (u.tokens / u.day_tokens) * u.cluster_cost      # token-share absorption
+u = u.merge(con, on="customer_id")
+u["revenue"] = u.input_tokens*u.input_token_rate + u.output_tokens*u.output_token_rate
+
+g = u.groupby("customer_id").agg(rev=("revenue","sum"), cost=("alloc_cost","sum")).reset_index()
+g["margin_pct"] = (g.rev - g.cost) / g.rev * 100
+g = g.sort_values("margin_pct")
+colors = ["#c0392b" if v < 40 else ("#1e8449" if v > 65 else "#b7950b") for v in g.margin_pct]
+fig, ax = plt.subplots(figsize=(10, 4.3))
+ax.bar(g.customer_id, g.margin_pct, color=colors, width=0.55)
+ax.axhline(0, color="#888", lw=0.8); ax.axhline(40, color="#bbb", ls="--", lw=0.7)
+ax.set_ylabel("Gross margin (%)"); ax.set_title("Per-tenant gross margin — absorbed GPU cost vs contract revenue")
+for s in ["top","right"]: ax.spines[s].set_visible(False)
+for x, v in zip(g.customer_id, g.margin_pct):
+    ax.text(x, v + (2 if v>=0 else -4), f"{v:+.0f}%", ha="center", fontsize=10)
+plt.tight_layout(); plt.show()
+```
+
+`cust_c`'s contract rates don't cover its absorbed compute — **negative margin**; `cust_b` is best-in-class.
+_(Recomputed from the seeds; the mart computes the same in tested SQL with the active/idle pool split.)_
+
+## Governed by tests, not trust
+
+Three tiers, all run by `dbt build` — **nothing ships if one fails**:
+
+- **Data tests** — not_null / unique key, `relationships` (every tenant exists in contracts),
+  `accepted_values` on `fleet_type` and `margin_zone`
+- **Unit test** — pins the allocation + margin *logic* against mocked inputs in CI
+- **Singular tests** — allocation ratios **sum to 1** per day (nothing lost or double-counted);
+  **no negative costs**
+
+## Why it matters {.center}
+
+The "**which customer is unprofitable, and why**" question — answered by **tested, auditable models**,
+not a spreadsheet.
+
+Same discipline as the GL variance work: facts in SQL, governed by tests; AI only where it earns trust.
+
+— Theerayut (TJ) Jaiyen · [linkedin.com/in/jaiyentheerayut](https://linkedin.com/in/jaiyentheerayut)
+
+::: notes
+Synthetic data only — GPU rates are illustrative point-in-time 2026.
+:::
