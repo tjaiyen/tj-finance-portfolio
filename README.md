@@ -20,6 +20,26 @@ GPU events (seed) ──> dbt_gpu_cost_attribution ──> gpu_cost_by_tenant
 site/ ──> interactive sandbox (same variance + margin math, runs client-side)
 ```
 
+## Try it in 60 seconds
+
+```bash
+git clone https://github.com/tjaiyen/tj-finance-portfolio
+cd tj-finance-portfolio/dbt_finance_variance
+pip install dbt-duckdb
+dbt build       # 14 tests pass; fct_account_variance is your mart
+```
+
+Want the AI layer? Set `ANTHROPIC_API_KEY` and:
+
+```bash
+cd ../claude_finance_agent
+python main.py  # CFO narrative + exception flags; hallucination guardrail active
+```
+
+🔗 Interactive sandbox (no install): **https://tjaiyen.github.io/tj-finance-portfolio/**
+
+---
+
 ## [`dbt_finance_variance/`](./dbt_finance_variance) — modern-data-stack variance modeling
 A real **dbt** project: raw GL seed → typed **staging** model → a tested **`fct_account_variance`** mart
 (prior-vs-current variance, % change, materiality flag). Includes schema tests plus a **relationship test**
