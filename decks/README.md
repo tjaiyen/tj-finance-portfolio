@@ -6,7 +6,15 @@ Off-Drive, version-controlled, and **data-driven** — charts run from the repo'
 **Decks**
 - `portfolio-overview.qmd` — the whole portfolio in ~10 slides (variance chart from `dbt_finance_variance`).
 - `gpu-cost-attribution.qmd` — FinOps deep-dive: overhead absorption on GPU spend; per-tenant margin chart
-  that surfaces the negative-margin tenant.
+  read from the **tested dbt mart** (`data/gpu_tenant_costs.csv`), surfacing the negative-margin tenant.
+
+**Refresh the GPU mart snapshot** (after changing that dbt model):
+```bash
+cd ../dbt_gpu_cost_attribution && cp profiles.example.yml profiles.yml
+DBT_PROFILES_DIR=. ../decks/.venv/bin/dbt build
+../decks/.venv/bin/python -c "import duckdb,os; duckdb.connect('gpu_cost_attribution.duckdb').execute('select * from main.fct_daily_tenant_costs').df().to_csv(os.path.expanduser('../decks/data/gpu_tenant_costs.csv'),index=False)"
+```
+The deck falls back to recomputing from seeds if that CSV is absent, so it always renders.
 
 ## One-time setup
 - **Quarto CLI** lives at `~/.local/bin/quarto` (installed from the macOS tarball — no sudo). Put it on

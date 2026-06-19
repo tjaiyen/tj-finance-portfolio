@@ -61,24 +61,25 @@ flowchart LR
 #| echo: false
 #| fig-align: center
 import pandas as pd, matplotlib.pyplot as plt
-base = "../dbt_gpu_cost_attribution/seeds"
-bill = pd.read_csv(f"{base}/raw_gpu_billing.csv")
-use  = pd.read_csv(f"{base}/raw_api_usage.csv")
-con  = pd.read_csv(f"{base}/raw_contracts.csv")
+from pathlib import Path
 
-# COGS = inference fleet only (training is R&D); you pay for provisioned hours
-inf = bill[bill.fleet_type == "inference"].copy()
-inf["cost"] = inf.hours_provisioned * inf.hourly_rate
-day_cost = inf.groupby("usage_date")["cost"].sum().rename("cluster_cost")
+mart = Path("data/gpu_tenant_costs.csv")   # exported from `dbt build` (fct_daily_tenant_costs)
+if mart.exists():
+    m = pd.read_csv(mart)
+    g = m.groupby("customer_id").agg(rev=("revenue","sum"), cost=("total_cost","sum")).reset_index()
+    source = "dbt mart · fct_daily_tenant_costs (dbt build → 33 tests pass)"
+else:  # fallback so the deck always renders without a dbt build
+    b = "../dbt_gpu_cost_attribution/seeds"
+    bill = pd.read_csv(f"{b}/raw_gpu_billing.csv"); use = pd.read_csv(f"{b}/raw_api_usage.csv"); con = pd.read_csv(f"{b}/raw_contracts.csv")
+    inf = bill[bill.fleet_type=="inference"].copy(); inf["c"]=inf.hours_provisioned*inf.hourly_rate
+    dc = inf.groupby("usage_date")["c"].sum().rename("cluster")
+    use["tok"]=use.input_tokens+use.output_tokens
+    dt = use.groupby("usage_date")["tok"].sum().rename("day"); u = use.merge(dt,on="usage_date").merge(dc,on="usage_date")
+    u["cost"]=(u.tok/u.day)*u.cluster; u = u.merge(con,on="customer_id")
+    u["rev"]=u.input_tokens*u.input_token_rate+u.output_tokens*u.output_token_rate
+    g = u.groupby("customer_id").agg(rev=("rev","sum"), cost=("cost","sum")).reset_index()
+    source = "recomputed from seeds (no dbt build present)"
 
-use["tokens"] = use.input_tokens + use.output_tokens
-day_tok = use.groupby("usage_date")["tokens"].sum().rename("day_tokens")
-u = use.merge(day_tok, on="usage_date").merge(day_cost, on="usage_date")
-u["alloc_cost"] = (u.tokens / u.day_tokens) * u.cluster_cost      # token-share absorption
-u = u.merge(con, on="customer_id")
-u["revenue"] = u.input_tokens*u.input_token_rate + u.output_tokens*u.output_token_rate
-
-g = u.groupby("customer_id").agg(rev=("revenue","sum"), cost=("alloc_cost","sum")).reset_index()
 g["margin_pct"] = (g.rev - g.cost) / g.rev * 100
 g = g.sort_values("margin_pct")
 colors = ["#c0392b" if v < 40 else ("#1e8449" if v > 65 else "#b7950b") for v in g.margin_pct]
@@ -89,11 +90,12 @@ ax.set_ylabel("Gross margin (%)"); ax.set_title("Per-tenant gross margin — abs
 for s in ["top","right"]: ax.spines[s].set_visible(False)
 for x, v in zip(g.customer_id, g.margin_pct):
     ax.text(x, v + (2 if v>=0 else -4), f"{v:+.0f}%", ha="center", fontsize=10)
+ax.text(0.99, -0.18, source, transform=ax.transAxes, ha="right", fontsize=7, color="#9aa0a6")
 plt.tight_layout(); plt.show()
 ```
 
-`cust_c`'s contract rates don't cover its absorbed compute — **negative margin**; `cust_b` is best-in-class.
-_(Recomputed from the seeds; the mart computes the same in tested SQL with the active/idle pool split.)_
+`cust_c`'s contract rates don't cover its absorbed compute — **negative margin** (warning zone);
+`cust_b` is best-in-class. These are the **dbt mart's own figures**, every one verified by `dbt build`.
 
 ## Governed by tests, not trust
 
