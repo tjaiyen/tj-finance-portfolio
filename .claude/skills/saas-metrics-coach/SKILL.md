@@ -22,8 +22,9 @@ absorption → per-tenant margin is the same unit-economics muscle).
 ```bash
 python3 .claude/skills/saas-metrics-coach/scripts/metrics_calculator.py --mrr 80000 --customers 200 --churned 3
 python3 .claude/skills/saas-metrics-coach/scripts/quick_ratio_calculator.py --new-mrr 5000 --expansion 2000 --churned 1500
-python3 .claude/skills/saas-metrics-coach/scripts/unit_economics_simulator.py --mrr 80000 --growth 0.05 --churn 0.015 --cac 1200
+python3 .claude/skills/saas-metrics-coach/scripts/unit_economics_simulator.py --mrr 80000 --growth 5 --churn 1.5 --cac 1200
 ```
+`--growth`/`--churn` are **percent, not fractions** (e.g. `5` = 5%/mo, not `0.05`).
 Compute: ARR, MRR growth %, monthly churn, CAC, LTV, LTV:CAC, CAC payback, NRR. If a script is
 unavailable, fall back to `references/formulas.md`.
 
