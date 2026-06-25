@@ -249,10 +249,13 @@
         exception-review queue: ingest → score → draft → human approval).
       </p>
       <p class="mt-3 max-w-3xl text-sm text-text-secondary">
-        It's a personal tool I run on a daily schedule, so the code stays private — but the architecture is the
-        transferable part, and the engineering decisions behind it are laid out below. Happy to walk through the
-        implementation in detail.
+        The full system is a personal tool I run on a daily schedule, so it stays private — but the architecture is
+        the transferable part. A <strong class="text-text-primary">sanitized, clone-and-run skeleton</strong> of the
+        orchestration + guardrail layer (synthetic data, stdlib-only, tests included) is on GitHub.
       </p>
+      <div class="mt-4">
+        <a href="https://github.com/tjaiyen/tj-finance-portfolio/tree/main/agentic_ops_skeleton" class="btn-secondary text-sm">View the runnable skeleton →</a>
+      </div>
 
       <div class="mt-6 grid gap-4 md:grid-cols-3">
         <div class="card">
