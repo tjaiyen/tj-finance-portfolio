@@ -22,8 +22,14 @@ function initNav() {
   const btn = document.getElementById('nav-toggle')
   const menu = document.getElementById('nav-menu')
   if (!btn || !menu) return
-  btn.addEventListener('click', () => menu.classList.toggle('hidden'))
-  menu.querySelectorAll('a').forEach((a) => a.addEventListener('click', () => menu.classList.add('hidden')))
+  btn.addEventListener('click', () => {
+    const open = menu.classList.toggle('hidden') === false
+    btn.setAttribute('aria-expanded', String(open))
+  })
+  menu.querySelectorAll('a').forEach((a) => a.addEventListener('click', () => {
+    menu.classList.add('hidden')
+    btn.setAttribute('aria-expanded', 'false')
+  }))
 }
 
 window.addEventListener('DOMContentLoaded', () => {

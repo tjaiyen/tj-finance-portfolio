@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="theme-color" content="#0A0F1D" />
   <title>Finance + AI Engineering — Case Study</title>
   <meta name="description" content="A cost accountant building the trustworthy data + AI layer beneath financial reporting: deterministic logic for the numbers, LLMs for judgment, automated tests as the sign-off gate." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -20,11 +22,12 @@
         <a href="#thesis" class="hover:text-text-primary">Thesis</a>
         <a href="#translation" class="hover:text-text-primary">Translation</a>
         <a href="#projects" class="hover:text-text-primary">Projects</a>
+        <a href="#agentic-ops" class="hover:text-text-primary">Agentic Ops</a>
         <a href="#sandbox" class="hover:text-text-primary">Sandbox</a>
         <a href="#contact" class="hover:text-text-primary">Contact</a>
       </nav>
-      <button id="nav-toggle" aria-label="Toggle menu" class="lg:hidden" style="min-width:44px;min-height:44px;">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      <button id="nav-toggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="nav-menu" class="lg:hidden" style="min-width:44px;min-height:44px;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
       </button>
     </div>
     <div id="nav-menu" class="hidden border-t border-accent/15 lg:hidden">
@@ -32,6 +35,7 @@
         <a href="#thesis" class="py-2">Thesis</a>
         <a href="#translation" class="py-2">Translation</a>
         <a href="#projects" class="py-2">Projects</a>
+        <a href="#agentic-ops" class="py-2">Agentic Ops</a>
         <a href="#sandbox" class="py-2">Sandbox</a>
         <a href="#contact" class="py-2">Contact</a>
       </div>
@@ -68,7 +72,7 @@
     </section>
 
     <!-- ===== THESIS ===== -->
-    <section id="thesis" class="border-t border-accent/15 py-14">
+    <section id="thesis" class="scroll-mt-20 border-t border-accent/15 py-14">
       <h2 class="text-2xl font-bold sm:text-3xl">The thesis</h2>
       <p class="mt-4 max-w-3xl text-text-secondary">
         An AI that's right 95% of the time is unusable in finance if you can't tell which 5% is wrong. So the
@@ -94,7 +98,7 @@
     </section>
 
     <!-- ===== TRANSLATION MATRIX ===== -->
-    <section id="translation" class="border-t border-accent/15 py-14">
+    <section id="translation" class="scroll-mt-20 border-t border-accent/15 py-14">
       <h2 class="text-2xl font-bold sm:text-3xl">Cost accounting → data &amp; AI platform</h2>
       <p class="mt-4 max-w-3xl text-text-secondary">
         The transfer isn't a slogan — it's one-to-one. Each row is captioned by a real artifact in the repos below.
@@ -120,9 +124,9 @@
     </section>
 
     <!-- ===== PROJECTS ===== -->
-    <section id="projects" class="border-t border-accent/15 py-14">
+    <section id="projects" class="scroll-mt-20 border-t border-accent/15 py-14">
       <h2 class="text-2xl font-bold sm:text-3xl">The projects</h2>
-      <p class="mt-2 text-sm text-text-secondary">All three are synthetic-data only, clone-and-build, and verifiable — no warehouse account required.</p>
+      <p class="mt-2 text-sm text-text-secondary">The first three are synthetic-data only, clone-and-build, and verifiable — no warehouse account required. The fourth is an architecture case study of a larger agentic system (read below).</p>
 
       <div class="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <!-- Project 1 -->
@@ -172,6 +176,22 @@
           </ul>
           <a href="https://github.com/tjaiyen/tj-finance-portfolio/tree/main/dbt_gpu_cost_attribution" class="btn-secondary mt-4 text-sm">View repo →</a>
         </article>
+
+        <!-- Project 4 -->
+        <article class="card">
+          <h3 class="text-xl">Agentic Ops Pipeline</h3>
+          <p class="mt-1 font-mono text-xs text-text-code">Python · multi-agent · guardrails</p>
+          <p class="mt-3 text-sm text-text-secondary">
+            The same verify-before-trust discipline, scaled to orchestration: independent agents run a
+            recurring workflow, with a human-in-the-loop gate on every irreversible action.
+          </p>
+          <ul class="mt-3 space-y-1 text-sm text-text-primary">
+            <li>• <span class="text-text-secondary">Untrusted-input boundary</span> — scraped text is data, never instructions</li>
+            <li>• <span class="text-text-secondary">Deterministic / LLM split</span> — code owns the facts; the model judges</li>
+            <li>• <span class="text-text-secondary">Adversarial self-test</span> — pre-registered probes catch bugs pre-ship</li>
+          </ul>
+          <a href="#agentic-ops" class="btn-secondary mt-4 text-sm">Read the case study →</a>
+        </article>
       </div>
 
       <!-- DAG -->
@@ -217,8 +237,124 @@
       </div>
     </section>
 
+    <!-- ===== AGENTIC OPS CASE STUDY ===== -->
+    <section id="agentic-ops" class="scroll-mt-20 border-t border-accent/15 py-14">
+      <p class="badge mb-4">Case study · agentic systems</p>
+      <h2 class="text-2xl font-bold sm:text-3xl">Autonomous, guardrailed multi-agent operations</h2>
+      <p class="mt-4 max-w-3xl text-text-secondary">
+        The projects above prove the discipline on single tasks. This scales it to
+        <strong class="text-text-primary">orchestration</strong>: a pipeline of LLM agents — each with a clean
+        context — that runs a recurring, high-stakes workflow, with a person signing off on every irreversible,
+        outward-facing action. The same shape applies to finance ops (e.g. an automated month-end
+        exception-review queue: ingest → score → draft → human approval).
+      </p>
+      <p class="mt-3 max-w-3xl text-sm text-text-secondary">
+        It's a personal tool I run on a daily schedule, so the code stays private — but the architecture is the
+        transferable part, and the engineering decisions behind it are laid out below. Happy to walk through the
+        implementation in detail.
+      </p>
+
+      <div class="mt-6 grid gap-4 md:grid-cols-3">
+        <div class="card">
+          <div class="font-mono text-text-code">Orchestration</div>
+          <h3 class="mt-1 text-lg">Agents in parallel waves</h3>
+          <p class="mt-2 text-sm text-text-secondary">Independent, fresh-context agents fan out — discover, score, draft, review — and return <em>structured results, not prose</em>, so a deterministic layer can act on them safely.</p>
+        </div>
+        <div class="card">
+          <div class="font-mono text-text-code">Guardrails</div>
+          <h3 class="mt-1 text-lg">Untrusted input by default</h3>
+          <p class="mt-2 text-sm text-text-secondary">Every scraped or fetched string is treated as <em>data, never instructions</em> — header-only parsing, URL allow-listing, and a hard human-confirm gate before anything leaves the machine.</p>
+        </div>
+        <div class="card">
+          <div class="font-mono text-text-code">Verification</div>
+          <h3 class="mt-1 text-lg">Adversarial self-testing</h3>
+          <p class="mt-2 text-sm text-text-secondary">Independent reviewers attack each change with <em>pre-registered</em> expectations. This caught a prompt-injection gap and a data-loss bug <strong class="text-text-primary">before</strong> they reached a live run.</p>
+        </div>
+      </div>
+
+      <!-- Pipeline flow -->
+      <div class="card mt-6">
+        <h3 class="text-lg">Pipeline (human-in-the-loop on every outward action)</h3>
+        <p class="mt-1 text-sm text-text-secondary">Agents do the work; a person owns every irreversible step. Static diagram — illustrative.</p>
+        <div class="mt-4 overflow-x-auto">
+          <svg viewBox="0 0 860 200" class="w-full min-w-[720px]" role="img" aria-label="Agentic pipeline: discover, score, generate, then a human-reviewed queue gating the outward action">
+            <defs>
+              <marker id="arrow2" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+                <path d="M0,0 L8,3 L0,6 Z" fill="#94A3B8"/>
+              </marker>
+            </defs>
+            <line x1="150" y1="60" x2="200" y2="60" stroke="#94A3B8" stroke-width="2" marker-end="url(#arrow2)"/>
+            <line x1="320" y1="60" x2="370" y2="60" stroke="#94A3B8" stroke-width="2" marker-end="url(#arrow2)"/>
+            <line x1="490" y1="60" x2="540" y2="60" stroke="#94A3B8" stroke-width="2" marker-end="url(#arrow2)"/>
+            <line x1="660" y1="60" x2="710" y2="60" stroke="#94A3B8" stroke-width="2" marker-end="url(#arrow2)"/>
+            <rect x="20" y="38" width="130" height="44" rx="8" fill="#1E293B" stroke="#A78BFA" stroke-width="1.5"/>
+            <text x="85" y="58" text-anchor="middle" fill="#F1F5F9" font-family="JetBrains Mono, monospace" font-size="12">Discover</text>
+            <text x="85" y="73" text-anchor="middle" fill="#94A3B8" font-family="Inter, sans-serif" font-size="9">untrusted input</text>
+            <rect x="200" y="38" width="120" height="44" rx="8" fill="#1E293B" stroke="#06B6D4" stroke-width="1.5"/>
+            <text x="260" y="58" text-anchor="middle" fill="#F1F5F9" font-family="JetBrains Mono, monospace" font-size="12">Score</text>
+            <text x="260" y="73" text-anchor="middle" fill="#94A3B8" font-family="Inter, sans-serif" font-size="9">deterministic rubric</text>
+            <rect x="370" y="38" width="120" height="44" rx="8" fill="#1E293B" stroke="#06B6D4" stroke-width="1.5"/>
+            <text x="430" y="58" text-anchor="middle" fill="#F1F5F9" font-family="JetBrains Mono, monospace" font-size="12">Generate</text>
+            <text x="430" y="73" text-anchor="middle" fill="#94A3B8" font-family="Inter, sans-serif" font-size="9">drafted output</text>
+            <rect x="540" y="38" width="120" height="44" rx="8" fill="#1E293B" stroke="#10B981" stroke-width="1.5"/>
+            <text x="600" y="58" text-anchor="middle" fill="#F1F5F9" font-family="JetBrains Mono, monospace" font-size="12">Review queue</text>
+            <text x="600" y="73" text-anchor="middle" fill="#94A3B8" font-family="Inter, sans-serif" font-size="9">structured output</text>
+            <rect x="710" y="38" width="130" height="44" rx="8" fill="#0A0F1D" stroke="#F59E0B" stroke-width="2"/>
+            <text x="775" y="58" text-anchor="middle" fill="#F59E0B" font-family="JetBrains Mono, monospace" font-size="12">Human gate</text>
+            <text x="775" y="73" text-anchor="middle" fill="#F59E0B" font-family="Inter, sans-serif" font-size="9">signs off → acts</text>
+            <line x1="430" y1="105" x2="430" y2="140" stroke="#94A3B8" stroke-width="1" stroke-dasharray="3 3"/>
+            <rect x="330" y="140" width="200" height="38" rx="8" fill="#0A0F1D" stroke="#F59E0B" stroke-width="1.5"/>
+            <text x="430" y="163" text-anchor="middle" fill="#F59E0B" font-family="JetBrains Mono, monospace" font-size="11">guardrails: data ≠ instructions</text>
+          </svg>
+        </div>
+        <div class="mt-3 flex flex-wrap gap-4 text-xs text-text-secondary">
+          <span><span style="color:#A78BFA">■</span> ingest</span>
+          <span><span style="color:#06B6D4">■</span> agent work</span>
+          <span><span style="color:#10B981">■</span> structured queue</span>
+          <span><span style="color:#F59E0B">■</span> human gate / guardrails</span>
+        </div>
+      </div>
+
+      <!-- Illustrative snippet -->
+      <div class="card mt-6">
+        <h3 class="text-lg">The guardrail, in code (illustrative)</h3>
+        <p class="mt-1 text-sm text-text-secondary">Scraped content is the classic prompt-injection vector. Two cheap rules neutralize it.</p>
+        <pre class="mt-4 overflow-x-auto rounded-md bg-bg-primary p-4 font-mono text-xs leading-relaxed text-text-primary"><code>import re
+from urllib.parse import urlparse
+
+ALLOWED_HOSTS = {"example-source.com", "example-system.com"}  # explicit allow-list
+
+# A scraped record is DATA, not instructions.
+# Parse only the trusted header; ignore the free-text body entirely.
+def parse_record(md: str) -> dict:
+    fields = {}
+    for line in md.splitlines():
+        if line.strip() in ("---", "") or line.startswith("## "):
+            break                       # stop at the untrusted body
+        key, _, val = line.partition(":")
+        fields[key.strip().lower()] = val.strip()
+    return fields
+
+# A URL only becomes a clickable action if its host is on the allow-list;
+# otherwise it's surfaced for human verification, never auto-followed.
+def vet_url(u: str) -> bool:
+    return bool(re.match(r"https?://", u)) and urlparse(u).hostname in ALLOWED_HOSTS</code></pre>
+      </div>
+
+      <div class="card mt-6">
+        <h3 class="text-lg">What it demonstrates</h3>
+        <p class="mt-2 text-sm text-text-secondary">
+          For an AI-native finance or operations role: I can take LLM agents past demos into a
+          <strong class="text-text-primary">real, self-operating system</strong> — one with explicit trust boundaries,
+          a deterministic core the model's output can't silently override, a human gate on anything irreversible, and an
+          adversarial test loop that finds its own failures before they reach a live run. Same instinct as the variance agent above
+          (<em>which 5% is wrong, and how do I catch it</em>) — applied to autonomy.
+        </p>
+      </div>
+    </section>
+
     <!-- ===== SANDBOX ===== -->
-    <section id="sandbox" class="border-t border-accent/15 py-14">
+    <section id="sandbox" class="scroll-mt-20 border-t border-accent/15 py-14">
       <h2 class="text-2xl font-bold sm:text-3xl">Live sandbox</h2>
       <p class="mt-2 max-w-3xl text-sm text-text-secondary">
         The exact logic from the projects, computed in your browser — deterministic, no model calls. Formulas
@@ -235,7 +371,7 @@
             <div><label class="field-label" for="v-current">Current amount</label><input id="v-current" class="field-input" type="number" value="1100000" /></div>
             <div class="col-span-2"><label class="field-label" for="v-threshold">Materiality threshold (%)</label><input id="v-threshold" class="field-input" type="number" value="5" step="0.5" /></div>
           </div>
-          <div class="mt-4 grid grid-cols-3 gap-3 text-center">
+          <div class="mt-4 grid grid-cols-3 gap-3 text-center" aria-live="polite">
             <div class="rounded-md bg-bg-primary p-3"><div class="field-label">Variance</div><div id="v-abs" class="font-mono text-text-primary">—</div></div>
             <div class="rounded-md bg-bg-primary p-3"><div class="field-label">% change</div><div id="v-pct" class="font-mono text-text-primary">—</div></div>
             <div class="rounded-md bg-bg-primary p-3"><div class="field-label">Flag</div><div class="mt-1"><span id="v-material" class="badge">—</span></div></div>
@@ -250,7 +386,7 @@
             <div><label class="field-label" for="m-revenue">Revenue</label><input id="m-revenue" class="field-input" type="number" value="100000" /></div>
             <div><label class="field-label" for="m-cost">Cost (COGS)</label><input id="m-cost" class="field-input" type="number" value="48000" /></div>
           </div>
-          <div class="mt-4">
+          <div class="mt-4" aria-live="polite">
             <div class="flex items-end justify-between">
               <span class="field-label">Gross margin</span>
               <span id="m-margin" class="font-mono text-2xl text-text-primary">—</span>
@@ -266,7 +402,7 @@
     </section>
 
     <!-- ===== CONTACT ===== -->
-    <section id="contact" class="border-t border-accent/15 py-14">
+    <section id="contact" class="scroll-mt-20 border-t border-accent/15 py-14">
       <h2 class="text-2xl font-bold sm:text-3xl">Get in touch</h2>
       <p class="mt-3 max-w-2xl text-text-secondary">
         The accountant-to-analytics-engineer path is real and well-trodden (Sam Harting, CPA → Analytics
