@@ -1,0 +1,23 @@
+version: 2
+
+models:
+  - name: int_subscription_economics
+    description: "Plan x region x month unit economics (MRR, cost to serve, gross profit, gross margin). Calculation layer, unit-tested below."
+
+unit_tests:
+  - name: test_gross_profit_and_margin
+    description: "Gross profit = MRR - cost to serve; gross margin = gross profit / MRR."
+    model: int_subscription_economics
+    given:
+      - input: ref('stg_subscription_months')
+        rows:
+          - {month: "2026-01-01", plan_id: 2, region: "NA", active_subscriptions: 100, mrr_usd: 1000.0}
+      - input: ref('stg_service_costs')
+        rows:
+          - {month: "2026-01-01", plan_id: 2, region: "NA", cost_to_serve_usd: 400.0}
+      - input: ref('stg_plans')
+        rows:
+          - {plan_id: 2, plan_tier: "standard"}
+    expect:
+      rows:
+        - {month: "2026-01-01", plan_id: 2, plan_tier: "standard", region: "NA", active_subscriptions: 100, mrr_usd: 1000.0, cost_to_serve_usd: 400.0, gross_profit_usd: 600.0, gross_margin_pct: 0.6}

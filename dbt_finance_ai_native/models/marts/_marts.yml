@@ -1,0 +1,60 @@
+version: 2
+
+models:
+  - name: dim_plan
+    description: "Plan dimension: tier and list price, conformed for joins from the economics fact."
+    columns:
+      - name: plan_id
+        description: "Primary key of the plan."
+        data_tests: [not_null, unique]
+
+  - name: fct_plan_monthly_economics
+    description: >
+      Authoritative monthly subscription unit-economics fact (plan x region x month):
+      MRR, cost to serve, gross profit, and gross margin. This is the governed source the
+      semantic layer and downstream finance reporting read from — and the layer AI agents
+      query via the semantic definitions, so analysts, Claude, and agents all read the same numbers.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: economics_sk
+        description: "Deterministic surrogate key: md5(month | plan_id | region)."
+        data_type: varchar
+        data_tests: [not_null, unique]
+      - name: month
+        description: "Calendar month (first of month)."
+        data_type: date
+        data_tests: [not_null]
+      - name: plan_id
+        description: "Plan identifier; foreign key to dim_plan."
+        data_type: integer
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_plan')
+                field: plan_id
+      - name: plan_tier
+        description: "Pricing tier (free | standard | premium)."
+        data_type: varchar
+      - name: region
+        description: "Sales region (e.g., NA, EU)."
+        data_type: varchar
+      - name: active_subscriptions
+        description: "Count of active paid subscriptions in the month."
+        data_type: integer
+        data_tests: [not_null]
+      - name: mrr_usd
+        description: "Monthly recurring revenue (USD)."
+        data_type: double
+        data_tests: [not_null]
+      - name: cost_to_serve_usd
+        description: "Allocated cost to serve (USD)."
+        data_type: double
+      - name: gross_profit_usd
+        description: "MRR minus cost to serve (USD)."
+        data_type: double
+      - name: gross_margin_pct
+        description: "Gross profit / MRR (ratio in (-1, 1])."
+        data_type: double

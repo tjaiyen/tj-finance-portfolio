@@ -1,0 +1,85 @@
+version: 2
+
+# MetricFlow semantic layer — the governed metric definitions analysts AND AI agents
+# resolve against, so "MRR", "gross margin", and "ARPU" mean one thing everywhere.
+
+semantic_models:
+  - name: subscription_economics
+    description: "Monthly subscription unit economics by plan and region — the single governed source for finance metrics."
+    model: ref('fct_plan_monthly_economics')
+    defaults:
+      agg_time_dimension: economics_month
+    entities:
+      - name: economics
+        type: primary
+        expr: economics_sk
+      - name: plan
+        type: foreign
+        expr: plan_id
+    dimensions:
+      - name: economics_month
+        type: time
+        expr: month
+        type_params:
+          time_granularity: month
+      - name: plan_tier
+        type: categorical
+      - name: region
+        type: categorical
+    measures:
+      - name: mrr_total
+        description: "Monthly recurring revenue (USD)."
+        agg: sum
+        expr: mrr_usd
+      - name: cost_to_serve_total
+        description: "Cost to serve (USD)."
+        agg: sum
+        expr: cost_to_serve_usd
+      - name: gross_profit_total
+        description: "Gross profit (USD)."
+        agg: sum
+        expr: gross_profit_usd
+      - name: active_subscriptions_total
+        description: "Active paid subscriptions."
+        agg: sum
+        expr: active_subscriptions
+
+metrics:
+  - name: mrr
+    description: "Total monthly recurring revenue (USD)."
+    label: "MRR (USD)"
+    type: simple
+    type_params:
+      measure: mrr_total
+  - name: cost_to_serve
+    description: "Total cost to serve (USD)."
+    label: "Cost to Serve (USD)"
+    type: simple
+    type_params:
+      measure: cost_to_serve_total
+  - name: gross_profit
+    description: "Total gross profit (USD)."
+    label: "Gross Profit (USD)"
+    type: simple
+    type_params:
+      measure: gross_profit_total
+  - name: active_subscriptions
+    description: "Active paid subscriptions."
+    label: "Active Subscriptions"
+    type: simple
+    type_params:
+      measure: active_subscriptions_total
+  - name: gross_margin_pct
+    description: "Gross margin = gross profit / MRR. Ratio of two metrics."
+    label: "Gross Margin %"
+    type: ratio
+    type_params:
+      numerator: gross_profit
+      denominator: mrr
+  - name: arpu
+    description: "Average revenue per user = MRR / active subscriptions."
+    label: "ARPU (USD)"
+    type: ratio
+    type_params:
+      numerator: mrr
+      denominator: active_subscriptions

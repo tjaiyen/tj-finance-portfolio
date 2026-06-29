@@ -1,0 +1,19 @@
+version: 2
+
+seeds:
+  - name: raw_plans
+    description: "Raw subscription plan catalog (plan tier and list price). Source-of-record stand-in for the billing system's plan dimension."
+    columns:
+      - name: plan_id
+        description: "Surrogate key for the plan."
+      - name: plan_tier
+        description: "Pricing tier: free | standard | premium. Used as a slicing dimension in the semantic layer."
+  - name: raw_subscription_months
+    description: "Monthly snapshot of active paid subscriptions and recognized MRR by plan and region."
+    columns:
+      - name: month
+        description: "Calendar month (first day of month) the snapshot represents."
+      - name: mrr_usd
+        description: "Monthly recurring revenue recognized for the plan/region/month, in USD."
+  - name: raw_service_costs
+    description: "Monthly cost-to-serve (infrastructure + support) allocated to each plan/region/month, in USD."
