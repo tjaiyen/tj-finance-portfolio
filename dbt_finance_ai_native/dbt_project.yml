@@ -1,0 +1,26 @@
+name: 'finance_ai_native'
+version: '1.0.0'
+config-version: 2
+
+# A finance data product designed for both analysts and AI agents:
+# governed dbt models + a MetricFlow semantic layer + an enforced data contract,
+# adapter-portable across DuckDB (local) and Databricks (cloud MPP).
+profile: 'finance_ai_native'
+
+require-dbt-version: [">=1.8.0", "<2.0.0"]
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+models:
+  finance_ai_native:
+    staging:
+      +materialized: view
+    marts:
+      +materialized: table

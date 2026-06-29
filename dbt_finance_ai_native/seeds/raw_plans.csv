@@ -1,0 +1,5 @@
+plan_id,plan_name,plan_tier,list_price_usd
+1,Free,free,0.00
+2,Silver,standard,7.99
+3,Gold,premium,14.99
+4,Platinum,premium,24.99

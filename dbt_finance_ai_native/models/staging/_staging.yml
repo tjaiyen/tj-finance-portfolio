@@ -1,0 +1,30 @@
+version: 2
+
+models:
+  - name: stg_plans
+    description: "Typed, renamed plan dimension from the raw plan catalog."
+    columns:
+      - name: plan_id
+        description: "Primary key of the plan."
+        data_tests: [not_null, unique]
+      - name: plan_tier
+        description: "Pricing tier (free | standard | premium)."
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['free', 'standard', 'premium']
+  - name: stg_subscription_months
+    description: "Typed monthly snapshot of active paid subscriptions and recognized MRR by plan and region."
+    columns:
+      - name: plan_id
+        description: "Plan the snapshot row belongs to."
+        data_tests: [not_null]
+      - name: mrr_usd
+        description: "Monthly recurring revenue (USD) for the plan/region/month."
+        data_tests: [not_null]
+  - name: stg_service_costs
+    description: "Typed monthly cost-to-serve allocated to each plan/region/month (USD)."
+    columns:
+      - name: plan_id
+        description: "Plan the cost row belongs to."
+        data_tests: [not_null]
