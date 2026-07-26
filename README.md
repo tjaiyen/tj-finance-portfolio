@@ -33,7 +33,7 @@ Want the AI layer? Set `ANTHROPIC_API_KEY` and:
 
 ```bash
 cd ../claude_finance_agent
-python main.py  # CFO narrative + exception flags; hallucination guardrail active
+python variance_agent.py sample_data/financials_q1_q2.csv --threshold 0.05  # CFO narrative + exception flags; hallucination guardrail active
 ```
 
 🔗 Interactive sandbox (no install): **https://tjaiyen.github.io/tj-finance-portfolio/**

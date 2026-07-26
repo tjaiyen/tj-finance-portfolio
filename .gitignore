@@ -34,3 +34,7 @@ Thumbs.db
 
 # Exception: the Cosmos DAG profile is DuckDB-only, no secrets
 !airflow_orchestration/profiles.yml
+
+# Recruiter/interview backstage + internal agent instructions — keep OUT of the public repo (stress-test 2026-07-26)
+recruiter_package/
+AGENTS.md

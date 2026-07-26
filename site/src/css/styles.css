@@ -2,6 +2,36 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Palette as CSS variables (space-separated RGB triplets, consumed via rgb(var(--x) / <alpha>)).
+   :root = dark (default / brand). @media light = a legible light palette for corporate displays:
+   accent + code + status darkened for AA contrast on white; text inverted. Every utility class
+   flows through these, so both themes stay in sync automatically. */
+:root {
+  --c-bg-primary: 10 15 29;      /* #0A0F1D */
+  --c-bg-card: 30 41 59;         /* #1E293B */
+  --c-accent: 6 182 212;         /* #06B6D4 */
+  --c-text-primary: 241 245 249; /* #F1F5F9 */
+  --c-text-secondary: 148 163 184;/* #94A3B8 */
+  --c-text-code: 34 211 238;     /* #22D3EE */
+  --c-success: 16 185 129;       /* #10B981 */
+  --c-warning: 245 158 11;       /* #F59E0B */
+  --c-danger: 239 68 68;         /* #EF4444 */
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --c-bg-primary: 248 250 252;   /* slate-50 page */
+    --c-bg-card: 255 255 255;      /* white cards */
+    --c-accent: 14 116 144;        /* cyan-700 — AA on white for links/buttons */
+    --c-text-primary: 15 23 42;    /* slate-900 */
+    --c-text-secondary: 71 85 105; /* slate-600 */
+    --c-text-code: 8 145 178;      /* cyan-600 */
+    --c-success: 5 150 105;        /* emerald-600 */
+    --c-warning: 180 83 9;         /* amber-700 */
+    --c-danger: 220 38 38;         /* red-600 */
+  }
+}
+
 @layer base {
   html { scroll-behavior: smooth; }
   body {
