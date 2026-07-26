@@ -3,15 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="color-scheme" content="dark" />
-  <meta name="theme-color" content="#0A0F1D" />
-  <title>Finance + AI Engineering — Case Study</title>
-  <meta name="description" content="A cost accountant building the trustworthy data + AI layer beneath financial reporting: deterministic logic for the numbers, LLMs for judgment, automated tests as the sign-off gate." />
+  <meta name="color-scheme" content="light dark" />
+  <title>Cost Accounting + Data &amp; AI — TJ Jaiyen</title>
+  <meta name="description" content="A cost accountant who makes the numbers provably right — standard costing, variance, inventory valuation — and builds the tested data &amp; AI layer that automates the reporting around them." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
-  <script type="module" crossorigin src="/tj-finance-portfolio/assets/main-CQQkvVeS.js"></script>
-  <link rel="stylesheet" crossorigin href="/tj-finance-portfolio/assets/main-Jxu5BNBt.css">
+  <script type="module" crossorigin src="/tj-finance-portfolio/assets/main-BTeVs5a4.js"></script>
+  <link rel="stylesheet" crossorigin href="/tj-finance-portfolio/assets/main-CchNqKVY.css">
 </head>
 <body class="bg-bg-primary text-text-primary">
 
@@ -27,8 +26,8 @@
         <a href="#sandbox" class="hover:text-text-primary">Sandbox</a>
         <a href="#contact" class="hover:text-text-primary">Contact</a>
       </nav>
-      <button id="nav-toggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="nav-menu" class="lg:hidden" style="min-width:44px;min-height:44px;">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      <button id="nav-toggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="nav-menu" class="lg:hidden text-text-secondary" style="min-width:44px;min-height:44px;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
       </button>
     </div>
     <div id="nav-menu" class="hidden border-t border-accent/15 lg:hidden">
@@ -47,28 +46,30 @@
 
     <!-- ===== HERO ===== -->
     <section class="py-16 sm:py-24">
-      <p class="badge mb-4">Finance + AI · Case Study</p>
+      <p class="badge mb-4">Cost Accounting · Data &amp; AI</p>
       <h1 class="text-3xl font-extrabold leading-tight sm:text-5xl">
-        I build the <span class="text-accent">trustworthy data &amp; AI layer</span><br class="hidden sm:block" />
-        beneath financial reporting.
+        A cost accountant who makes the numbers <span class="text-accent">provably right</span><br class="hidden sm:block" />
+        — then automates the reporting around them.
       </h1>
       <p class="mt-5 max-w-2xl text-base text-text-secondary sm:text-lg">
-        A cost accountant's instinct for <em>which number is wrong and how to catch it</em> — encoded as
-        deterministic logic for the figures, an LLM used only for judgment and language, and automated tests
-        as the sign-off gate. Three small, <strong class="text-text-primary">runnable</strong> projects prove it.
+        Standard costing, variance, inventory valuation — the discipline of knowing
+        <em>which number is wrong and how to catch it</em>. I encode that as deterministic logic, use an LLM
+        only for judgment and language, and gate every result behind automated tests. Small,
+        <strong class="text-text-primary">runnable</strong> projects prove it.
       </p>
       <div class="mt-7 flex flex-wrap gap-3">
         <a href="#projects" class="btn-primary">See the projects</a>
         <a href="#sandbox" class="btn-secondary">Try the live sandbox</a>
       </div>
       <div class="mt-8 flex flex-wrap gap-2">
+        <span class="badge">Standard costing</span>
+        <span class="badge">Variance analysis</span>
+        <span class="badge">Inventory valuation</span>
+        <span class="badge">ERP</span>
         <span class="badge">Python</span>
-        <span class="badge">Anthropic SDK</span>
         <span class="badge">dbt</span>
         <span class="badge">DuckDB</span>
         <span class="badge">SQL</span>
-        <span class="badge">Data governance</span>
-        <span class="badge">FinOps thinking</span>
       </div>
     </section>
 
@@ -100,9 +101,10 @@
 
     <!-- ===== TRANSLATION MATRIX ===== -->
     <section id="translation" class="scroll-mt-20 border-t border-accent/15 py-14">
-      <h2 class="text-2xl font-bold sm:text-3xl">Cost accounting → data &amp; AI platform</h2>
+      <h2 class="text-2xl font-bold sm:text-3xl">Cost-accounting rigor, applied to the data stack</h2>
       <p class="mt-4 max-w-3xl text-text-secondary">
-        The transfer isn't a slogan — it's one-to-one. Each row is captioned by a real artifact in the repos below.
+        The discipline is the same, and it's one-to-one — the controls a cost accountant already lives by, expressed
+        as tested data. Each row is captioned by a real artifact in the repos below.
       </p>
       <div class="mt-6 overflow-x-auto">
         <table class="w-full min-w-[640px] border-collapse text-sm">
@@ -348,11 +350,12 @@ def vet_url(u: str) -> bool:
       <div class="card mt-6">
         <h3 class="text-lg">What it demonstrates</h3>
         <p class="mt-2 text-sm text-text-secondary">
-          For an AI-native finance or operations role: I can take LLM agents past demos into a
-          <strong class="text-text-primary">real, self-operating system</strong> — one with explicit trust boundaries,
-          a deterministic core the model's output can't silently override, a human gate on anything irreversible, and an
-          adversarial test loop that finds its own failures before they reach a live run. Same instinct as the variance agent above
-          (<em>which 5% is wrong, and how do I catch it</em>) — applied to autonomy.
+          This is how I'd automate a high-stakes finance workflow — a month-end exception-review queue, say — without
+          letting the model near the numbers or an irreversible action: explicit trust boundaries, a
+          <strong class="text-text-primary">deterministic core</strong> the model's output can't silently override, a
+          human gate on anything that leaves the system, and an adversarial test loop that finds its own failures before
+          they reach a live run. Same instinct as the variance agent above (<em>which 5% is wrong, and how do I catch
+          it</em>) — applied to automation.
         </p>
       </div>
     </section>
@@ -409,12 +412,15 @@ def vet_url(u: str) -> bool:
     <section id="contact" class="scroll-mt-20 border-t border-accent/15 py-14">
       <h2 class="text-2xl font-bold sm:text-3xl">Get in touch</h2>
       <p class="mt-3 max-w-2xl text-text-secondary">
-        The accountant-to-analytics-engineer path is real and well-trodden (Sam Harting, CPA → Analytics
-        Engineer at dbt Labs). I'm building the artifacts to prove I'm already on the data side of it.
+        I'm a cost accountant who codes. The projects here are how I make financial numbers
+        <strong class="text-text-primary">provably right</strong> and automate the reporting around them — the same
+        rigor I bring to a standard-costing close, a variance review, or an inventory valuation. Happy to talk about
+        cost accounting and manufacturing-finance roles where that combination compounds.
       </p>
       <div class="mt-5 flex flex-wrap gap-3">
-        <a href="https://github.com/tjaiyen/tj-finance-portfolio" class="btn-primary">GitHub</a>
+        <a href="mailto:theerayut.jaiyen@gmail.com" class="btn-primary">Email</a>
         <a href="https://www.linkedin.com/in/jaiyentheerayut" class="btn-secondary">LinkedIn</a>
+        <a href="https://github.com/tjaiyen/tj-finance-portfolio" class="btn-secondary">GitHub</a>
       </div>
     </section>
   </main>
