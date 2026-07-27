@@ -71,8 +71,8 @@ function computeMargin() {
   $('m-margin').textContent = pct.toFixed(1) + '%'
 
   let label, barColor, textColor
-  if (pct < 40) { label = 'Warning — below AI-native floor'; barColor = 'bg-danger'; textColor = 'text-danger' }
-  else if (pct <= 65) { label = 'AI-native standard (~40–65%)'; barColor = 'bg-warning'; textColor = 'text-warning' }
+  if (pct < 40) { label = 'Warning — below software-margin floor'; barColor = 'bg-danger'; textColor = 'text-danger' }
+  else if (pct <= 65) { label = 'Software-margin standard (~40–65%)'; barColor = 'bg-warning'; textColor = 'text-warning' }
   else { label = 'Best-in-class (>65%)'; barColor = 'bg-success'; textColor = 'text-success' }
 
   $('m-zone').textContent = label

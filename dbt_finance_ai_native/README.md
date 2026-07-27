@@ -1,9 +1,9 @@
 # Finance AI-Native — a subscription-finance data product for analysts **and** agents
 
 A dbt project that models subscription unit economics (MRR, cost-to-serve, gross margin, ARPU)
-as a **governed data layer that both human analysts and AI agents read from**. Built to mirror the
-"AI-native finance analytics engineer" pattern: dbt models + a MetricFlow **semantic layer** + an
-enforced **data contract** + 3-tier testing, and it is **adapter-portable** — it runs locally on
+as a **governed data layer that both human analysts and AI agents read from**. Built the way a modern
+finance data team ships governed metrics for humans and agents: dbt models + a MetricFlow **semantic
+layer** + an enforced **data contract** + 3-tier testing, and it is **adapter-portable** — it runs locally on
 **DuckDB** and on **Databricks** (cloud MPP) with only a target swap.
 
 > Demonstration project on synthetic data. Verified end-to-end: `dbt build` → **PASS=29, 0 errors**
