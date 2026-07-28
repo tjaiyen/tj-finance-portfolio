@@ -2,7 +2,7 @@
 
 [![dbt CI](https://github.com/tjaiyen/tj-finance-portfolio/actions/workflows/dbt-ci.yml/badge.svg)](https://github.com/tjaiyen/tj-finance-portfolio/actions/workflows/dbt-ci.yml)
 
-Six small, runnable projects that show how I work: a cost accountant who builds the data, orchestration,
+Seven small, runnable projects that show how I work: a cost accountant who builds the data, orchestration,
 and AI layers behind finance reporting, with correctness and governance built in — not bolted on.
 
 **Business context:** every month-end close asks the same question — *which accounts moved, are the moves
@@ -83,14 +83,23 @@ interactive **variance / margin sandbox** that runs the same math the dbt mart c
 backend. Auto-deploys to **GitHub Pages** via `.github/workflows/deploy.yml`.
 🔗 Live: **https://tjaiyen.github.io/tj-finance-portfolio/**
 
-## Why these six together
-Six pieces, same discipline: two dbt projects for the modeled numbers, Airflow/Cosmos for reliable
+## [`site/public/operations-bridge.html`](./site/public/operations-bridge.html) — Operations Bridge, a finance automation engine (live)
+A single-glance command center rolling up 8 dashboards — Cost & Variance, WIP & Inventory, Production &
+Ops, AP & Procurement, Controls & Compliance, P&L & Synthesis, and Capital Projects (EVM) — with a
+plain-language narrator that explains what each value means from the number and its threshold, computed
+by rule, never by a live model. Materiality-band and EVM-variance sliders re-flag findings live; a command
+palette, guided tour, and light/dark theme round it out. Synthetic, illustrative food-manufacturing data.
+🔗 Live: **https://tjaiyen.github.io/tj-finance-portfolio/operations-bridge.html**
+
+## Why these seven together
+Seven pieces, same discipline: two dbt projects for the modeled numbers, Airflow/Cosmos for reliable
 scheduling and recovery, a Claude agent for the narrative layer, an agentic-ops skeleton for guardrailed
-multi-agent autonomy, and site/ to tie it together for a hiring reviewer. The finance variance track and the
-GPU cost track use the same method — tested models, deterministic math, orchestrated runs. The AI layers
-touch only judgment and language: the variance agent's guardrail rejects any output that references an account
-not in the source, and the agentic skeleton treats all fetched content as data, never instructions, with a
-human gate before any irreversible action.
+multi-agent autonomy, site/ to tie it together for a hiring reviewer, and Operations Bridge to show the same
+rigor at dashboard scale — deterministic thresholds and rule-based narration, never a generated claim about
+a number. The finance variance track and the GPU cost track use the same method — tested models,
+deterministic math, orchestrated runs. The AI layers touch only judgment and language: the variance agent's
+guardrail rejects any output that references an account not in the source, and the agentic skeleton treats
+all fetched content as data, never instructions, with a human gate before any irreversible action.
 
 *Data in all projects is synthetic. No employer or confidential information is included.*
 
