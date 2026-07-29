@@ -1,0 +1,158 @@
+/* ob-mobile.css — injected verbatim into all 8 Operations Bridge dashboards by
+   tools/ob-mobile-patch.mjs as <style id="ob-mobile">, immediately before </head>.
+
+   It loads AFTER each dashboard's authored <style>, so equal-specificity rules win on
+   source order and no !important is needed. Rules that compete with the density layer
+   ([data-density="compact"] …, specificity 0,1,x) are :root-prefixed to match it.
+
+   Breakpoints reuse the two tiers the artifact already ships (900px / 560px) — no new
+   width breakpoints. Touch ergonomics key off pointer/hover instead of width, because a
+   1024px tablet needs 44px targets just as much as a 360px phone.
+
+   Every rule below targets a cause measured in a real browser, not one inferred from
+   reading CSS. See the commit message for the before/after numbers. */
+
+/* Stop iOS inflating text after a rotation. */
+html { -webkit-text-size-adjust: 100%; }
+
+/* ---------- <=900px: tablet + phone landscape ---------- */
+@media (max-width: 900px) {
+  /* command-center only. Its authored `.content{1fr 350px}` sits AFTER the authored
+     `@media(max-width:900px){.content{1fr}}`, so the base rule wins on source order and
+     that media query has never done anything — the 350px sidebar track stayed put and
+     pushed the page to 594px. Being later still, this actually collapses it. */
+  .content { grid-template-columns: 1fr; }
+  .feed { min-width: 0; }
+
+  /* Charts bake their width into the viewBox at render time and never re-render, so a
+     rotation scales the whole SVG — including stroke widths. Pin strokes to device px. */
+  .chart svg path,
+  .chart svg line,
+  .chart svg circle { vector-effect: non-scaling-stroke; }
+}
+
+/* ---------- <=560px: phone portrait ---------- */
+@media (max-width: 560px) {
+
+  :root body { padding: 16px 14px 44px; line-height: 1.5; }
+
+  /* Fluid grids whose track minimum exceeds the available width at 320px. `.grid2` is
+     minmax(320px,1fr) against ~300px of usable width, which overflowed the page to
+     334px on 5 of the 8 dashboards. */
+  .grid2, .viols, .recs, .domains { grid-template-columns: 1fr; }
+  .grid2, .viols, .recs, .domains, .kpis, .alert, .feed { min-width: 0; }
+  /* Grid's automatic minimum size is the ITEM's own content-based minimum, not the
+     container's — an item's min-width:0 does not suppress it (that only helps flex).
+     pnl-synthesis has an unnamed second child in .grid2 (a .guardcard wrapper) holding a
+     nowrap .pill; without this it alone forced the single 1fr track to 309px against a
+     292px container. Measured: 309px -> 292px, page 323px -> 320px. */
+  .grid2 > *, .viols > *, .recs > *, .domains > * { min-width: 0; }
+
+  /* Load-bearing, and the reason lifting the table floor below needs care: .card is a
+     grid item, so its default min-width:auto refuses to shrink below its min-content.
+     Once tables size to their content, a wide table would drag the card (and the page)
+     out to 647px rather than letting .tbl-wrap scroll. Measured: 647px -> 320px. */
+  .card, .tbl-wrap { min-width: 0; }
+  .kpis { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+
+  /* wip-inventory: .trendrow is flex/nowrap and its caption has min-width:auto, so the
+     caption refused to shrink and pushed the page to 569px. */
+  .trendrow { flex-wrap: wrap; }
+  .trendrow .sp { min-width: 0; }
+  .cap { min-width: 0; }
+  .miniflex .spark { width: 100%; }
+  .trendbox .tchart { min-width: 0; max-width: none; }
+  .search { min-width: 0; width: 100%; }
+  .toolbar { gap: 10px; }
+
+  /* Type floor: nothing readable below 11px. Table text is one deliberate exception —
+     tables scroll horizontally, so every extra px costs a visible column. A handful of
+     decorative mono footnote captions (pnl-synthesis's "60 · 210 · 242" trend readout)
+     use an inline style="font-size:10px", which only !important could override; left
+     alone rather than break the no-!important rule for a 1px difference on a footnote. */
+  .kpi .label { font-size: 11.5px; }
+  .kpi .sub { font-size: 12px; }
+  .kpi .big { font-size: 24px; }
+  .freshrow { font-size: 11.5px; }
+  .alert .amsg { font-size: 13px; }
+  .alert .ameta { font-size: 11px; }
+  .feed h3 .count { font-size: 11px; }
+  .narr .lbl { font-size: 11px; }
+  .narr p { font-size: 13.5px; }
+  .proof, .methnote, .cap { font-size: 11.5px; }
+  .thresh .note { font-size: 11.5px; }
+  .tag, .pill { font-size: 11px; }
+  .stat .l { font-size: 11px; }
+  /* Specificity-bumped (class repeated 3x): pnl-synthesis authors these at
+     `.matrow .mn .top-tag` (0,3,0), which otherwise wins over a plain `.top-tag` (0,1,0)
+     despite this block loading later. Measured: 8.5px persisted until this matched. */
+  .top-tag.top-tag.top-tag,
+  .pilot-tag.pilot-tag.pilot-tag,
+  .cite.cite.cite,
+  .guardnote.guardnote.guardnote { font-size: 11px; }
+  .phead h1 { font-size: 19px; }
+  .phead .sub { font-size: 13px; }
+  .phead .badge { font-size: 11px; }
+  footer.disc { font-size: 11.5px; }
+
+  /* Tables: replace the blanket 520px floor with intrinsic, content-driven width.
+     min-width:0 ALONE would be worse than the floor (a 13-column table would crush to
+     one-character columns) — `nowrap` is what makes it a fix, by letting each table size
+     to its own content. Narrow tables then fit with no scroll at all; wide ones scroll
+     honestly. The first column keeps wrapping since it holds the row labels. */
+  table { min-width: 0; }
+  :root table th,
+  :root table td { white-space: nowrap; }
+  :root table thead th:first-child,
+  :root table tbody td:first-child {
+    white-space: normal;
+    min-width: 12ch;
+    max-width: 22ch;
+    overflow-wrap: anywhere;
+  }
+
+  /* Scroll affordance: edge shadows that appear only when that side actually overflows
+     (local/scroll background-attachment), so a table that fits shows no false hint. */
+  .tbl-wrap {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    background-color: var(--surface);
+    background-image:
+      linear-gradient(to right, var(--surface), transparent),
+      linear-gradient(to left, var(--surface), transparent),
+      radial-gradient(farthest-side at 0 50%, rgba(0,0,0,.30), transparent),
+      radial-gradient(farthest-side at 100% 50%, rgba(0,0,0,.30), transparent);
+    background-position: 0 0, 100% 0, 0 0, 100% 0;
+    background-size: 24px 100%, 24px 100%, 12px 100%, 12px 100%;
+    background-repeat: no-repeat;
+    background-attachment: local, local, scroll, scroll;
+  }
+
+  /* Keep a chart from eating the whole screen. A viewBox with the default
+     preserveAspectRatio letterboxes rather than distorting. */
+  .chart svg { max-height: 46dvh; }
+
+  .thresh { width: 100%; justify-content: space-between; }
+}
+
+/* ---------- touch ergonomics (width-independent) ---------- */
+@media (pointer: coarse) {
+  /* 44px tall hit box without -webkit-appearance:none, which would drop accent-color and
+     force repainting the whole track and thumb. The element box IS the touch target. */
+  .thresh input[type=range] { width: min(240px, 58vw); height: 44px; }
+
+  /* The narrator "i" glyph is 14px. Grow its hit area, not its layout box. */
+  .obn-q { position: relative; }
+  .obn-q::after { content: ""; position: absolute; inset: -15px; }
+
+  :root table th[data-sort] { padding-top: 13px; padding-bottom: 13px; }
+  .thresh button { min-height: 40px; padding: 8px 14px; }
+}
+
+/* ---------- no hover: the tooltip is the only path to a value's explanation ---------- */
+@media (hover: none) {
+  .obc-tt { max-width: min(300px, calc(100vw - 24px)); font-size: 12.5px; padding: 9px 12px; }
+  /* Neutralise hover-only affordances that stick on touch. */
+  tbody tr:hover { background: none; }
+  .domain:hover { transform: none; }
+}
