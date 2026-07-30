@@ -85,11 +85,28 @@
 
   /* KPI strip */
   .kpis{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:16px}
-  .kpi{padding:16px 18px}
-  .kpi .lbl{font-size:11px; color:rgb(var(--c-text-secondary)); font-weight:600; text-transform:uppercase; letter-spacing:.06em}
+  .kpi{padding:16px 18px; position:relative}
+  .kpi .lbl{font-size:11px; color:rgb(var(--c-text-secondary)); font-weight:600; text-transform:uppercase; letter-spacing:.06em; padding-right:20px}
   .kpi .val{font-size:26px; font-weight:700; margin-top:6px; letter-spacing:-.02em}
   .kpi .sub{font-size:11.5px; color:rgb(var(--c-text-secondary)); margin-top:3px}
   .kpi.warn .val{color:rgb(var(--c-danger))}
+
+  /* educational info popovers: one shared floating panel (position:fixed, JS-positioned),
+     toggled by any .infobtn via event delegation -- avoids 8 separate popover elements. */
+  .infobtn{
+    position:absolute; top:14px; right:14px; width:17px; height:17px; border-radius:50%; padding:0;
+    border:1px solid rgb(var(--c-text-secondary) / .4); background:transparent; color:rgb(var(--c-text-secondary));
+    font:700 10px/1 ui-monospace,monospace; cursor:pointer; display:flex; align-items:center; justify-content:center;
+    transition:all .15s;
+  }
+  .infobtn:hover, .infobtn[aria-expanded="true"]{border-color:rgb(var(--c-accent)); color:rgb(var(--c-accent))}
+  .infopop{
+    position:fixed; z-index:9; display:none; width:200px;
+    background:rgb(var(--c-bg-card2)); border:1px solid rgb(var(--c-accent) / .4); border-radius:8px;
+    padding:10px 12px; font-size:11.5px; line-height:1.55; color:rgb(var(--c-text-secondary));
+    box-shadow:0 8px 24px rgb(0 0 0 / .35);
+  }
+  .infopop.show{display:block}
 
   /* story callout */
   .story{
@@ -147,6 +164,26 @@
   .tcard .stats{display:flex; gap:16px; margin-top:8px; font-size:11.5px; color:rgb(var(--c-text-secondary))}
   .tcard .stats b{display:block; color:rgb(var(--c-text-primary)); font-size:12.5px; font-weight:700}
   .tcard .spark{margin-top:12px}
+  .tcard .expand-btn{
+    margin-top:12px; width:100%; background:transparent; border:1px dashed rgb(var(--c-accent) / .3);
+    border-radius:7px; padding:6px; color:rgb(var(--c-text-secondary)); font:600 10.5px inherit;
+    cursor:pointer; text-transform:uppercase; letter-spacing:.04em; transition:all .15s;
+  }
+  .tcard .expand-btn:hover{color:rgb(var(--c-text-primary)); border-color:rgb(var(--c-accent) / .6)}
+  .tcard .breakdown{display:none; margin-top:4px; padding-top:8px; border-top:1px dashed rgb(var(--c-accent) / .2)}
+  .tcard .breakdown.show{display:block}
+  .waterfall text{font:600 9px ui-monospace,monospace}
+
+  /* allocation bar: the absorption key itself, visualized. Fixed opacity steps of the
+     accent hue (not per-tenant categorical hues) -- this chart is about "share of usage,"
+     a different dimension than the margin-zone status colors used elsewhere on the page,
+     so it deliberately does not compete with that color system. */
+  .alloc-bar{display:flex; height:22px; border-radius:7px; overflow:hidden; gap:2px}
+  .alloc-seg{transition:width .4s ease}
+  .alloc-legend{display:flex; gap:18px; flex-wrap:wrap; margin-top:10px; font-size:11.5px; color:rgb(var(--c-text-secondary))}
+  .alloc-legend span{display:inline-flex; align-items:center; gap:6px}
+  .alloc-legend i{width:9px; height:9px; border-radius:2px; display:inline-block}
+  .alloc-legend b{color:rgb(var(--c-text-primary)); font:700 11.5px ui-monospace,monospace}
 
   .controls{padding:16px 18px}
   .controls h3{font-size:12.5px}
@@ -194,11 +231,20 @@
   .inputs-row{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px 14px}
   .nfield{display:flex; flex-direction:column; gap:5px}
   .nfield label{font-size:11px; color:rgb(var(--c-text-secondary))}
-  .nfield input[type=number]{
+  .nfield input[type=number], .nfield input[type=text]{
     background:rgb(var(--c-bg-primary)); border:1px solid rgb(var(--c-accent) / .3); border-radius:7px;
     padding:7px 9px; color:rgb(var(--c-text-primary)); font:600 12.5px ui-monospace,monospace; width:100%;
   }
-  .nfield input[type=number]:focus{outline:2px solid rgb(var(--c-accent) / .5); outline-offset:1px}
+  .nfield input[type=number]:focus, .nfield input[type=text]:focus{outline:2px solid rgb(var(--c-accent) / .5); outline-offset:1px}
+  /* collapsible assumption groups: native <details>, styled to match the existing .igroup h4 look */
+  details.igroup summary{
+    font:700 10.5px/1 ui-monospace,monospace; letter-spacing:.08em; text-transform:uppercase;
+    color:rgb(var(--c-text-secondary)); margin:0 0 10px; cursor:pointer; list-style:none;
+  }
+  details.igroup summary::-webkit-details-marker{display:none}
+  details.igroup summary::before{content:"▾ "; color:rgb(var(--c-accent))}
+  details.igroup:not([open]) summary::before{content:"▸ "}
+  details.igroup:not([open]) summary{margin-bottom:0}
 
   footer{
     margin-top:44px; padding-top:18px; border-top:1px solid rgb(var(--c-accent) / .16);
@@ -206,6 +252,18 @@
   }
   footer a{text-decoration:none; border-bottom:1px dotted rgb(var(--c-accent) / .5)}
   .skel{color:rgb(var(--c-text-secondary)); padding:40px 0; text-align:center; font-size:13px}
+
+  /* <=560px: phone portrait. Same breakpoint number as site/tools/ob-mobile.css (Operations
+     Bridge) for consistency; measured against a real 375px viewport, not inferred. */
+  @media (max-width:560px){
+    /* type floor: chart axis labels measured unreadable at the authored 9.5px. */
+    .axislabel{font-size:11px}
+    /* 150px minmax collapsed the 2-col grid to 1 col at ~295px usable width; 130px fits 2. */
+    .inputs-row{grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}
+    /* margin-left:auto pushed Theme/Repo flush-right even after wrapping to their own line
+       under the badge, leaving a dead gap; let them flow left instead. */
+    .bar .right{margin-left:0}
+  }
   @media (prefers-reduced-motion: reduce){ *{transition:none !important; animation:none !important} }
 </style>
 </head>
@@ -256,10 +314,22 @@
     <div class="chart-wrap" id="compositionWrap"><div class="skel">loading…</div></div>
   </section>
 
+  <section class="card panel">
+    <div class="panel-head">
+      <div>
+        <h2>The absorption key — token share by tenant</h2>
+        <p class="lede" style="margin-top:2px">This ratio is what decides how much of the idle pool each tenant gets stuck absorbing.</p>
+      </div>
+    </div>
+    <div id="allocPanel" style="margin-top:12px"><div class="skel">loading…</div></div>
+  </section>
+
   <section class="split">
     <div>
       <h2 style="font-size:14.5px; margin-bottom:10px">Tenant margin — by absorbed overhead</h2>
       <div class="tenants" id="tenants"><div class="skel">loading…</div></div>
+      <div class="tip" id="sparkTip"></div>
+      <div class="infopop" id="infoPop"></div>
     </div>
     <div class="card controls">
       <h3>Explore margin-zone thresholds</h3>
@@ -288,21 +358,25 @@
 
   <section class="kpis" id="econKpis">
     <div class="card kpi">
+      <button class="infobtn" type="button" data-info="econUtil" aria-label="What is this?" aria-expanded="false">i</button>
       <div class="lbl">Site utilization</div>
       <div class="val tabular" id="econUtilVal">—</div>
       <div class="sub" id="econUtilSub">—</div>
     </div>
     <div class="card kpi">
+      <button class="infobtn" type="button" data-info="econCostMw" aria-label="What is this?" aria-expanded="false">i</button>
       <div class="lbl">Cost per deployed MW</div>
       <div class="val tabular" id="econCostMwVal">—</div>
       <div class="sub" id="econCostMwSub">—</div>
     </div>
     <div class="card kpi">
+      <button class="infobtn" type="button" data-info="econSavings" aria-label="What is this?" aria-expanded="false">i</button>
       <div class="lbl">Annual power savings / rack</div>
       <div class="val tabular" id="econSavingsVal">—</div>
       <div class="sub" id="econSavingsSub">—</div>
     </div>
     <div class="card kpi">
+      <button class="infobtn" type="button" data-info="econRoda" aria-label="What is this?" aria-expanded="false">i</button>
       <div class="lbl">Return on deployed assets</div>
       <div class="val tabular" id="econRodaVal">—</div>
       <div class="sub" id="econRodaSub">—</div>
@@ -315,42 +389,42 @@
       <button class="reset" id="econReset" type="button" style="margin-top:0; width:auto; padding:0 14px">Reset to defaults</button>
     </div>
 
-    <div class="igroup">
-      <h4>Site utilization</h4>
+    <details class="igroup" open>
+      <summary>Site utilization</summary>
       <div class="inputs-row">
         <div class="nfield"><label for="econCap">Total facility capacity (MW)</label><input type="number" id="econCap" min="0" step="1" /></div>
         <div class="nfield"><label for="econLoad">Active IT load (MW)</label><input type="number" id="econLoad" min="0" step="1" /></div>
       </div>
-    </div>
+    </details>
 
-    <div class="igroup">
-      <h4>Cost per deployed MW</h4>
+    <details class="igroup" open>
+      <summary>Cost per deployed MW</summary>
       <div class="inputs-row">
-        <div class="nfield"><label for="econShell">CapEx — shell &amp; civil ($)</label><input type="number" id="econShell" min="0" step="1000000" /></div>
-        <div class="nfield"><label for="econMep">CapEx — MEP infrastructure ($)</label><input type="number" id="econMep" min="0" step="1000000" /></div>
-        <div class="nfield"><label for="econFitout">CapEx — technology fit-out ($)</label><input type="number" id="econFitout" min="0" step="1000000" /></div>
+        <div class="nfield"><label for="econShell">CapEx — shell &amp; civil ($)</label><input type="text" inputmode="decimal" id="econShell" /></div>
+        <div class="nfield"><label for="econMep">CapEx — MEP infrastructure ($)</label><input type="text" inputmode="decimal" id="econMep" /></div>
+        <div class="nfield"><label for="econFitout">CapEx — technology fit-out ($)</label><input type="text" inputmode="decimal" id="econFitout" /></div>
         <div class="nfield"><label for="econMw">Total deployed capacity (MW)</label><input type="number" id="econMw" min="0" step="1" /></div>
       </div>
-    </div>
+    </details>
 
-    <div class="igroup">
-      <h4>Operating cost per site (annualized, per rack)</h4>
+    <details class="igroup" open>
+      <summary>Operating cost per site (annualized, per rack)</summary>
       <div class="inputs-row">
         <div class="nfield"><label for="econRack">Rack IT power (kW)</label><input type="number" id="econRack" min="0" step="1" /></div>
         <div class="nfield"><label for="econRate">Electricity rate ($/kWh)</label><input type="number" id="econRate" min="0" step="0.001" /></div>
         <div class="nfield"><label for="econPueL">PUE — legacy / industry avg</label><input type="number" id="econPueL" min="1" step="0.01" /></div>
         <div class="nfield"><label for="econPueE">PUE — efficient AI-optimized</label><input type="number" id="econPueE" min="1" step="0.01" /></div>
       </div>
-    </div>
+    </details>
 
-    <div class="igroup">
-      <h4>Return on deployed assets</h4>
+    <details class="igroup" open>
+      <summary>Return on deployed assets</summary>
       <div class="inputs-row">
-        <div class="nfield"><label for="econFacCapex">Facility CapEx ($)</label><input type="number" id="econFacCapex" min="0" step="1000000" /></div>
-        <div class="nfield"><label for="econCompCapex">Compute (GPU) CapEx ($)</label><input type="number" id="econCompCapex" min="0" step="1000000" /></div>
-        <div class="nfield"><label for="econEbit">Site EBIT, annual ($)</label><input type="number" id="econEbit" min="0" step="1000000" /></div>
+        <div class="nfield"><label for="econFacCapex">Facility CapEx ($)</label><input type="text" inputmode="decimal" id="econFacCapex" /></div>
+        <div class="nfield"><label for="econCompCapex">Compute (GPU) CapEx ($)</label><input type="text" inputmode="decimal" id="econCompCapex" /></div>
+        <div class="nfield"><label for="econEbit">Site EBIT, annual ($)</label><input type="text" inputmode="decimal" id="econEbit" /></div>
       </div>
-    </div>
+    </details>
 
     <p class="lede" style="margin-top:16px">Illustrative defaults, not this project's employer or any confirmed
       site's real figures — swap in your own numbers. Operating hours/year is fixed at 24 × 365 = 8,760.</p>
@@ -391,6 +465,74 @@
   var fmtPct = function(n){ return (n * 100).toFixed(1) + "%"; };
   var fmtPct0 = function(n){ return Math.round(n * 100) + "%"; };
 
+  // ---- educational info popovers: one shared floating panel, delegated click handler so
+  // it works for both static and dynamically-inserted .infobtn elements without re-wiring. ----
+  var KPI_INFO = {
+    totalSpend: "Direct compute cost plus this tenant's absorbed share of idle capacity, summed across the whole period.",
+    idleOverhead: "The share of total spend that comes from provisioned-but-unused GPU capacity — the overhead pool every tenant is absorbing a slice of.",
+    blendedMargin: "(Revenue − total cost) ÷ revenue, across all three tenants combined.",
+    tenantsAtRisk: "Tenants whose most recent day fell below the warning margin threshold set in the panel to the right.",
+    econUtil: "Active IT load ÷ total facility capacity. Idle capacity still costs the same in lease and depreciation, whether or not a GPU is running.",
+    econCostMw: "Total capitalized build cost (shell, MEP, fit-out) ÷ megawatts of live capacity — the standard way to compare data-center builds across sites.",
+    econSavings: "What a facility saves per rack per year running at the efficient PUE instead of the legacy one, at the same electricity rate.",
+    econRoda: "Annual EBIT ÷ total capital invested (facility + compute). How efficiently capital converts into profit — very sensitive to deployment speed."
+  };
+  var infoPop = document.getElementById("infoPop");
+  document.addEventListener("click", function(e){
+    var btn = e.target.closest && e.target.closest(".infobtn");
+    if (btn) {
+      var key = btn.getAttribute("data-info");
+      var alreadyOpenForThis = infoPop.classList.contains("show") && infoPop.dataset.for === key;
+      document.querySelectorAll(".infobtn[aria-expanded='true']").forEach(function(b){ b.setAttribute("aria-expanded", "false"); });
+      if (alreadyOpenForThis) { infoPop.classList.remove("show"); return; }
+      infoPop.textContent = KPI_INFO[key] || "";
+      infoPop.dataset.for = key;
+      infoPop.classList.add("show");
+      btn.setAttribute("aria-expanded", "true");
+      var rect = btn.getBoundingClientRect();
+      var left = Math.min(rect.left - 182, window.innerWidth - 212);
+      left = Math.max(4, left);
+      infoPop.style.left = left + "px";
+      // vertical clamp: flip above the button if there isn't room below (short viewport / low button)
+      var top = rect.bottom + 6;
+      if (top + infoPop.offsetHeight > window.innerHeight - 4) top = rect.top - infoPop.offsetHeight - 6;
+      infoPop.style.top = Math.max(4, top) + "px";
+    } else if (!e.target.closest || !e.target.closest(".infopop")) {
+      infoPop.classList.remove("show");
+      document.querySelectorAll(".infobtn[aria-expanded='true']").forEach(function(b){ b.setAttribute("aria-expanded", "false"); });
+    }
+  });
+
+  // ---- count-up number animation; respects prefers-reduced-motion, and never leaves a
+  // tile stuck on its placeholder -- a backgrounded tab throttles/pauses requestAnimationFrame
+  // (measured: hidden tab -> rAF never fires -> tile stays "-" forever with no rAF fallback),
+  // so skip straight to the final value when hidden, and force-land it via setTimeout even if
+  // rAF stalls mid-animation after the tab is hidden partway through. ----
+  var REDUCE_MOTION = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function animateValue(el, toRaw, formatFn, duration){
+    duration = duration || 600;
+    if (REDUCE_MOTION || document.hidden) { el.textContent = formatFn(toRaw); el.dataset.raw = toRaw; return; }
+    var fromRaw = Number(el.dataset.raw) || 0;
+    var start = null;
+    var done = false;
+    function land(){
+      if (done) return;
+      done = true;
+      el.textContent = formatFn(toRaw);
+      el.dataset.raw = toRaw;
+    }
+    function step(ts){
+      if (done) return;
+      if (!start) start = ts;
+      var p = Math.min((ts - start) / duration, 1);
+      var eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = formatFn(fromRaw + (toRaw - fromRaw) * eased);
+      if (p < 1) requestAnimationFrame(step); else land();
+    }
+    requestAnimationFrame(step);
+    setTimeout(land, duration + 250); // safety net if rAF stalls (e.g. tab hidden mid-animation)
+  }
+
   function zoneOf(pct, warnBelow, bestAbove){
     if (pct < warnBelow) return "warning";
     if (pct > bestAbove) return "best";
@@ -407,11 +549,21 @@
     econFacCapex: 742000000, econCompCapex: 1186000000, econEbit: 251000000
   };
   var econIds = Object.keys(ECON_DEFAULTS);
+  // Comma-formatted for readability (742000000 -> 742,000,000); parseNum() strips the commas
+  // back out before computing, so every econ field -- number or text -- reads the same way.
+  var ECON_CURRENCY_IDS = ["econShell", "econMep", "econFitout", "econFacCapex", "econCompCapex", "econEbit"];
+
+  function parseNum(v){ return Number(String(v).replace(/,/g, "")) || 0; }
 
   function econValues(){
     var v = {};
-    econIds.forEach(function(id){ v[id] = Number(document.getElementById(id).value) || 0; });
+    econIds.forEach(function(id){ v[id] = parseNum(document.getElementById(id).value); });
     return v;
+  }
+
+  function formatCurrencyField(id){
+    var el = document.getElementById(id);
+    el.value = parseNum(el.value).toLocaleString();
   }
 
   function computeSiteEconomics(v){
@@ -428,21 +580,30 @@
       totalCapexBase: totalCapexBase, roda: roda };
   }
 
-  function renderSiteEconomics(){
+  function renderSiteEconomics(animate){
     var v = econValues();
     var r = computeSiteEconomics(v);
 
-    document.getElementById("econUtilVal").textContent = fmtPct(r.utilization);
+    var utilEl = document.getElementById("econUtilVal");
+    var costMwEl = document.getElementById("econCostMwVal");
+    var savingsEl = document.getElementById("econSavingsVal");
+    var rodaEl = document.getElementById("econRodaVal");
+    if (animate) {
+      animateValue(utilEl, r.utilization, fmtPct);
+      animateValue(costMwEl, r.costPerMW, function(x){ return fmtUSD(x) + "/MW"; });
+      animateValue(savingsEl, r.savings, fmtUSD);
+      animateValue(rodaEl, r.roda, fmtPct);
+    } else {
+      utilEl.textContent = fmtPct(r.utilization); utilEl.dataset.raw = r.utilization;
+      costMwEl.textContent = fmtUSD(r.costPerMW) + "/MW"; costMwEl.dataset.raw = r.costPerMW;
+      savingsEl.textContent = fmtUSD(r.savings); savingsEl.dataset.raw = r.savings;
+      rodaEl.textContent = fmtPct(r.roda); rodaEl.dataset.raw = r.roda;
+    }
+
     document.getElementById("econUtilSub").textContent = v.econLoad + " of " + v.econCap + " MW active";
-
-    document.getElementById("econCostMwVal").textContent = fmtUSD(r.costPerMW) + "/MW";
     document.getElementById("econCostMwSub").textContent = fmtUSD(r.totalBuildCapex) + " total build, " + v.econMw + " MW";
-
-    document.getElementById("econSavingsVal").textContent = fmtUSD(r.savings);
     document.getElementById("econSavingsSub").textContent =
       "Legacy " + fmtUSD(r.legacyCost) + " → Efficient " + fmtUSD(r.efficientCost);
-
-    document.getElementById("econRodaVal").textContent = fmtPct(r.roda);
     document.getElementById("econRodaSub").textContent =
       "EBIT " + fmtUSD(v.econEbit) + " / CapEx " + fmtUSD(r.totalCapexBase);
   }
@@ -450,13 +611,18 @@
   econIds.forEach(function(id){
     var el = document.getElementById(id);
     el.value = ECON_DEFAULTS[id];
-    el.addEventListener("input", renderSiteEconomics);
+    el.addEventListener("input", function(){ renderSiteEconomics(false); });
+  });
+  ECON_CURRENCY_IDS.forEach(function(id){
+    formatCurrencyField(id); // comma-format the initial value
+    document.getElementById(id).addEventListener("blur", function(){ formatCurrencyField(id); });
   });
   document.getElementById("econReset").addEventListener("click", function(){
     econIds.forEach(function(id){ document.getElementById(id).value = ECON_DEFAULTS[id]; });
-    renderSiteEconomics();
+    ECON_CURRENCY_IDS.forEach(formatCurrencyField);
+    renderSiteEconomics(true);
   });
-  renderSiteEconomics();
+  renderSiteEconomics(true);
 
   function render(data){
     document.getElementById("genAt").textContent = "Data as of " + data.generated_at.slice(0,10);
@@ -466,18 +632,22 @@
     // ---- KPI strip ----
     var s = data.summary;
     var kpis = [
-      { lbl: "Total GPU spend", val: fmtUSD(s.total_spend), sub: s.date_range.start + " → " + s.date_range.end },
-      { lbl: "Idle overhead absorbed", val: fmtPct(s.idle_cost_pct_of_spend), sub: fmtUSD(s.total_idle_cost) + " of total spend" },
-      { lbl: "Blended gross margin", val: fmtPct(s.blended_gross_margin_pct), sub: "revenue " + fmtUSD(s.total_revenue) },
-      { lbl: "Tenants at risk", val: s.tenants_in_warning.length + " of " + s.tenants.length, sub: s.tenants_in_warning.join(", ") || "none", warn: s.tenants_in_warning.length > 0 }
+      { lbl: "Total GPU spend", info: "totalSpend", raw: s.total_spend, fmt: fmtUSD, sub: s.date_range.start + " → " + s.date_range.end },
+      { lbl: "Idle overhead absorbed", info: "idleOverhead", raw: s.idle_cost_pct_of_spend, fmt: fmtPct, sub: fmtUSD(s.total_idle_cost) + " of total spend" },
+      { lbl: "Blended gross margin", info: "blendedMargin", raw: s.blended_gross_margin_pct, fmt: fmtPct, sub: "revenue " + fmtUSD(s.total_revenue) },
+      { lbl: "Tenants at risk", info: "tenantsAtRisk", val: s.tenants_in_warning.length + " of " + s.tenants.length, sub: s.tenants_in_warning.join(", ") || "none", warn: s.tenants_in_warning.length > 0 }
     ];
-    var kpiHtml = kpis.map(function(k){
+    var kpiHtml = kpis.map(function(k, i){
       return '<div class="card kpi' + (k.warn ? ' warn' : '') + '">' +
+        '<button class="infobtn" type="button" data-info="' + k.info + '" aria-label="What is this?" aria-expanded="false">i</button>' +
         '<div class="lbl">' + k.lbl + '</div>' +
-        '<div class="val tabular">' + k.val + '</div>' +
+        '<div class="val tabular" id="kpiVal' + i + '">' + (k.val || "—") + '</div>' +
         '<div class="sub">' + k.sub + '</div></div>';
     }).join("");
     document.getElementById("kpis").innerHTML = kpiHtml;
+    kpis.forEach(function(k, i){
+      if (k.fmt) animateValue(document.getElementById("kpiVal" + i), k.raw, k.fmt);
+    });
 
     // ---- story callout ----
     document.getElementById("storySection").innerHTML =
@@ -498,6 +668,11 @@
     });
     Object.keys(byTenant).forEach(function(k){ byTenant[k].sort(function(a,b){ return a.usage_date < b.usage_date ? -1 : 1; }); });
 
+    // ---- the absorption key, visualized (static: allocation_ratio doesn't depend on the
+    // margin-zone thresholds, so this renders once and never re-renders on slider move) ----
+    renderAllocation(byTenant, Object.keys(byTenant).sort());
+
+    var expandedTenants = {}; // cid -> bool, survives renderTenants() re-renders on slider move
     var warnSlider = document.getElementById("warnSlider");
     var bestSlider = document.getElementById("bestSlider");
     var warnVal = document.getElementById("warnVal");
@@ -526,16 +701,32 @@
         var zoneClass = zone === "best" ? "z-best" : zone === "warning" ? "z-warning" : "z-standard";
         var totalCost = rows.reduce(function(a,r){ return a + r.total_cost; }, 0);
         var totalRev = rows.reduce(function(a,r){ return a + r.revenue; }, 0);
-        var spark = sparklineSVG(rows.map(function(r){ return r.gross_margin_pct; }), th, zone);
+        var totalDirect = rows.reduce(function(a,r){ return a + r.direct_cost; }, 0);
+        var totalIdle = rows.reduce(function(a,r){ return a + r.allocated_idle_cost; }, 0);
+        var spark = sparklineSVG(rows, th, zone, cid);
+        var expanded = !!expandedTenants[cid];
         return '<div class="card tcard">' +
           '<div class="top"><span class="cid">' + cid + '</span>' +
           '<span class="pill ' + zoneClass + '"><span class="sw"></span>' + ZONE_LABEL[zone] + '</span></div>' +
           '<div class="margin tabular" style="color:' + pillColorVar(zone) + '">' + fmtPct(latest.gross_margin_pct) + '</div>' +
           '<div class="stats"><span>Total cost<b class="tabular">' + fmtUSD(totalCost) + '</b></span>' +
           '<span>Revenue<b class="tabular">' + fmtUSD(totalRev) + '</b></span></div>' +
-          '<div class="spark">' + spark + '</div></div>';
+          '<div class="spark">' + spark + '</div>' +
+          '<button class="expand-btn" type="button" data-cid="' + cid + '" aria-expanded="' + expanded + '" aria-controls="breakdown-' + cid + '">' + (expanded ? "Hide breakdown ▴" : "Show breakdown ▾") + '</button>' +
+          '<div class="breakdown' + (expanded ? " show" : "") + '" id="breakdown-' + cid + '">' +
+          waterfallSVG(totalRev, totalDirect, totalIdle) + '</div></div>';
       }).join("");
       document.getElementById("tenants").innerHTML = html;
+      order.forEach(function(cid){ wireSparkHover(cid, byTenant[cid]); });
+      document.querySelectorAll(".expand-btn").forEach(function(btn){
+        btn.addEventListener("click", function(){
+          var cid = btn.getAttribute("data-cid");
+          expandedTenants[cid] = !expandedTenants[cid];
+          btn.textContent = expandedTenants[cid] ? "Hide breakdown ▴" : "Show breakdown ▾";
+          btn.setAttribute("aria-expanded", expandedTenants[cid]);
+          document.getElementById("breakdown-" + cid).classList.toggle("show", expandedTenants[cid]);
+        });
+      });
     }
 
     function pillColorVar(zone){
@@ -555,7 +746,60 @@
 
   // ---- tiny dependency-free chart builders ----
 
-  function sparklineSVG(values, th, zone){
+  function renderAllocation(byTenant, order){
+    var avgRatio = {};
+    order.forEach(function(cid){
+      var rows = byTenant[cid];
+      avgRatio[cid] = rows.reduce(function(a,r){ return a + r.allocation_ratio; }, 0) / rows.length;
+    });
+    var total = order.reduce(function(a,cid){ return a + avgRatio[cid]; }, 0) || 1;
+    // Fixed opacity steps of the accent hue, in tenant order -- not a per-tenant categorical
+    // palette (this chart is about usage share, a different dimension than the margin-zone
+    // status colors used elsewhere, so it deliberately doesn't compete with that system).
+    var steps = [1, 0.6, 0.32];
+    var segs = order.map(function(cid, i){
+      var pct = avgRatio[cid] / total;
+      return '<div class="alloc-seg" style="width:' + (pct * 100).toFixed(2) + '%; background:rgb(var(--c-accent) / ' + (steps[i] || 0.32) + ')" title="' + cid + ' ' + fmtPct0(pct) + '"></div>';
+    }).join("");
+    var legend = order.map(function(cid, i){
+      var pct = avgRatio[cid] / total;
+      return '<span><i style="background:rgb(var(--c-accent) / ' + (steps[i] || 0.32) + ')"></i>' + cid + ' <b>' + fmtPct0(pct) + '</b></span>';
+    }).join("");
+    document.getElementById("allocPanel").innerHTML =
+      '<div class="alloc-bar">' + segs + '</div><div class="alloc-legend">' + legend + '</div>';
+  }
+
+  function waterfallSVG(revenue, direct, idle){
+    var net = revenue - direct - idle;
+    var w = 320, h = 140, padT = 20, padB = 26;
+    var innerH = h - padT - padB;
+    var maxV = Math.max(revenue, 0), minV = Math.min(net, 0);
+    var range = (maxV - minV) || 1;
+    var yAt = function(v){ return padT + innerH - ((v - minV) / range) * innerH; };
+    var zeroY = yAt(0);
+    var slotW = w / 4, barW = slotW * 0.5;
+    var bars = [
+      { label: "Revenue", val: revenue, top: revenue, bottom: 0, color: "var(--c-accent)" },
+      { label: "Direct cost", val: -direct, top: revenue, bottom: revenue - direct, color: "var(--c-text-secondary)" },
+      { label: "Idle cost", val: -idle, top: revenue - direct, bottom: net, color: "var(--c-danger)" },
+      { label: "Net margin", val: net, top: Math.max(net, 0), bottom: Math.min(net, 0), color: net >= 0 ? "var(--c-success)" : "var(--c-danger)" }
+    ];
+    var parts = bars.map(function(b, i){
+      var x = slotW * i + (slotW - barW) / 2;
+      var yTop = yAt(Math.max(b.top, b.bottom)), yBot = yAt(Math.min(b.top, b.bottom));
+      var bh = Math.max(yBot - yTop, 2);
+      var rgb = 'rgb(' + b.color + ')'; // b.color is already "var(--c-x)" -- rgb(var(--c-x)) is the valid form
+      var sign = b.val > 0 ? "+" : b.val < 0 ? "−" : "";
+      return '<rect x="' + x.toFixed(1) + '" y="' + yTop.toFixed(1) + '" width="' + barW.toFixed(1) + '" height="' + bh.toFixed(1) + '" rx="3" fill="' + rgb + '"/>' +
+        '<text x="' + (x + barW / 2).toFixed(1) + '" y="' + (yTop - 5).toFixed(1) + '" text-anchor="middle" fill="' + rgb + '">' + sign + fmtUSD(Math.abs(b.val)) + '</text>' +
+        '<text x="' + (x + barW / 2).toFixed(1) + '" y="' + (h - 8) + '" text-anchor="middle" class="axislabel">' + b.label + '</text>';
+    }).join("");
+    var zeroLine = '<line x1="0" x2="' + w + '" y1="' + zeroY.toFixed(1) + '" y2="' + zeroY.toFixed(1) + '" stroke="rgb(var(--c-text-secondary) / .25)" stroke-width="1" stroke-dasharray="2 3"/>';
+    return '<svg class="chart waterfall" viewBox="0 0 ' + w + ' ' + h + '" style="width:100%;height:140px" role="img" aria-label="Revenue to margin breakdown">' + zeroLine + parts + '</svg>';
+  }
+
+  function sparklineSVG(rows, th, zone, cid){
+    var values = rows.map(function(r){ return r.gross_margin_pct; });
     var w = 220, h = 46, pad = 3;
     var min = Math.min.apply(null, values.concat([th.warn]));
     var max = Math.max.apply(null, values.concat([th.best]));
@@ -567,12 +811,38 @@
     var color = zone === "best" ? "var(--c-success)" : zone === "warning" ? "var(--c-danger)" : "var(--c-text-secondary)";
     var lastX = x(values.length - 1), lastY = y(values[values.length - 1]);
     var refWarn = y(th.warn), refBest = y(th.best);
-    return '<svg class="chart" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none" style="width:100%;height:' + h + 'px" role="img" aria-label="Gross margin trend">' +
+    var hoverDots = rows.map(function(r,i){
+      return '<circle data-i="' + i + '" cx="' + x(i).toFixed(1) + '" cy="' + y(r.gross_margin_pct).toFixed(1) + '" r="9" fill="transparent" style="cursor:crosshair"/>';
+    }).join("");
+    return '<svg class="chart" id="spark-' + cid + '" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none" style="width:100%;height:' + h + 'px" role="img" aria-label="Gross margin trend">' +
       '<line x1="0" y1="' + refWarn.toFixed(1) + '" x2="' + w + '" y2="' + refWarn.toFixed(1) + '" stroke="rgb(var(--c-danger))" stroke-opacity=".35" stroke-width="1" stroke-dasharray="2 3"/>' +
       '<line x1="0" y1="' + refBest.toFixed(1) + '" x2="' + w + '" y2="' + refBest.toFixed(1) + '" stroke="rgb(var(--c-success))" stroke-opacity=".35" stroke-width="1" stroke-dasharray="2 3"/>' +
-      '<path d="' + pathD + '" fill="none" stroke="' + 'rgb(' + color.replace('var(','').replace(')','') + ')' + '" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' +
-      '<circle cx="' + lastX.toFixed(1) + '" cy="' + lastY.toFixed(1) + '" r="2.6" fill="' + 'rgb(' + color.replace('var(','').replace(')','') + ')' + '"/>' +
+      '<path d="' + pathD + '" fill="none" stroke="rgb(' + color + ')" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' +
+      '<circle cx="' + lastX.toFixed(1) + '" cy="' + lastY.toFixed(1) + '" r="2.6" fill="rgb(' + color + ')"/>' +
+      hoverDots +
       '</svg>';
+  }
+
+  function wireSparkHover(cid, rows){
+    var svg = document.getElementById("spark-" + cid);
+    var tip = document.getElementById("sparkTip");
+    if (!svg || !tip) return;
+    svg.querySelectorAll("circle[data-i]").forEach(function(dot){
+      dot.addEventListener("mouseenter", function(){
+        var r = rows[Number(dot.getAttribute("data-i"))];
+        tip.innerHTML =
+          '<div class="d">' + r.usage_date + '</div>' +
+          '<div class="r"><span>Margin</span><b class="tabular">' + fmtPct(r.gross_margin_pct) + '</b></div>';
+        tip.style.position = "fixed";
+        tip.classList.add("show");
+        var rect = dot.getBoundingClientRect();
+        var left = rect.left + rect.width / 2 - tip.offsetWidth / 2;
+        left = Math.max(4, Math.min(left, window.innerWidth - tip.offsetWidth - 4));
+        tip.style.left = left + "px";
+        tip.style.top = (rect.top - tip.offsetHeight - 8) + "px";
+      });
+      dot.addEventListener("mouseleave", function(){ tip.classList.remove("show"); });
+    });
   }
 
   function renderComposition(days){
