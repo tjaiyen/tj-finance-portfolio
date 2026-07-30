@@ -100,6 +100,7 @@
     transition:all .15s;
   }
   .infobtn:hover, .infobtn[aria-expanded="true"]{border-color:rgb(var(--c-accent)); color:rgb(var(--c-accent))}
+  .infobtn.inline{position:static; display:inline-flex; vertical-align:middle; flex:none; text-transform:none}
   .infopop{
     position:fixed; z-index:9; display:none; width:200px;
     background:rgb(var(--c-bg-card2)); border:1px solid rgb(var(--c-accent) / .4); border-radius:8px;
@@ -117,6 +118,22 @@
   .story p{margin:0; font-size:13.5px; line-height:1.6}
   .story b{color:rgb(var(--c-text-primary))}
   .story .tag{font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:rgb(var(--c-danger))}
+
+  /* insight: the same "narrator" idea as .story, but accent-colored rather than danger-red --
+     these callouts are computed live from the actual numbers on the page (deterministic,
+     rule-based text templates -- no model call, nothing invented), but the takeaway isn't
+     always bad news, so it shouldn't always read as a warning. */
+  .insight{
+    margin-top:12px; padding:14px 18px; border-left:3px solid rgb(var(--c-accent));
+    background:rgb(var(--c-accent) / .05); border-radius:0 8px 8px 0;
+    font-size:12.5px; line-height:1.65; color:rgb(var(--c-text-secondary));
+  }
+  .insight b{color:rgb(var(--c-text-primary))}
+  .insight .tag{
+    display:block; font-size:10.5px; font-weight:700; letter-spacing:.08em; text-transform:uppercase;
+    color:rgb(var(--c-accent)); margin-bottom:5px;
+  }
+  .tcard .note{margin-top:10px; font-size:11.5px; line-height:1.5; color:rgb(var(--c-text-secondary))}
 
   /* composition chart */
   .panel{padding:18px 20px 14px}
@@ -303,7 +320,10 @@
   <section class="card panel">
     <div class="panel-head">
       <div>
-        <h2>Daily cluster cost — active vs. idle</h2>
+        <div style="display:flex; align-items:center; gap:7px">
+          <h2>Daily cluster cost — active vs. idle</h2>
+          <button class="infobtn inline" type="button" data-info="compositionInfo" aria-label="What is this?" aria-expanded="false">i</button>
+        </div>
         <p class="lede" style="margin-top:2px">The overhead pool being absorbed, day by day.</p>
       </div>
       <div class="legend">
@@ -312,16 +332,21 @@
       </div>
     </div>
     <div class="chart-wrap" id="compositionWrap"><div class="skel">loading…</div></div>
+    <div id="compositionInsight"></div>
   </section>
 
   <section class="card panel">
     <div class="panel-head">
       <div>
-        <h2>The absorption key — token share by tenant</h2>
+        <div style="display:flex; align-items:center; gap:7px">
+          <h2>The absorption key — token share by tenant</h2>
+          <button class="infobtn inline" type="button" data-info="allocationInfo" aria-label="What is this?" aria-expanded="false">i</button>
+        </div>
         <p class="lede" style="margin-top:2px">This ratio is what decides how much of the idle pool each tenant gets stuck absorbing.</p>
       </div>
     </div>
     <div id="allocPanel" style="margin-top:12px"><div class="skel">loading…</div></div>
+    <div id="allocationInsight"></div>
   </section>
 
   <section class="split">
@@ -332,7 +357,10 @@
       <div class="infopop" id="infoPop"></div>
     </div>
     <div class="card controls">
-      <h3>Explore margin-zone thresholds</h3>
+      <div style="display:flex; align-items:center; gap:7px">
+        <h3>Explore margin-zone thresholds</h3>
+        <button class="infobtn inline" type="button" data-info="thresholdInfo" aria-label="What is this?" aria-expanded="false">i</button>
+      </div>
       <p class="lede">Re-colors the cards above against each tenant's already-computed <code>gross_margin_pct</code> —
         this does not recompute any cost or margin figure. Mirrors <code>dbt build --vars</code> re-tunability.</p>
       <div class="field">
@@ -383,9 +411,14 @@
     </div>
   </section>
 
+  <section id="economicsInsight"></section>
+
   <section class="card econ-grid">
     <div class="panel-head" style="margin-bottom:4px">
-      <h3 style="font-size:12.5px; text-transform:uppercase; letter-spacing:.06em; color:rgb(var(--c-text-secondary))">Assumptions</h3>
+      <div style="display:flex; align-items:center; gap:7px">
+        <h3 style="font-size:12.5px; text-transform:uppercase; letter-spacing:.06em; color:rgb(var(--c-text-secondary))">Assumptions</h3>
+        <button class="infobtn inline" type="button" data-info="assumptionsInfo" aria-label="What is this?" aria-expanded="false">i</button>
+      </div>
       <button class="reset" id="econReset" type="button" style="margin-top:0; width:auto; padding:0 14px">Reset to defaults</button>
     </div>
 
@@ -467,15 +500,20 @@
 
   // ---- educational info popovers: one shared floating panel, delegated click handler so
   // it works for both static and dynamically-inserted .infobtn elements without re-wiring. ----
+  // Plain language, no jargon: every term is explained from scratch, not assumed knowledge.
   var KPI_INFO = {
-    totalSpend: "Direct compute cost plus this tenant's absorbed share of idle capacity, summed across the whole period.",
-    idleOverhead: "The share of total spend that comes from provisioned-but-unused GPU capacity — the overhead pool every tenant is absorbing a slice of.",
-    blendedMargin: "(Revenue − total cost) ÷ revenue, across all three tenants combined.",
-    tenantsAtRisk: "Tenants whose most recent day fell below the warning margin threshold set in the panel to the right.",
-    econUtil: "Active IT load ÷ total facility capacity. Idle capacity still costs the same in lease and depreciation, whether or not a GPU is running.",
-    econCostMw: "Total capitalized build cost (shell, MEP, fit-out) ÷ megawatts of live capacity — the standard way to compare data-center builds across sites.",
-    econSavings: "What a facility saves per rack per year running at the efficient PUE instead of the legacy one, at the same electricity rate.",
-    econRoda: "Annual EBIT ÷ total capital invested (facility + compute). How efficiently capital converts into profit — very sensitive to deployment speed."
+    totalSpend: "What this tenant paid for GPU time — including its fair share of capacity that was reserved but sat unused. Added up over the whole time period shown.",
+    idleOverhead: "Data centers get billed for GPUs whether or not those GPUs are doing any work. This is the slice of total spend that comes from capacity that was paid for but sat idle.",
+    blendedMargin: "Money left over after costs, as a percentage of money billed — combining all three tenants into one number.",
+    tenantsAtRisk: "Tenants whose most recent day dropped below the “in trouble” line. You can drag that line yourself in the panel to the right.",
+    econUtil: "How much of the site's total power capacity is actually being used right now. The unused rest still costs money — rent, depreciation, and upkeep don't pause just because a GPU sits idle.",
+    econCostMw: "What it costs to build one megawatt of ready-to-use capacity — the building, the power and cooling systems, and the tech installed inside it. A standard way builders compare one site to another.",
+    econSavings: "Cooling and power systems aren't all equally efficient. This is how much one rack of servers would save every year by running on a more efficient setup instead of an older, less efficient one — same electricity price either way.",
+    econRoda: "For every dollar spent building this site and filling it with GPUs, how many cents come back as profit each year. A simple gut-check for whether the money was well spent.",
+    compositionInfo: "Think of the cluster's daily bill as a pie. The blue slice is compute that customers actually used. The gray slice is capacity that was reserved and paid for, but nobody used it that day.",
+    allocationInfo: "The unused capacity above isn't split evenly — it's split by how much each tenant actually used. Send more requests, and you pick up a bigger share of the leftover, unused capacity too.",
+    thresholdInfo: "Drag these to change where a tenant counts as “in trouble” versus “doing great.” This only changes the labels and colors on the cards above — it never changes the dollar figures themselves.",
+    assumptionsInfo: "Every box below is something you can change to ask “what if” — what if the building cost more, what if the site ran hotter, what if electricity got pricier. The four numbers above update instantly as you type."
   };
   var infoPop = document.getElementById("infoPop");
   document.addEventListener("click", function(e){
@@ -539,6 +577,21 @@
     return "standard";
   }
   var ZONE_LABEL = { warning: "At risk", standard: "Standard", best: "Best-in-class" };
+  // Deterministic, rule-based narration -- every sentence below is a template filled in with
+  // already-computed numbers already shown elsewhere on the page. No model call, nothing
+  // invented: the same "computed from the value and its threshold" narrator pattern this
+  // portfolio already uses on its Operations Bridge page.
+  function narrateTenantShort(zone){
+    if (zone === "warning") return "Losing money — what it's charged doesn't cover what it costs to serve.";
+    if (zone === "best") return "Comfortably profitable, well clear of the target margin.";
+    return "Profitable, but not by a wide margin.";
+  }
+  function narrateIdleShare(p){
+    if (p < 0.05) return "very lean, almost nothing here goes to waste";
+    if (p < 0.15) return "a fairly normal, modest amount of unused capacity";
+    if (p < 0.30) return "a meaningful chunk of spend going toward capacity nobody used";
+    return "a large share of spend going toward capacity that sat idle";
+  }
 
   // ---- site deployment economics: independent, client-side, not sourced from dbt ----
   var HOURS_PER_YEAR = 24 * 365;
@@ -606,6 +659,19 @@
       "Legacy " + fmtUSD(r.legacyCost) + " → Efficient " + fmtUSD(r.efficientCost);
     document.getElementById("econRodaSub").textContent =
       "EBIT " + fmtUSD(v.econEbit) + " / CapEx " + fmtUSD(r.totalCapexBase);
+
+    document.getElementById("economicsInsight").innerHTML =
+      '<div class="card insight"><span class="tag">In plain terms</span>' +
+      'At <b>' + fmtPct(r.utilization) + '</b> utilization, how much of this site\'s capacity is actually earning money is <b>' + narrateUtilWord(r.utilization) + '</b> — ' +
+      'the rest still costs money, used or not. Building a new megawatt of capacity here runs <b>' + fmtUSD(r.costPerMW) + '</b>. ' +
+      'Switching to the more efficient cooling setup would save <b>' + fmtUSD(r.savings) + '</b> per rack every year. Put together, the site returns ' +
+      '<b>' + fmtPct(r.roda) + '</b> on the money invested in it each year — ' + narrateRodaWord(r.roda) + ' return by typical infrastructure standards.</div>';
+  }
+  function narrateUtilWord(u){
+    return u >= 0.85 ? "excellent" : u >= 0.65 ? "solid" : u >= 0.4 ? "underwhelming" : "poor";
+  }
+  function narrateRodaWord(roda){
+    return roda >= 0.15 ? "a strong" : roda >= 0.08 ? "a reasonable" : "a weak";
   }
 
   econIds.forEach(function(id){
@@ -660,6 +726,9 @@
 
     // ---- composition chart (stacked area: active + idle, by day) ----
     renderComposition(data.cluster_costs);
+    document.getElementById("compositionInsight").innerHTML =
+      '<div class="card insight"><span class="tag">In plain terms</span>Idle capacity made up <b>' + fmtPct(s.idle_cost_pct_of_spend) +
+      '</b> of total spend over this period — ' + narrateIdleShare(s.idle_cost_pct_of_spend) + '.</div>';
 
     // ---- tenant scorecards + interactive thresholds ----
     var byTenant = {};
@@ -709,6 +778,7 @@
           '<div class="top"><span class="cid">' + cid + '</span>' +
           '<span class="pill ' + zoneClass + '"><span class="sw"></span>' + ZONE_LABEL[zone] + '</span></div>' +
           '<div class="margin tabular" style="color:' + pillColorVar(zone) + '">' + fmtPct(latest.gross_margin_pct) + '</div>' +
+          '<div class="note">' + narrateTenantShort(zone) + '</div>' +
           '<div class="stats"><span>Total cost<b class="tabular">' + fmtUSD(totalCost) + '</b></span>' +
           '<span>Revenue<b class="tabular">' + fmtUSD(totalRev) + '</b></span></div>' +
           '<div class="spark">' + spark + '</div>' +
@@ -767,6 +837,12 @@
     }).join("");
     document.getElementById("allocPanel").innerHTML =
       '<div class="alloc-bar">' + segs + '</div><div class="alloc-legend">' + legend + '</div>';
+
+    var topCid = order.slice().sort(function(a,b){ return avgRatio[b] - avgRatio[a]; })[0];
+    var topPct = avgRatio[topCid] / total;
+    document.getElementById("allocationInsight").innerHTML =
+      '<div class="card insight"><span class="tag">In plain terms</span><b>' + topCid + '</b> sends the most traffic, so it picks up the largest ' +
+      'slice of the unused-capacity bill (<b>' + fmtPct0(topPct) + '</b>) — not because it\'s priced differently, simply because it uses the cluster the most.</div>';
   }
 
   function waterfallSVG(revenue, direct, idle){
