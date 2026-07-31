@@ -536,6 +536,47 @@
     <div id="tornadoInsight"></div>
   </section>
 
+  <section class="divider">
+    <div class="eyebrow">Site deployments · a third lens<span class="live-badge"><span class="dot2"></span>Illustrative snapshot</span></div>
+    <div style="display:flex; align-items:center; gap:7px; margin-top:8px">
+      <h2 style="font-size:18px">Deployment portfolio</h2>
+      <button class="infobtn inline" type="button" data-info="portfolioInfo" aria-label="What is this?" aria-expanded="false">i</button>
+    </div>
+    <p class="lede">A synthetic six-site portfolio at different build stages — what "site deployments" looks like as a
+      fleet-management problem, not a single build. Static illustrative data, not a live calculator like the section
+      above and not sourced from dbt.</p>
+  </section>
+
+  <section class="kpis" id="portfolioKpis">
+    <div class="card kpi">
+      <button class="infobtn" type="button" data-info="portfolioCapital" aria-label="What is this?" aria-expanded="false">i</button>
+      <div class="lbl">Capital deployed</div>
+      <div class="val tabular" id="portfolioCapitalVal">—</div>
+      <div class="sub" id="portfolioCapitalSub">—</div>
+    </div>
+    <div class="card kpi">
+      <button class="infobtn" type="button" data-info="portfolioCapacity" aria-label="What is this?" aria-expanded="false">i</button>
+      <div class="lbl">Capacity delivered vs. target</div>
+      <div class="val tabular" id="portfolioCapacityVal">—</div>
+      <div class="sub" id="portfolioCapacitySub">—</div>
+    </div>
+    <div class="card kpi">
+      <button class="infobtn" type="button" data-info="portfolioBehind" aria-label="What is this?" aria-expanded="false">i</button>
+      <div class="lbl">Sites behind schedule</div>
+      <div class="val tabular" id="portfolioBehindVal">—</div>
+      <div class="sub" id="portfolioBehindSub">—</div>
+    </div>
+    <div class="card kpi">
+      <button class="infobtn" type="button" data-info="portfolioDelayCost" aria-label="What is this?" aria-expanded="false">i</button>
+      <div class="lbl">Portfolio cost of delay</div>
+      <div class="val tabular" id="portfolioDelayCostVal">—</div>
+      <div class="sub" id="portfolioDelayCostSub">—</div>
+    </div>
+  </section>
+
+  <section class="tenants" id="portfolioSites"><div class="skel">loading…</div></section>
+  <section id="portfolioInsight"></section>
+
   <footer>
     <span>Synthetic data — no employer or confidential information. Model: <a href="https://github.com/tjaiyen/tj-finance-portfolio/tree/main/dbt_gpu_cost_attribution" target="_blank" rel="noopener">dbt_gpu_cost_attribution</a></span>
     <span>Built with 24 automated dbt tests across 3 tiers (data, unit, singular) · <code>dbt build</code> passes clean · CI on every push</span>
@@ -577,10 +618,17 @@
   // ~40px single-line height regardless of content, so height is not a valid wrap signal
   // here). Abbreviate to millions for tiles whose headline number can run this large (cost
   // per MW, annual power savings under extreme inputs); sub-text/narrator prose elsewhere
-  // keeps full precision.
+  // keeps full precision. Billions get their own tier ("$3.8B" not "$3795M") -- the portfolio
+  // section's totals are the first values on this page to actually reach it, but any econ
+  // input is user-editable, so a large enough typed CapEx hits this path too.
   var fmtUSDCompact = function(n){
     var neg = n < 0, abs = Math.abs(n);
     if (abs < 1e6) return fmtUSD(n);
+    if (abs >= 1e9) {
+      var b = Math.round(abs / 1e8) / 10; // one decimal of precision in billions
+      var sb = "$" + (b % 1 === 0 ? b.toFixed(0) : b.toFixed(1)) + "B";
+      return neg ? "(" + sb + ")" : sb;
+    }
     var m = Math.round(abs / 1e5) / 10; // one decimal of precision in millions
     var s = "$" + (m % 1 === 0 ? m.toFixed(0) : m.toFixed(1)) + "M";
     return neg ? "(" + s + ")" : s;
@@ -608,7 +656,12 @@
     assumptionsInfo: "Every box below is something you can change to ask a what-if question, e.g. what if the building cost more, what if the site ran hotter, what if electricity got pricier. The six numbers above update instantly as you type.",
     depreciationInfo: "Depreciation just means spreading a big purchase's cost over the years it stays useful, instead of counting it all on day one. GPUs wear out, and go obsolete, much faster than a building shell does, so every idle month costs very different amounts depending on which one is sitting unused.",
     delayInfo: "A real site doesn't flip from under-construction to fully-earning overnight, GPUs typically arrive and get racked after the building itself is ready. This slider asks: what if that gap were longer or shorter?",
-    tornadoInfo: "A tornado chart is a standard finance technique for stress-testing an estimate: move one input at a time by the same percentage, holding everything else fixed, and see which one swings the result the most. The widest bar is the number most worth double-checking."
+    tornadoInfo: "A tornado chart is a standard finance technique for stress-testing an estimate: move one input at a time by the same percentage, holding everything else fixed, and see which one swings the result the most. The widest bar is the number most worth double-checking.",
+    portfolioInfo: "Everything above modeled one site. Real deployments are usually a fleet -- several sites at once, each at a different stage from early planning to fully live. This section is a static, illustrative snapshot of six such sites, not something you can edit like the calculator above.",
+    portfolioCapital: "How much of the money set aside for these six sites has actually been spent so far, versus how much was planned in total.",
+    portfolioCapacity: "Across all six sites, how many megawatts are actually live and delivering today, compared to what the finished portfolio is targeting. Sites still in planning or construction count toward the target but not yet toward what's delivered.",
+    portfolioBehind: "How many of the six sites are running later than planned. A site still early in planning isn't counted as behind -- there's no schedule to miss yet.",
+    portfolioDelayCost: "For every site that's running behind, this adds up the GPU depreciation that ran during the delay with no site there yet to use it -- the same idea as the single-site \"cost of a delayed ramp\" above, added across the whole portfolio."
   };
   var infoPop = document.getElementById("infoPop");
   document.addEventListener("click", function(e){
@@ -905,6 +958,97 @@
     document.getElementById("tornadoWrap").innerHTML = tornadoSVG(drivers, baseRoda);
     document.getElementById("tornadoInsight").innerHTML = narrateTornado(drivers);
   }
+
+  // ---- deployment portfolio: a static, illustrative six-site snapshot -- NOT another
+  // live calculator (no inputs, no ECON_DEFAULTS entry), so it renders once and never
+  // re-renders on any slider/field change elsewhere on the page. Generic numbered site
+  // names and round synthetic figures, same "no employer, no real site" discipline as
+  // every other illustrative number on this page. computeCapexDeployed is the compute/
+  // GPU slice of capital ALREADY SPENT (capexDeployed), not of the total plan -- a site
+  // still in Planning hasn't shipped GPUs yet, so its idle-depreciation exposure is
+  // genuinely zero, not just unmeasured.
+  var PORTFOLIO_SITES = [
+    { name: "Site 01", stage: "Live", capexPlanned: 950000000, capexDeployed: 950000000, computeCapexDeployed: 580000000, targetMW: 60, currentMW: 54, monthsBehindSchedule: 0 },
+    { name: "Site 02", stage: "Live", capexPlanned: 700000000, capexDeployed: 700000000, computeCapexDeployed: 430000000, targetMW: 40, currentMW: 30, monthsBehindSchedule: 0 },
+    { name: "Site 03", stage: "Ramping", capexPlanned: 1100000000, capexDeployed: 980000000, computeCapexDeployed: 600000000, targetMW: 70, currentMW: 22, monthsBehindSchedule: 3 },
+    { name: "Site 04", stage: "Under construction", capexPlanned: 1300000000, capexDeployed: 640000000, computeCapexDeployed: 380000000, targetMW: 80, currentMW: 0, monthsBehindSchedule: 5 },
+    { name: "Site 05", stage: "Under construction", capexPlanned: 520000000, capexDeployed: 510000000, computeCapexDeployed: 300000000, targetMW: 30, currentMW: 0, monthsBehindSchedule: 0 },
+    { name: "Site 06", stage: "Planning", capexPlanned: 900000000, capexDeployed: 15000000, computeCapexDeployed: 0, targetMW: 55, currentMW: 0, monthsBehindSchedule: 0 }
+  ];
+  function siteCostOfDelay(site){
+    // Same mechanism as the single-site "cost of a delayed ramp" section: GPU capital
+    // already spent depreciates on GPU_LIFE_YEARS regardless of whether the site is live.
+    return site.monthsBehindSchedule > 0 ? (site.computeCapexDeployed / GPU_LIFE_YEARS / 12) * site.monthsBehindSchedule : 0;
+  }
+  function computePortfolio(){
+    var totalPlanned = 0, totalDeployed = 0, totalTargetMW = 0, totalCurrentMW = 0, totalDelayCost = 0, behind = [];
+    PORTFOLIO_SITES.forEach(function(s){
+      totalPlanned += s.capexPlanned;
+      totalDeployed += s.capexDeployed;
+      totalTargetMW += s.targetMW;
+      totalCurrentMW += s.currentMW;
+      var delay = siteCostOfDelay(s);
+      totalDelayCost += delay;
+      if (s.monthsBehindSchedule > 0) behind.push(s.name);
+    });
+    return {
+      totalPlanned: totalPlanned, totalDeployed: totalDeployed,
+      pctDeployed: totalPlanned > 0 ? totalDeployed / totalPlanned : 0,
+      totalTargetMW: totalTargetMW, totalCurrentMW: totalCurrentMW,
+      pctDelivered: totalTargetMW > 0 ? totalCurrentMW / totalTargetMW : 0,
+      totalDelayCost: totalDelayCost, behind: behind
+    };
+  }
+  function portfolioStagePill(stage){
+    var cls = stage === "Live" ? "z-best" : "z-standard";
+    return '<span class="pill ' + cls + '"><span class="sw"></span>' + stage + '</span>';
+  }
+  function portfolioBar(label, current, target, fmt){
+    var pct = target > 0 ? Math.min(current / target, 1) : 0;
+    return '<div class="field" style="margin-top:10px">' +
+      '<div class="fl"><span>' + label + '</span><b>' + fmt(current) + ' / ' + fmt(target) + '</b></div>' +
+      '<div class="alloc-bar" style="background:rgb(var(--c-bg-primary))"><div class="alloc-seg" style="width:' + (pct * 100).toFixed(1) + '%; background:rgb(var(--c-accent))"></div></div>' +
+      '</div>';
+  }
+  function renderPortfolioSites(){
+    var html = PORTFOLIO_SITES.map(function(s){
+      var delay = siteCostOfDelay(s);
+      var note = s.monthsBehindSchedule > 0
+        ? '<div class="note" style="color:rgb(var(--c-danger))">' + s.monthsBehindSchedule + (s.monthsBehindSchedule === 1 ? " month" : " months") + ' behind schedule — about ' + fmtUSDCompact(delay) + ' in idle GPU depreciation so far</div>'
+        : '<div class="note">On track</div>';
+      return '<div class="card tcard">' +
+        '<div class="top"><span class="cid">' + s.name + '</span>' + portfolioStagePill(s.stage) + '</div>' +
+        portfolioBar("Capital deployed", s.capexDeployed, s.capexPlanned, fmtUSDCompact) +
+        portfolioBar("Capacity live", s.currentMW, s.targetMW, function(n){ return n + " MW"; }) +
+        note + '</div>';
+    }).join("");
+    document.getElementById("portfolioSites").innerHTML = html;
+  }
+  function narratePortfolio(p){
+    var behindText = p.behind.length === 0
+      ? "every site is on schedule right now"
+      : p.behind.length + " of 6 sites (" + p.behind.join(", ") + ") are running behind, together carrying about " + fmtUSDCompact(p.totalDelayCost) + " in idle GPU depreciation";
+    return '<div class="card insight"><span class="tag">In plain terms</span>' +
+      'Across the portfolio, <b>' + fmtPct(p.pctDeployed) + '</b> of planned capital (' + fmtUSDCompact(p.totalDeployed) + ' of ' + fmtUSDCompact(p.totalPlanned) + ') has actually been spent, ' +
+      'and <b>' + fmtPct(p.pctDelivered) + '</b> of the target capacity (' + p.totalCurrentMW + ' of ' + p.totalTargetMW + ' MW) is live and earning today — the rest is still being built. ' +
+      'Right now, <b>' + behindText + '</b>.</div>';
+  }
+  function renderPortfolio(){
+    var p = computePortfolio();
+    document.getElementById("portfolioCapitalVal").textContent = fmtUSDCompact(p.totalDeployed);
+    document.getElementById("portfolioCapitalSub").textContent = fmtPct(p.pctDeployed) + " of " + fmtUSDCompact(p.totalPlanned) + " planned";
+    document.getElementById("portfolioCapacityVal").textContent = fmtPct(p.pctDelivered);
+    document.getElementById("portfolioCapacitySub").textContent = p.totalCurrentMW + " of " + p.totalTargetMW + " MW live";
+    document.getElementById("portfolioBehindVal").textContent = p.behind.length + " of 6";
+    document.getElementById("portfolioBehindSub").textContent = p.behind.join(", ") || "none";
+    document.getElementById("portfolioDelayCostVal").textContent = fmtUSDCompact(p.totalDelayCost);
+    document.getElementById("portfolioDelayCostSub").textContent = p.behind.length > 0
+      ? "across " + p.behind.length + " behind-schedule site" + (p.behind.length === 1 ? "" : "s")
+      : "no sites behind schedule";
+    renderPortfolioSites();
+    document.getElementById("portfolioInsight").innerHTML = narratePortfolio(p);
+  }
+  renderPortfolio();
 
   econIds.forEach(function(id){
     var el = document.getElementById(id);
