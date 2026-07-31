@@ -300,6 +300,34 @@
      units, and a slightly more confident heading scale. Additive/presentational only -- nothing
      here changes what any section computes or which numbers are dbt-tested vs. illustrative. ---- */
   .scroll-progress{position:fixed; top:0; left:0; height:3px; width:0%; background:rgb(var(--c-accent)); z-index:10; pointer-events:none}
+
+  /* sidebar nav: wide-desktop only. Hidden by default (display:none) and only shown past
+     1400px, where .wrap's margin is shifted right to make room -- below that breakpoint
+     neither rule fires and .wrap renders byte-for-byte as it did before this section existed.
+     z-index:3 is deliberately BELOW the existing overlay stack (.bar=5, .tip=6, .infopop=9,
+     .scroll-progress=10) -- .infopop's positioning math (rect.left - 182, clamped to
+     Math.max(4, left)) can land an open popover's left edge inside this sidebar's 0-220px
+     column when a nearby .infobtn sits close to the (now-shifted) left edge of the content,
+     e.g. the Assumptions section's inline info button. A popover rendering on top of the
+     sidebar in that case is correct; the sidebar covering an open popover would be the bug. */
+  .sidebar-nav{
+    /* top measured against the real, rendered .bar height (~68px) + a small gap, not guessed */
+    display:none; position:fixed; left:0; top:76px; width:220px; max-height:calc(100vh - 96px);
+    overflow-y:auto; padding:8px 16px 20px; z-index:3;
+  }
+  @media (min-width:1400px){
+    .sidebar-nav{display:block}
+    .wrap{margin-left:260px}
+  }
+  .sidebar-nav .group{margin-bottom:6px}
+  .sidebar-nav a{
+    display:block; text-decoration:none; border-radius:6px; transition:color .15s, background .15s;
+    color:rgb(var(--c-text-secondary));
+  }
+  .sidebar-nav .chapter-link{padding:7px 10px; font:700 11.5px/1.4 ui-monospace,monospace; letter-spacing:.03em}
+  .sidebar-nav .sub-link{padding:5px 10px 5px 20px; font:500 11.5px/1.4 inherit}
+  .sidebar-nav a:hover{color:rgb(var(--c-text-primary))}
+  .sidebar-nav a.active{color:rgb(var(--c-accent)); background:rgb(var(--c-accent) / .08)}
   /* JS only ever adds .reveal-init when IntersectionObserver exists AND reduced-motion is off
      (see the script below) -- the base/no-JS state is always fully visible, never hidden. Resting
      state is "transform:none", not "translateY(0)": a translateY(0) is still a non-none transform
@@ -357,6 +385,29 @@
   </div>
 </div>
 
+<!-- Sidebar nav: wide-desktop only (see .sidebar-nav CSS). A sibling of .wrap, never nested
+     inside it -- zero change to any existing section's nesting, so the reveal system's
+     `body > .wrap > section` selector stays exactly as valid as it was before this existed. -->
+<nav class="sidebar-nav" id="sidebarNav">
+  <div class="group">
+    <a class="chapter-link active" href="#kpiSection" data-nav-target="kpiSection">Chapter 1 · The Ledger</a>
+    <a class="sub-link" href="#tenantsSection" data-nav-target="tenantsSection">Tenant margins</a>
+    <a class="sub-link" href="#varianceSection" data-nav-target="varianceSection">Variance &amp; forecast</a>
+    <a class="sub-link" href="#reconciliationSection" data-nav-target="reconciliationSection">Data integrity</a>
+  </div>
+  <div class="group">
+    <a class="chapter-link" href="#econKpis" data-nav-target="econKpis">Chapter 2 · The Site</a>
+    <a class="sub-link" href="#assumptionsSection" data-nav-target="assumptionsSection">Assumptions</a>
+    <a class="sub-link" href="#pnlSection" data-nav-target="pnlSection">P&amp;L &amp; capital structure</a>
+  </div>
+  <div class="group">
+    <a class="chapter-link" href="#portfolioKpis" data-nav-target="portfolioKpis">Chapter 3 · The Portfolio</a>
+  </div>
+  <div class="group">
+    <a class="chapter-link" href="#glossarySection" data-nav-target="glossarySection">Glossary</a>
+  </div>
+</nav>
+
 <div class="wrap">
 
   <section class="hero-motif" style="margin-top:26px; padding:4px 4px 20px">
@@ -407,7 +458,7 @@
     <div id="allocationInsight"></div>
   </section>
 
-  <section class="split">
+  <section class="split" id="tenantsSection">
     <div>
       <h2 style="font-size:14.5px; margin-bottom:10px">Tenant margin — by absorbed overhead</h2>
       <div class="tenants" id="tenants"><div class="skel">loading…</div></div>
@@ -431,7 +482,7 @@
     </div>
   </section>
 
-  <section class="card panel">
+  <section class="card panel" id="varianceSection">
     <div class="panel-head">
       <div>
         <div style="display:flex; align-items:center; gap:7px">
@@ -460,7 +511,7 @@
     <div id="forecastInsight"></div>
   </section>
 
-  <section class="card panel">
+  <section class="card panel" id="reconciliationSection">
     <div class="panel-head">
       <div>
         <div style="display:flex; align-items:center; gap:7px">
@@ -525,7 +576,7 @@
 
   <section id="economicsInsight"></section>
 
-  <section class="card econ-grid">
+  <section class="card econ-grid" id="assumptionsSection">
     <div class="panel-head" style="margin-bottom:4px">
       <div style="display:flex; align-items:center; gap:7px">
         <h3 style="font-size:12.5px; text-transform:uppercase; letter-spacing:.06em; color:rgb(var(--c-text-secondary))">Assumptions</h3>
@@ -617,7 +668,7 @@
     </div>
   </section>
 
-  <section class="card panel">
+  <section class="card panel" id="pnlSection">
     <div class="panel-head">
       <div>
         <div style="display:flex; align-items:center; gap:7px">
@@ -1405,6 +1456,7 @@
   // work correctly -- worst case a still-loading skeleton section reveals a frame before its
   // real dbt content lands, which is far less jarring than the hide-then-restore this avoids.
   initScrollReveal();
+  initSidebarSpy();
 
   function render(data){
     // Declared here, at the top, not down near computeReconciliation() where it's actually
@@ -2104,6 +2156,56 @@
       });
     }, { rootMargin: "0px 0px -10% 0px" });
     sections.forEach(function(s){ io.observe(s); });
+  }
+
+  // ---- sidebar scroll-spy: a positional check, not an IntersectionObserver band. An
+  // isIntersecting band only lights up while one of the 9 linked sections is actually inside
+  // it -- the gaps between them (the forecast panel between varianceSection/reconciliationSection,
+  // the capital-structure/tornado panels between pnlSection/portfolioKpis, etc.) aren't
+  // observed at all, so scrolling through those left the PREVIOUS link stuck highlighted
+  // (caught by post-build review, not assumed safe). Walking "which target's top has crossed
+  // the ~40%-viewport line" instead guarantees exactly one active link at every scroll
+  // position, dead zones or not -- position is defined everywhere, an intersection band isn't.
+  // The first chapter link starts with class="active" in the static HTML itself -- an explicit
+  // choice for "what's highlighted before the user has scrolled anywhere," not an emergent
+  // side effect of observer timing. All 9 target sections are static HTML (not dynamically
+  // rendered into existence later), so this can run synchronously right away like
+  // initScrollReveal -- no fetch-timing question here.
+  function initSidebarSpy(){
+    var nav = document.getElementById("sidebarNav");
+    if (!nav) return;
+    var links = nav.querySelectorAll("a[data-nav-target]");
+    var linkById = {};
+    links.forEach(function(a){ linkById[a.getAttribute("data-nav-target")] = a; });
+    var targets = Object.keys(linkById)
+      .map(function(id){ return document.getElementById(id); })
+      .filter(Boolean);
+    if (!targets.length) return;
+    function setActive(id){
+      links.forEach(function(a){ a.classList.remove("active"); });
+      var link = linkById[id];
+      if (link) link.classList.add("active");
+    }
+    var ticking = false;
+    function update(){
+      ticking = false;
+      var lineY = window.innerHeight * 0.4;
+      var current = targets[0];
+      for (var i = 0; i < targets.length; i++){
+        if (targets[i].getBoundingClientRect().top <= lineY) current = targets[i];
+        else break;
+      }
+      setActive(current.id);
+    }
+    function onScroll(){
+      if (!ticking){
+        ticking = true;
+        requestAnimationFrame(update);
+      }
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
+    update();
   }
 
   // ---- load data ----
