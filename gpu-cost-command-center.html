@@ -399,6 +399,7 @@
     <a class="chapter-link" href="#econKpis" data-nav-target="econKpis">Chapter 2 · The Site</a>
     <a class="sub-link" href="#assumptionsSection" data-nav-target="assumptionsSection">Assumptions</a>
     <a class="sub-link" href="#pnlSection" data-nav-target="pnlSection">P&amp;L &amp; capital structure</a>
+    <a class="sub-link" href="#irrSection" data-nav-target="irrSection">10-yr IRR &amp; NPV</a>
   </div>
   <div class="group">
     <a class="chapter-link" href="#portfolioKpis" data-nav-target="portfolioKpis">Chapter 3 · The Portfolio</a>
@@ -619,6 +620,7 @@
         <div class="nfield"><label for="econFacCapex">Facility CapEx ($)</label><input type="text" inputmode="decimal" id="econFacCapex" /></div>
         <div class="nfield"><label for="econCompCapex">Compute (GPU) CapEx ($)</label><input type="text" inputmode="decimal" id="econCompCapex" /></div>
         <div class="nfield"><label for="econRevenue">Site annual revenue ($)</label><input type="text" inputmode="decimal" id="econRevenue" /></div>
+        <div class="nfield"><label for="gpuLifeYears">GPU useful life (years)</label><input type="number" id="gpuLifeYears" min="1" step="0.5" /></div>
       </div>
     </details>
 
@@ -630,10 +632,11 @@
     </details>
 
     <details class="igroup" open>
-      <summary>Capital structure</summary>
+      <summary>Capital structure &amp; taxes</summary>
       <div class="inputs-row">
         <div class="nfield"><label for="debtInterestRate">Debt interest rate (%)</label><input type="number" id="debtInterestRate" min="0" step="0.1" /></div>
         <div class="nfield"><label for="equityHurdleRate">Equity hurdle rate (%)</label><input type="number" id="equityHurdleRate" min="0" step="0.1" /></div>
+        <div class="nfield"><label for="taxRate">Effective tax rate (%)</label><input type="number" id="taxRate" min="0" max="60" step="0.5" /></div>
       </div>
     </details>
 
@@ -716,11 +719,36 @@
           <h2>What moves RODA the most — a sensitivity check</h2>
           <button class="infobtn inline" type="button" data-info="tornadoInfo" aria-label="What is this?" aria-expanded="false">i</button>
         </div>
-        <p class="lede" style="margin-top:2px">Nudge each input ±10% on its own, holding the other two steady, and see which one swings the return the most.</p>
+        <p class="lede" style="margin-top:2px">Nudge each input ±10% on its own, holding the rest steady, and see which one swings the return the most.</p>
       </div>
     </div>
     <div class="chart-wrap" id="tornadoWrap"><div class="skel">loading…</div></div>
     <div id="tornadoInsight"></div>
+  </section>
+
+  <section class="card panel" id="irrSection">
+    <div class="panel-head">
+      <div>
+        <div style="display:flex; align-items:center; gap:7px">
+          <h2>10-year project return — IRR &amp; NPV</h2>
+          <button class="infobtn inline" type="button" data-info="irrInfo" aria-label="What is this?" aria-expanded="false">i</button>
+        </div>
+        <p class="lede" style="margin-top:2px">Everything above is a single year's snapshot. This carries the same assumptions out ten years and discounts them back to today.</p>
+      </div>
+    </div>
+    <div class="kpis" style="grid-template-columns:repeat(2,1fr); margin:0 0 12px">
+      <div class="card kpi">
+        <div class="lbl">Net present value (10 yr)</div>
+        <div class="val tabular" id="irrNpvVal">—</div>
+        <div class="sub">at the blended cost of capital above</div>
+      </div>
+      <div class="card kpi">
+        <div class="lbl">Unlevered IRR</div>
+        <div class="val tabular" id="irrIrrVal">—</div>
+        <div class="sub" id="irrIrrSub">—</div>
+      </div>
+    </div>
+    <div id="irrInsight"></div>
   </section>
 
   <section class="divider">
@@ -884,7 +912,9 @@
     pnlInfo: "Revenue is the one number you type in. Operating cost and depreciation are pulled from the numbers already computed elsewhere on this page, not typed separately. EBIT falls out of that subtraction -- it's not its own input, so it can never quietly disagree with the return-on-assets number above, which is built from this same EBIT.",
     capitalStructureInfo: "The return-on-assets figure above treats every dollar of capital the same, however it was raised. In practice, a data-center build is usually funded by a mix of debt (a loan, secured against the GPUs or the site itself) and equity. Debt has an explicit yearly cost -- interest. Equity's cost is less visible but real -- investors expect a higher return for taking on more risk than a lender does. This section splits the capital and shows what's actually left for equity holders once the debt is paid.",
     debtSliderInfo: "This slider models the mix, not a change to how much the site costs to build -- the total capital needed stays the same. What changes is how much of it comes from a lender (debt) versus an investor (equity), and each has a different price.",
-    reconciliationInfo: "A standard finance-controls technique: calculate the same total two completely different ways, from the same underlying data, and check they agree. Bottom-up adds up every tenant's own daily bill. Top-down adds up the cluster's daily active-plus-idle cost. If tenant costs are genuinely built from the cluster split (they are), the two should land within a hair of each other -- and a real gap here, not just a rounding one, is exactly the kind of thing this check exists to catch."
+    reconciliationInfo: "A standard finance-controls technique: calculate the same total two completely different ways, from the same underlying data, and check they agree. Bottom-up adds up every tenant's own daily bill. Top-down adds up the cluster's daily active-plus-idle cost. If tenant costs are genuinely built from the cluster split (they are), the two should land within a hair of each other -- and a real gap here, not just a rounding one, is exactly the kind of thing this check exists to catch.",
+    dscrInfo: "DSCR (debt service coverage ratio) is what a lender actually checks: does this site's EBIT cover the interest it owes, with room to spare? This assumes interest-only debt -- no principal repayment modeled anywhere on this page -- so it's a simplified, not a complete, covenant check. Below 1.2x is thin by typical lender standards; above 1.5x is comfortable.",
+    irrInfo: "Every other number on this page is a single year. This carries the same site out 10 years -- the upfront build cost, a GPU refresh partway through (GPUs wear out faster than the building does), and the after-tax cash the site generates each year -- and discounts all of it back to today's dollars at the blended cost of capital above. It's a project-level (unlevered) estimate, not a levered equity return, and it assumes no resale or ongoing value past year 10 -- a conservative choice, not a missing one."
   };
   var infoPop = document.getElementById("infoPop");
   document.addEventListener("click", function(e){
@@ -966,10 +996,12 @@
 
   // ---- site deployment economics: independent, client-side, not sourced from dbt ----
   var HOURS_PER_YEAR = 24 * 365;
-  // Fixed, not user-adjustable -- typical straight-line depreciable-life midpoints (GPUs:
-  // industry-typical 4-6yr useful life before replacement/obsolescence; building shell:
-  // 15-20yr). Simplified straight-line, explicitly labeled illustrative in the UI copy.
-  var GPU_LIFE_YEARS = 5;
+  // Building life is fixed, not user-adjustable -- typical straight-line depreciable-life
+  // midpoint (15-20yr), simplified straight-line, explicitly labeled illustrative in the UI
+  // copy. GPU life is NOT a fixed constant -- it's the `gpuLifeYears` econ input below, since
+  // it's the one shared assumption the depreciation section, the delayed-ramp cost, the
+  // portfolio's cost-of-delay figures, and the 10-year IRR's refresh-capex timing all read from
+  // the same place, so changing it moves every one of them together.
   var BUILDING_LIFE_YEARS = 17.5;
   // delaySlider default -- kept as its own constant (not folded into ECON_DEFAULTS/econIds,
   // since it's a dedicated slider like the margin-zone thresholds, not a generic input) so
@@ -982,17 +1014,22 @@
   // data -- three simple trend lines to show a spread, not a statistical model.
   var FORECAST_MONTHS = 12;
   var FORECAST_DELTA = { base: 0.003, upside: 0.008, downside: -0.004 };
+  // 10-year IRR horizon: long enough to capture one full GPU refresh cycle at the default
+  // 5-year life, without needing a terminal-value guess for year 11 onward -- a deliberately
+  // conservative choice, not a missing piece (see irrInfo).
+  var IRR_HORIZON_YEARS = 10;
   var ECON_DEFAULTS = {
     econCap: 40, econLoad: 30,
     econShell: 144000000, econMep: 456000000, econFitout: 200000000, econMw: 50,
     econRack: 60, econRate: 0.1063, econPueL: 1.58, econPueE: 1.10,
     econFacCapex: 742000000, econCompCapex: 1186000000, econRevenue: 580000000,
+    gpuLifeYears: 5,
     retrofitCostPerRack: 8000,
     // Stored as whole percentages (8.5, not 0.085) -- matches the warnSlider/bestSlider
     // margin-threshold convention already used elsewhere on this page (store whole-percent,
     // divide by 100 at compute time), not the econPueL/econPueE decimal-ratio convention,
     // since a PUE isn't a percentage to begin with.
-    debtInterestRate: 8.5, equityHurdleRate: 18
+    debtInterestRate: 8.5, equityHurdleRate: 18, taxRate: 25
   };
   var econIds = Object.keys(ECON_DEFAULTS);
   // Comma-formatted for readability (742000000 -> 742,000,000); parseNum() strips the commas
@@ -1029,7 +1066,13 @@
     // recompute ebit at a perturbed revenue rather than perturbing ebit directly.
     var activeRacks = v.econRack > 0 ? (v.econLoad * 1000) / v.econRack : 0;
     var opexAnnual = activeRacks * efficientCost;
-    var depreciationAnnual = (v.econCompCapex / GPU_LIFE_YEARS) + (v.econFacCapex / BUILDING_LIFE_YEARS);
+    // gpuLifeYears is a live, user-editable divisor now, not a fixed constant -- guarded the
+    // same way every other divisor field on this page already is (econCap, econMw, econRack,
+    // totalCapexBase above). A blank or 0 input would otherwise divide by zero -> Infinity ->
+    // NaN cascading through EBIT, RODA, DSCR, and the IRR solver below. Floored at 1 year, not
+    // silently zeroed, since "0 years of GPU life" has no sane real-world reading either way.
+    var gpuLifeYears = v.gpuLifeYears > 0 ? v.gpuLifeYears : 1;
+    var depreciationAnnual = (v.econCompCapex / gpuLifeYears) + (v.econFacCapex / BUILDING_LIFE_YEARS);
     var fixedCosts = opexAnnual + depreciationAnnual;
     var ebit = v.econRevenue - fixedCosts;
     var roda = totalCapexBase > 0 ? ebit / totalCapexBase : 0;
@@ -1039,6 +1082,7 @@
     return { utilization: utilization, totalBuildCapex: totalBuildCapex, costPerMW: costPerMW,
       legacyCost: legacyCost, efficientCost: efficientCost, savings: savings,
       totalCapexBase: totalCapexBase, activeRacks: activeRacks, opexAnnual: opexAnnual,
+      gpuLifeYears: gpuLifeYears,
       depreciationAnnual: depreciationAnnual, fixedCosts: fixedCosts, ebit: ebit, roda: roda,
       paybackYears: paybackYears };
   }
@@ -1093,14 +1137,19 @@
       'switching from the legacy setup to this one saves <b>' + fmtUSD(r.savings) + '</b> per rack every year. Put together, the site returns ' +
       '<b>' + fmtPct(r.roda) + '</b> on the money invested in it each year — ' + narrateRodaWord(r.roda) + ' return by typical infrastructure standards.</div>';
 
-    // Depreciation, the P&L, capital structure, and RODA-sensitivity all derive from these
-    // same econ inputs (plus, for depreciation and capital structure, their own separate
-    // sliders) -- recomputing them here keeps every derived section in sync on every input
-    // change, not just the 6 KPI tiles.
-    renderDepreciation(v);
+    // Depreciation, the P&L, capital structure, RODA-sensitivity, the 10-year IRR, and the
+    // portfolio's cost-of-delay figures all derive from these same econ inputs (plus, for
+    // depreciation and capital structure, their own separate sliders) -- recomputing them here
+    // keeps every derived section in sync on every input change, not just the 6 KPI tiles.
+    // renderCapitalStructure now returns cs so the IRR panel discounts at the SAME blended
+    // cost of capital shown above it, instead of a second, independently-recomputed cs that
+    // could silently drift from what's on screen.
+    renderDepreciation(v, r);
     renderPnl(v, r);
-    renderCapitalStructure(v, r);
-    renderTornado(v, r.roda, r.ebit, r.fixedCosts);
+    var cs = renderCapitalStructure(v, r);
+    renderIrr(v, r, cs);
+    renderTornado(v, r);
+    renderPortfolio(r.gpuLifeYears);
   }
   function narrateUtilWord(u){
     return u >= 0.85 ? "excellent" : u >= 0.65 ? "solid" : u >= 0.4 ? "underwhelming" : "poor";
@@ -1115,14 +1164,14 @@
   }
 
   // ---- depreciation / cost-of-delay: same two-bar hand-rolled house style as waterfallSVG ----
-  function depreciationSVG(gpuAnnual, bldgAnnual){
+  function depreciationSVG(gpuAnnual, bldgAnnual, gpuLifeYears){
     var w = 320, h = 140, padT = 20, padB = 26;
     var innerH = h - padT - padB;
     var maxV = Math.max(gpuAnnual, bldgAnnual) || 1;
     var yAt = function(v){ return padT + innerH - (v / maxV) * innerH; };
     var slotW = w / 2, barW = slotW * 0.45;
     var bars = [
-      { label: "GPU (5-yr life)", val: gpuAnnual, color: "var(--c-accent)" },
+      { label: "GPU (" + gpuLifeYears + "-yr life)", val: gpuAnnual, color: "var(--c-accent)" },
       { label: "Building shell (17.5-yr life)", val: bldgAnnual, color: "var(--c-text-secondary)" }
     ];
     var parts = bars.map(function(b, i){
@@ -1136,47 +1185,63 @@
     }).join("");
     return '<svg class="chart" viewBox="0 0 ' + w + ' ' + h + '" style="width:100%;height:140px" role="img" aria-label="Annual GPU vs. building-shell depreciation">' + parts + '</svg>';
   }
-  function narrateDepreciation(delayMonths, costOfDelay, gpuAnnual, bldgAnnual){
+  function narrateDepreciation(delayMonths, costOfDelay, gpuAnnual, bldgAnnual, gpuLifeYears){
     var ratio = bldgAnnual > 0 ? gpuAnnual / bldgAnnual : 0;
     var ratioWord = ratio >= 3 ? "several times faster" : ratio >= 1.5 ? "notably faster" : "at a similar pace";
     return '<div class="card insight"><span class="tag">In plain terms</span>' +
-      'A GPU\'s 5-year useful life burns through its cost <b>' + ratioWord + '</b> than a 17.5-year building shell does — ' +
+      'A GPU\'s ' + gpuLifeYears + '-year useful life burns through its cost <b>' + ratioWord + '</b> than a 17.5-year building shell does — ' +
       '<b>' + fmtUSDCompact(gpuAnnual) + '</b>/year of GPU depreciation vs. <b>' + fmtUSDCompact(bldgAnnual) + '</b>/year for the shell. ' +
       'That\'s why deployment speed matters so much: a <b>' + delayMonths + '-month</b> delay between the building being ready and GPUs actually earning revenue costs about ' +
       '<b>' + fmtUSDCompact(costOfDelay) + '</b> in GPU depreciation that ran with nothing to show for it.</div>';
   }
-  function renderDepreciation(v){
+  function renderDepreciation(v, r){
     var delayMonths = Number(document.getElementById("delaySlider").value);
     document.getElementById("delayVal").textContent = delayMonths + (delayMonths === 1 ? " month" : " months");
-    var gpuAnnual = v.econCompCapex / GPU_LIFE_YEARS;
+    var gpuAnnual = v.econCompCapex / r.gpuLifeYears;
     var bldgAnnual = v.econFacCapex / BUILDING_LIFE_YEARS;
     var gpuMonthly = gpuAnnual / 12;
     var costOfDelay = gpuMonthly * delayMonths;
     document.getElementById("depreciationWrap").innerHTML =
-      depreciationSVG(gpuAnnual, bldgAnnual) +
+      depreciationSVG(gpuAnnual, bldgAnnual, r.gpuLifeYears) +
       '<div class="card kpi" style="margin-top:12px"><div class="lbl">Cost of a ' + delayMonths + '-month delay</div>' +
       '<div class="val tabular">' + fmtUSDCompact(costOfDelay) + '</div>' +
       '<div class="sub">' + fmtUSDCompact(gpuMonthly) + '/month of GPU depreciation while idle</div></div>';
-    document.getElementById("depreciationInsight").innerHTML = narrateDepreciation(delayMonths, costOfDelay, gpuAnnual, bldgAnnual);
+    document.getElementById("depreciationInsight").innerHTML = narrateDepreciation(delayMonths, costOfDelay, gpuAnnual, bldgAnnual, r.gpuLifeYears);
   }
 
-  // ---- RODA sensitivity: roda = ebit / (facCapex + compCapex) -- utilization and PUE do
-  // NOT feed this formula anywhere in the model, so they are deliberately not drivers here. ----
+  // ---- RODA sensitivity: roda = ebit / (facCapex + compCapex) -- utilization does NOT feed
+  // this formula anywhere in the model, so it is deliberately not a driver here. PUE and
+  // electricity rate DO feed it (via opexAnnual, part of fixedCosts), so they're added below. ----
   function rodaAt(facCapex, compCapex, ebit){
     var base = facCapex + compCapex;
     return base > 0 ? ebit / base : 0;
   }
-  function computeRodaSensitivity(v, ebit, fixedCosts){
+  // PUE/electricity-rate drivers don't move CapEx -- they move opexAnnual (part of
+  // fixedCosts). opexAnnual = activeRacks * (rack kW * PUE * hours/yr * $/kWh), linear in both
+  // PUE and rate, so perturbing either directly here (rather than re-deriving activeRacks) is
+  // exact, not an approximation.
+  function rodaAtOpex(v, r, pueE, rate){
+    var opexAnnual = r.activeRacks * v.econRack * pueE * HOURS_PER_YEAR * rate;
+    var ebitAtOpex = v.econRevenue - (opexAnnual + r.depreciationAnnual);
+    return rodaAt(v.econFacCapex, v.econCompCapex, ebitAtOpex);
+  }
+  function computeRodaSensitivity(v, r){
     var drivers = [
-      { label: "Facility CapEx", low: rodaAt(v.econFacCapex * 1.1, v.econCompCapex, ebit), high: rodaAt(v.econFacCapex * 0.9, v.econCompCapex, ebit) },
-      { label: "Compute (GPU) CapEx", low: rodaAt(v.econFacCapex, v.econCompCapex * 1.1, ebit), high: rodaAt(v.econFacCapex, v.econCompCapex * 0.9, ebit) },
+      { label: "Facility CapEx", low: rodaAt(v.econFacCapex * 1.1, v.econCompCapex, r.ebit), high: rodaAt(v.econFacCapex * 0.9, v.econCompCapex, r.ebit) },
+      { label: "Compute (GPU) CapEx", low: rodaAt(v.econFacCapex, v.econCompCapex * 1.1, r.ebit), high: rodaAt(v.econFacCapex, v.econCompCapex * 0.9, r.ebit) },
       // Revenue is the genuinely independent typed input now that EBIT is derived, not
       // typed -- perturb revenue and recompute EBIT from the same fixed operating +
       // depreciation costs, rather than perturbing the already-computed EBIT directly.
       // EBIT has operating leverage against revenue (fixed costs don't move with it), so
       // perturbing EBIT itself would understate the real swing -- and it keeps this driver
-      // apples-to-apples with the other two, which each hold everything but themselves fixed.
-      { label: "Site Revenue", low: rodaAt(v.econFacCapex, v.econCompCapex, (v.econRevenue * 0.9) - fixedCosts), high: rodaAt(v.econFacCapex, v.econCompCapex, (v.econRevenue * 1.1) - fixedCosts) }
+      // apples-to-apples with the others, which each hold everything but themselves fixed.
+      { label: "Site Revenue", low: rodaAt(v.econFacCapex, v.econCompCapex, (v.econRevenue * 0.9) - r.fixedCosts), high: rodaAt(v.econFacCapex, v.econCompCapex, (v.econRevenue * 1.1) - r.fixedCosts) },
+      // Higher PUE or a higher electricity rate both mean MORE opex, hence LOWER ebit/RODA --
+      // the ×1.1 (higher input) case maps to `low`, ×0.9 maps to `high`, matching the same
+      // "higher input -> lower RODA -> low" convention the CapEx drivers already use above.
+      // Verified against real ECON_DEFAULTS numbers before shipping, not just by formula-reading.
+      { label: "PUE (efficient)", low: rodaAtOpex(v, r, v.econPueE * 1.1, v.econRate), high: rodaAtOpex(v, r, v.econPueE * 0.9, v.econRate) },
+      { label: "Electricity rate", low: rodaAtOpex(v, r, v.econPueE, v.econRate * 1.1), high: rodaAtOpex(v, r, v.econPueE, v.econRate * 0.9) }
     ];
     drivers.forEach(function(d){ d.swing = Math.abs(d.high - d.low); });
     drivers.sort(function(a, b){ return b.swing - a.swing; }); // widest swing on top (tornado convention)
@@ -1206,14 +1271,17 @@
   function narrateTornado(drivers){
     var top = drivers[0];
     var swingPp = (top.swing * 100).toFixed(1);
+    // Generalized on drivers.length, not hardcoded to "three"/"two" -- this was literal text
+    // when the tornado only had 3 drivers; with 5 it would have been factually wrong, not just
+    // imprecise, so it's derived from the actual driver count now.
     return '<div class="card insight"><span class="tag">In plain terms</span>' +
-      'Move any one of these three inputs by 10% and <b>' + top.label + '</b> swings the return the most — about ' +
-      '<b>' + swingPp + ' percentage points</b> of RODA, more than the other two drivers on their own. ' +
+      'Move any one of these ' + drivers.length + ' inputs by 10% and <b>' + top.label + '</b> swings the return the most — about ' +
+      '<b>' + swingPp + ' percentage points</b> of RODA, more than the other ' + (drivers.length - 1) + ' drivers on their own. ' +
       'That\'s the number worth double-checking first if this estimate needs to hold up.</div>';
   }
-  function renderTornado(v, baseRoda, ebit, fixedCosts){
-    var drivers = computeRodaSensitivity(v, ebit, fixedCosts);
-    document.getElementById("tornadoWrap").innerHTML = tornadoSVG(drivers, baseRoda);
+  function renderTornado(v, r){
+    var drivers = computeRodaSensitivity(v, r);
+    document.getElementById("tornadoWrap").innerHTML = tornadoSVG(drivers, r.roda);
     document.getElementById("tornadoInsight").innerHTML = narrateTornado(drivers);
   }
 
@@ -1233,19 +1301,23 @@
     { name: "Site 05", stage: "Under construction", capexPlanned: 520000000, capexDeployed: 510000000, computeCapexDeployed: 300000000, targetMW: 30, currentMW: 0, monthsBehindSchedule: 0 },
     { name: "Site 06", stage: "Planning", capexPlanned: 900000000, capexDeployed: 15000000, computeCapexDeployed: 0, targetMW: 55, currentMW: 0, monthsBehindSchedule: 0 }
   ];
-  function siteCostOfDelay(site){
+  function siteCostOfDelay(site, gpuLifeYears){
     // Same mechanism as the single-site "cost of a delayed ramp" section: GPU capital
-    // already spent depreciates on GPU_LIFE_YEARS regardless of whether the site is live.
-    return site.monthsBehindSchedule > 0 ? (site.computeCapexDeployed / GPU_LIFE_YEARS / 12) * site.monthsBehindSchedule : 0;
+    // already spent depreciates on gpuLifeYears regardless of whether the site is live. This
+    // is now the SAME live, user-editable assumption Chapter 2's depreciation section reads
+    // (computeSiteEconomics guards it >0 already; guarded again here for defense in depth
+    // since this function is reusable/callable independent of that guard running first).
+    gpuLifeYears = gpuLifeYears > 0 ? gpuLifeYears : 1;
+    return site.monthsBehindSchedule > 0 ? (site.computeCapexDeployed / gpuLifeYears / 12) * site.monthsBehindSchedule : 0;
   }
-  function computePortfolio(){
+  function computePortfolio(gpuLifeYears){
     var totalPlanned = 0, totalDeployed = 0, totalTargetMW = 0, totalCurrentMW = 0, totalDelayCost = 0, behind = [];
     PORTFOLIO_SITES.forEach(function(s){
       totalPlanned += s.capexPlanned;
       totalDeployed += s.capexDeployed;
       totalTargetMW += s.targetMW;
       totalCurrentMW += s.currentMW;
-      var delay = siteCostOfDelay(s);
+      var delay = siteCostOfDelay(s, gpuLifeYears);
       totalDelayCost += delay;
       if (s.monthsBehindSchedule > 0) behind.push(s.name);
     });
@@ -1271,9 +1343,9 @@
       '<div class="alloc-bar" style="background:rgb(var(--c-bg-primary))"><div class="alloc-seg" style="width:' + (pct * 100).toFixed(1) + '%; background:rgb(var(--c-accent))"></div></div>' +
       '</div>';
   }
-  function renderPortfolioSites(){
+  function renderPortfolioSites(gpuLifeYears){
     var html = PORTFOLIO_SITES.map(function(s){
-      var delay = siteCostOfDelay(s);
+      var delay = siteCostOfDelay(s, gpuLifeYears);
       var note = s.monthsBehindSchedule > 0
         ? '<div class="note" style="color:rgb(var(--c-danger))">' + s.monthsBehindSchedule + (s.monthsBehindSchedule === 1 ? " month" : " months") + ' behind schedule — about ' + fmtUSDCompact(delay) + ' in idle GPU depreciation so far</div>'
         : '<div class="note">On track</div>';
@@ -1294,8 +1366,8 @@
       'and <b>' + fmtPct(p.pctDelivered) + '</b> of the target capacity (' + p.totalCurrentMW + ' of ' + p.totalTargetMW + ' MW) is live and earning today — the rest is still being built. ' +
       'Right now, <b>' + behindText + '</b>.</div>';
   }
-  function renderPortfolio(){
-    var p = computePortfolio();
+  function renderPortfolio(gpuLifeYears){
+    var p = computePortfolio(gpuLifeYears);
     document.getElementById("portfolioCapitalVal").textContent = fmtUSDCompact(p.totalDeployed);
     document.getElementById("portfolioCapitalSub").textContent = fmtPct(p.pctDeployed) + " deployed · " + fmtUSDCompact(p.remainingCapital) + " remaining";
     document.getElementById("portfolioCapacityVal").textContent = fmtPct(p.pctDelivered);
@@ -1306,10 +1378,16 @@
     document.getElementById("portfolioDelayCostSub").textContent = p.behind.length > 0
       ? "across " + p.behind.length + " behind-schedule site" + (p.behind.length === 1 ? "" : "s")
       : "no sites behind schedule";
-    renderPortfolioSites();
+    renderPortfolioSites(gpuLifeYears);
     document.getElementById("portfolioInsight").innerHTML = narratePortfolio(p);
   }
-  renderPortfolio();
+  // NOTE: no standalone renderPortfolio() call here anymore -- it now needs a live
+  // v.gpuLifeYears, which doesn't exist until econIds are wired to their default values
+  // further down. It's called from inside renderSiteEconomics() instead (see below), the
+  // same "recompute every derived section together" cascade every other econ-driven section
+  // already goes through. This is a required ordering fix, not a stylistic move: calling it
+  // here (as it used to be) would read an unset/blank gpuLifeYears field and silently divide
+  // by 1 (this function's own defensive floor) instead of the real default of 5.
 
   // ---- glossary: static reference content, no compute, no reactivity to any input on this
   // page -- every example below is either (a) a REAL, currently-true number from the
@@ -1355,7 +1433,7 @@
         example: "A $3B one-time build is CapEx; the roughly $40M/year electricity bill to run it is OpEx." },
       { term: "Depreciation", anchor: null,
         def: "Spreading a big purchase's cost over the years it stays useful, instead of counting it all on day one.",
-        example: "$500M of GPUs with a 5-year useful life depreciates $100M a year, straight-line." },
+        example: "$450M of GPUs with a 6-year useful life depreciates $75M a year, straight-line." },
       { term: "Payback period", anchor: "econKpis",
         def: "How long it takes for the savings or return an upfront cost produces to earn that cost back.",
         example: "A $10,000 upgrade that saves $2,500 a year pays for itself in 4 years." },
@@ -1436,14 +1514,27 @@
     renderSiteEconomics(true);
   });
   // delaySlider is its own control (mirrors the tenant section's margin-zone-threshold
-  // sliders), not one of the generic econIds -- it only needs to re-render the
-  // depreciation section, not recompute the other 6 KPI tiles.
-  document.getElementById("delaySlider").addEventListener("input", function(){ renderDepreciation(econValues()); });
-  // debtSlider is the same "own dedicated control" pattern -- but capital structure needs
-  // both v and the computed r (r.totalCapexBase, r.ebit, r.roda), not just v.
+  // sliders), not one of the generic econIds -- but it feeds year 1 of the new IRR cash flow
+  // series too (the same "cost of delay" figure), so its handler must also refresh that panel,
+  // not just the depreciation section it originally only touched. computeCapitalStructure is
+  // called directly here (not renderCapitalStructure) since delay doesn't change anything the
+  // capital-structure CARD itself displays -- no need to re-render that DOM on every drag.
+  document.getElementById("delaySlider").addEventListener("input", function(){
+    var v = econValues();
+    var r = computeSiteEconomics(v);
+    renderDepreciation(v, r);
+    var debtPct = Number(document.getElementById("debtSlider").value) / 100;
+    var cs = computeCapitalStructure(v, r, debtPct);
+    renderIrr(v, r, cs);
+  });
+  // debtSlider is the same "own dedicated control" pattern -- capital structure needs both v
+  // and the computed r, and now the IRR panel needs the fresh cs this render produces too
+  // (its discount rate IS the blended cost of capital this slider directly controls).
   document.getElementById("debtSlider").addEventListener("input", function(){
     var v = econValues();
-    renderCapitalStructure(v, computeSiteEconomics(v));
+    var r = computeSiteEconomics(v);
+    var cs = renderCapitalStructure(v, r);
+    renderIrr(v, r, cs);
   });
   renderSiteEconomics(true);
   // Runs here, alongside the other synchronous initial renders -- NOT deferred until after
@@ -1817,20 +1908,40 @@
     var costOfDebt = v.debtInterestRate / 100;
     var costOfEquity = v.equityHurdleRate / 100;
     var annualInterestExpense = debtCapital * costOfDebt;
-    var netIncome = r.ebit - annualInterestExpense;
-    // Illustrative, simplified blend -- no tax shield, no target-vs-actual-structure split --
-    // not a rigorous WACC, same "simplified, says so" framing as the straight-line
-    // depreciation section above.
+    var netIncome = r.ebit - annualInterestExpense; // pretax -- kept as an internal figure only
+    var taxRate = v.taxRate / 100;
+    var netIncomeAfterTax = netIncome * (1 - taxRate);
+    // Illustrative, simplified blend -- no tax shield on the cost-of-debt leg (a real WACC
+    // would apply one, since the cash flows it discounts are after-tax too), no target-vs-
+    // actual-structure split -- not a rigorous WACC, same "simplified, says so" framing as the
+    // straight-line depreciation section above.
     var weightedCostOfCapital = debtPct * costOfDebt + (1 - debtPct) * costOfEquity;
     // Guarded to match r.roda's own fallback: with no capital base at all, both read 0, not
     // "N/A" -- N/A is reserved for the different case of 100% debt financing (debtPct=1),
     // where a real capital base exists but there's no equity slice left to measure a return on.
-    var returnOnEquity = equityCapital > 0 ? netIncome / equityCapital : (r.totalCapexBase > 0 ? null : 0);
+    // Return on equity is AFTER-TAX -- what an equity holder actually keeps -- while RODA below
+    // stays pretax/unlevered exactly as before; the accretive/dilutive comparison further down
+    // is untouched by tax, since both sides of that comparison (RODA and cost of debt) are
+    // pretax on both sides already.
+    var returnOnEquity = equityCapital > 0 ? netIncomeAfterTax / equityCapital : (r.totalCapexBase > 0 ? null : 0);
+    // DSCR: pretax EBIT over interest-only debt service (no principal amortization modeled
+    // anywhere on this page -- a stated, standard simplification for early-stage project
+    // finance, not a hidden shortcut). `hasDebt` distinguishes "no debt at all" (debtPct = 0,
+    // genuinely N/A) from "debt exists but happens to be interest-free" (debtPct > 0,
+    // debtInterestRate = 0, coverage is technically infinite, not "no debt") -- these are
+    // different states and were conflated in an earlier draft of this check.
+    var hasDebt = debtPct > 0;
+    var dscr = !hasDebt ? null : (annualInterestExpense > 0 ? r.ebit / annualInterestExpense : Infinity);
+    var stressedCostOfDebt = costOfDebt + 0.02; // +200bps rate-stress scenario
+    var stressedInterestExpense = debtCapital * stressedCostOfDebt;
+    var stressedDscr = !hasDebt ? null : (stressedInterestExpense > 0 ? r.ebit / stressedInterestExpense : Infinity);
     return {
       debtCapital: debtCapital, equityCapital: equityCapital,
       costOfDebt: costOfDebt, costOfEquity: costOfEquity,
       annualInterestExpense: annualInterestExpense, netIncome: netIncome,
-      weightedCostOfCapital: weightedCostOfCapital, returnOnEquity: returnOnEquity
+      netIncomeAfterTax: netIncomeAfterTax, taxRate: taxRate,
+      weightedCostOfCapital: weightedCostOfCapital, returnOnEquity: returnOnEquity,
+      dscr: dscr, stressedDscr: stressedDscr, stressedCostOfDebt: stressedCostOfDebt
     };
   }
   function narrateCapitalStructure(v, r, cs, debtPct){
@@ -1840,19 +1951,32 @@
     // the blended cost of capital. (ROE = RODA + D/E x (RODA - cost of debt): the WACC doesn't
     // appear in that identity at all, so comparing RODA to WACC here would answer a different
     // question -- "does this site clear its overall cost of capital" -- not "does leverage help
-    // or hurt the equity return," which is what this section is actually about.)
+    // or hurt the equity return," which is what this section is actually about.) Both sides of
+    // this comparison stay pretax -- tax only enters the ROE figure itself, not this check.
     var direction = r.roda > cs.costOfDebt
       ? 'accretive to equity holders — the site earns more on its assets (' + fmtPct(r.roda) + ') than the debt costs (' + fmtPct(cs.costOfDebt) + '), so the spread flows through to equity'
       : 'dilutive to equity holders — the debt costs more (' + fmtPct(cs.costOfDebt) + ') than the site earns on its assets (' + fmtPct(r.roda) + '), so leverage is working against equity here';
+    var dscrText;
+    if (cs.dscr === null) dscrText = "there's no debt in the mix right now, so no coverage question to ask.";
+    else if (cs.dscr === Infinity) dscrText = "at a 0% interest rate on the debt slice, coverage is effectively unlimited.";
+    else {
+      var dscrWord = cs.dscr < 1.2 ? "would not clear a typical lender's minimum covenant" : cs.dscr < 1.5 ? "clears a typical minimum, but with a thin cushion" : "comfortable, well clear of a typical minimum";
+      dscrText = 'EBIT covers the interest-only debt service <b>' + cs.dscr.toFixed(2) + '×</b> over — ' + dscrWord + '. ' +
+        'If the rate rose 200bps to <b>' + fmtPct(cs.stressedCostOfDebt) + '</b>, coverage would fall to <b>' + (cs.stressedDscr === Infinity ? "∞" : cs.stressedDscr.toFixed(2) + '×') + '</b>.';
+    }
     return '<div class="card insight"><span class="tag">In plain terms</span>' +
       'At <b>' + fmtPct0(debtPct) + '</b> debt-financed, this site\'s blended cost of capital runs about <b>' + fmtPct(cs.weightedCostOfCapital) + '</b> — a simplified blend, not a full WACC. ' +
-      'Leverage here is <b>' + direction + '</b>: the levered return on equity comes out to <b>' + roeText + '</b>, versus <b>' + fmtPct(r.roda) + '</b> unlevered.</div>';
+      'Leverage here is <b>' + direction + '</b>: the after-tax levered return on equity comes out to <b>' + roeText + '</b> (at a ' + fmtPct(cs.taxRate) + ' tax rate), versus <b>' + fmtPct(r.roda) + '</b> pretax unlevered. ' +
+      dscrText + '</div>';
   }
   function renderCapitalStructure(v, r){
     var debtPct = Number(document.getElementById("debtSlider").value) / 100;
     document.getElementById("debtVal").textContent = fmtPct0(debtPct);
     var cs = computeCapitalStructure(v, r, debtPct);
     var equityPct = 1 - debtPct;
+    var dscrLabel = cs.dscr === null ? "N/A (no debt)" : cs.dscr === Infinity ? "∞ (interest-free debt)" : cs.dscr.toFixed(2) + "×";
+    var dscrPillClass = cs.dscr === null ? "z-standard" : (cs.dscr === Infinity || cs.dscr >= 1.5) ? "z-best" : cs.dscr >= 1.2 ? "z-standard" : "z-warning";
+    var dscrPillLabel = cs.dscr === null ? "N/A" : cs.dscr === Infinity ? "Unlimited coverage" : cs.dscr < 1.2 ? "Below typical covenant" : cs.dscr < 1.5 ? "Thin cushion" : "Comfortable cushion";
     // Two-segment reuse of the same .alloc-bar/.alloc-seg pattern the allocation-key chart and
     // the portfolio progress bars already use -- debt/equity is a composition (two shares of
     // one whole), the exact shape that CSS is for, not a new pattern.
@@ -1866,9 +1990,101 @@
       '<span><i style="background:rgb(var(--c-accent) / .32)"></i>Equity <b>' + fmtPct0(equityPct) + '</b> · ' + fmtUSDCompact(cs.equityCapital) + '</span>' +
       '</div>' +
       '<div class="field" style="margin-top:14px"><div class="fl"><span>Blended cost of capital</span><b>' + fmtPct(cs.weightedCostOfCapital) + '</b></div></div>' +
-      '<div class="field"><div class="fl"><span>Return on equity (levered)</span><b>' + (cs.returnOnEquity === null ? "N/A" : fmtPct(cs.returnOnEquity)) + '</b></div></div>' +
-      '<div class="field"><div class="fl"><span>Return on deployed assets (unlevered)</span><b>' + fmtPct(r.roda) + '</b></div></div>';
+      '<div class="field"><div class="fl"><span>Return on equity (levered, after-tax)</span><b>' + (cs.returnOnEquity === null ? "N/A" : fmtPct(cs.returnOnEquity)) + '</b></div></div>' +
+      '<div class="field"><div class="fl"><span>Return on deployed assets (unlevered)</span><b>' + fmtPct(r.roda) + '</b></div></div>' +
+      '<div class="field"><div class="fl"><span>Debt service coverage (DSCR)' +
+        '<button class="infobtn inline" type="button" data-info="dscrInfo" aria-label="What is this?" aria-expanded="false" style="margin-left:4px">i</button>' +
+        '</span><b>' + dscrLabel + '</b></div>' +
+        '<span class="pill ' + dscrPillClass + '" style="margin-top:4px"><span class="sw"></span>' + dscrPillLabel + '</span></div>';
     document.getElementById("capitalStructureInsight").innerHTML = narrateCapitalStructure(v, r, cs, debtPct);
+    return cs;
+  }
+
+  // ---- 10-year unlevered project IRR / NPV: everything above is a single year's snapshot;
+  // this carries the same assumptions out IRR_HORIZON_YEARS and discounts back to today.
+  // Deliberately UNLEVERED (project-level, not equity-level -- a real levered/equity IRR would
+  // need a debt amortization schedule, which nothing on this page models) and has NO terminal
+  // value (a genuinely conservative choice: no guess about year-11-onward, not a missing piece).
+  function npvAt(cashflows, rate){
+    var total = 0;
+    for (var t = 0; t < cashflows.length; t++){ total += cashflows[t] / Math.pow(1 + rate, t); }
+    return total;
+  }
+  function computeNPV(cashflows, rate){ return npvAt(cashflows, rate); }
+  // Grid-scan for the FIRST sign change, then bisect within that bracket -- NOT a same-sign
+  // check at just the two range endpoints. A refresh-year capex dip partway through the series
+  // can make NPV cross zero an even number of times inside [-50%, 100%] (confirmed by
+  // construction during review, with an edited low-revenue scenario), which an endpoints-only
+  // check would misread as "no root" even though one genuinely exists. Scanning in 1-point
+  // steps and bisecting the first bracket that flips sign is robust regardless of that shape,
+  // and reports the conventional (smallest-magnitude, most economically meaningful) root when
+  // more than one exists.
+  function computeIRR(cashflows){
+    var STEP = 0.01, LO = -0.5, HI = 1.0;
+    var prevRate = LO, prevNpv = npvAt(cashflows, LO);
+    for (var rate = LO + STEP; rate <= HI + 1e-9; rate += STEP){
+      var npv = npvAt(cashflows, rate);
+      if ((npv > 0) !== (prevNpv > 0)){
+        var lo = prevRate, hi = rate, npvLo = prevNpv;
+        for (var i = 0; i < 60; i++){
+          var mid = (lo + hi) / 2;
+          var npvMid = npvAt(cashflows, mid);
+          if (Math.abs(npvMid) < 1) return mid; // within $1 of zero NPV -- plenty of precision
+          if ((npvMid > 0) === (npvLo > 0)) { lo = mid; npvLo = npvMid; } else { hi = mid; }
+        }
+        return (lo + hi) / 2;
+      }
+      prevRate = rate; prevNpv = npv;
+    }
+    return null; // genuinely no sign change anywhere across the scanned range
+  }
+  function computeProjectCashFlows(v, r, cs){
+    var delayMonths = Number(document.getElementById("delaySlider").value);
+    var gpuMonthly = (v.econCompCapex / r.gpuLifeYears) / 12;
+    var costOfDelay = gpuMonthly * delayMonths; // same figure the depreciation section shows
+    // Unlevered after-tax free cash flow: NOPAT (after-tax EBIT) plus depreciation added back
+    // as non-cash -- the standard definition, and the natural place for the new tax-rate
+    // assumption to flow into a multi-year cash flow (see computeCapitalStructure's own
+    // after-tax ROE for the other place it's used).
+    var unleveredFcf = r.ebit * (1 - cs.taxRate) + r.depreciationAnnual;
+    var refreshInterval = Math.max(1, Math.round(r.gpuLifeYears));
+    var cashflows = [-r.totalCapexBase]; // year 0: full capex outlay
+    for (var yr = 1; yr <= IRR_HORIZON_YEARS; yr++){
+      var cf = unleveredFcf;
+      if (yr === 1) cf -= costOfDelay;
+      // A GPU refresh at the same nominal $ as the original compute CapEx (no price
+      // inflation/deflation modeled -- stated). Excluded at the horizon's own final year since
+      // there's no terminal value to recover a refresh spent right at the edge against.
+      if (yr < IRR_HORIZON_YEARS && yr % refreshInterval === 0) cf -= v.econCompCapex;
+      cashflows.push(cf);
+    }
+    return cashflows;
+  }
+  function narrateIrr(cs, npv, irr, rate){
+    // Verdict comes from ONE canonical signal (npv >= 0), not two independently-computed
+    // booleans (an NPV-based one and an IRR-vs-rate one) that could disagree with each other --
+    // IRR is reported alongside as a supporting number, not as a second source of the verdict.
+    var clears = npv >= 0;
+    var verdict = clears
+      ? 'this clears the bar — the ten-year value created is worth more than what it cost to fund, discounted back to today'
+      : "this doesn't clear the bar at these assumptions — the ten-year value created is worth less than what it cost to fund, discounted back to today";
+    var irrText = irr === null
+      ? "an IRR couldn't be found in a -50% to 100% range at these assumptions"
+      : 'an unlevered IRR of <b>' + fmtPct(irr) + '</b>';
+    return '<div class="card insight"><span class="tag">In plain terms</span>' +
+      'Carried out ' + IRR_HORIZON_YEARS + ' years — the initial build cost, a GPU refresh partway through its own useful life, and the cash this site generates after tax — ' +
+      'discounted at <b>' + fmtPct(rate) + '</b> (the blended cost of capital above), this works out to <b>' + fmtUSDCompact(npv) + '</b> of net present value and ' + irrText + '. ' +
+      'In plain terms, <b>' + verdict + '</b>. This is a project-level (unlevered) estimate with no terminal value assumed past year ' + IRR_HORIZON_YEARS + ' — both deliberately conservative choices, not missing pieces.</div>';
+  }
+  function renderIrr(v, r, cs){
+    var cashflows = computeProjectCashFlows(v, r, cs);
+    var rate = cs.weightedCostOfCapital;
+    var npv = computeNPV(cashflows, rate);
+    var irr = computeIRR(cashflows);
+    document.getElementById("irrNpvVal").textContent = fmtUSDCompact(npv);
+    document.getElementById("irrIrrVal").textContent = irr === null ? "N/A" : fmtPct(irr);
+    document.getElementById("irrIrrSub").textContent = irr === null ? "no root found in range" : "vs. " + fmtPct(rate) + " discount rate";
+    document.getElementById("irrInsight").innerHTML = narrateIrr(cs, npv, irr, rate);
   }
 
   function sparklineSVG(rows, th, zone, cid){
