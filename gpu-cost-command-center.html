@@ -460,6 +460,20 @@
     <div id="forecastInsight"></div>
   </section>
 
+  <section class="card panel">
+    <div class="panel-head">
+      <div>
+        <div style="display:flex; align-items:center; gap:7px">
+          <h2>Data integrity check — two paths, one number</h2>
+          <button class="infobtn inline" type="button" data-info="reconciliationInfo" aria-label="What is this?" aria-expanded="false">i</button>
+        </div>
+        <p class="lede" style="margin-top:2px">The audit trail behind everything in this chapter: two independent ways of adding up the same underlying data, checked against each other.</p>
+      </div>
+    </div>
+    <div id="reconciliationWrap"><div class="skel">loading…</div></div>
+    <div id="reconciliationInsight"></div>
+  </section>
+
   <section class="divider">
     <div class="chapter"><span class="num">2</span>The site</div>
     <div class="eyebrow">Capital efficiency · a second lens<span class="live-badge"><span class="dot2"></span>Live calculator</span></div>
@@ -818,7 +832,8 @@
     forecastInfo: "The starting point (month 0) is the real, dbt-tested blended margin from the top of this page. Everything after that is illustrative -- three simple, made-up monthly trend lines, not a statistical projection, showing roughly how far apart a good, a middling, and a bad next 12 months could look.",
     pnlInfo: "Revenue is the one number you type in. Operating cost and depreciation are pulled from the numbers already computed elsewhere on this page, not typed separately. EBIT falls out of that subtraction -- it's not its own input, so it can never quietly disagree with the return-on-assets number above, which is built from this same EBIT.",
     capitalStructureInfo: "The return-on-assets figure above treats every dollar of capital the same, however it was raised. In practice, a data-center build is usually funded by a mix of debt (a loan, secured against the GPUs or the site itself) and equity. Debt has an explicit yearly cost -- interest. Equity's cost is less visible but real -- investors expect a higher return for taking on more risk than a lender does. This section splits the capital and shows what's actually left for equity holders once the debt is paid.",
-    debtSliderInfo: "This slider models the mix, not a change to how much the site costs to build -- the total capital needed stays the same. What changes is how much of it comes from a lender (debt) versus an investor (equity), and each has a different price."
+    debtSliderInfo: "This slider models the mix, not a change to how much the site costs to build -- the total capital needed stays the same. What changes is how much of it comes from a lender (debt) versus an investor (equity), and each has a different price.",
+    reconciliationInfo: "A standard finance-controls technique: calculate the same total two completely different ways, from the same underlying data, and check they agree. Bottom-up adds up every tenant's own daily bill. Top-down adds up the cluster's daily active-plus-idle cost. If tenant costs are genuinely built from the cluster split (they are), the two should land within a hair of each other -- and a real gap here, not just a rounding one, is exactly the kind of thing this check exists to catch."
   };
   var infoPop = document.getElementById("infoPop");
   document.addEventListener("click", function(e){
@@ -1392,6 +1407,14 @@
   initScrollReveal();
 
   function render(data){
+    // Declared here, at the top, not down near computeReconciliation() where it's actually
+    // used -- renderReconciliation(data) is called partway through this function, and a
+    // `var` declared textually BELOW its call site is still `undefined` at call time (the
+    // declaration hoists, the assignment doesn't run until execution reaches that line).
+    // Hit exactly this bug once already: Math.abs(x) <= undefined silently evaluates to
+    // false, and undefined.toFixed() throws -- which is why it moved up here.
+    var RECONCILE_TOLERANCE = 0.01;
+
     document.getElementById("genAt").textContent = "Data as of " + data.generated_at.slice(0,10);
     document.getElementById("rangeBadge").textContent =
       data.summary.tenants.length + " tenants · " + data.summary.n_days + " days · synthetic data";
@@ -1435,6 +1458,11 @@
     // illustrative -- reads the live blended_gross_margin_pct every render, never a
     // hardcoded snapshot of it) ----
     renderForecast(s.blended_gross_margin_pct);
+
+    // ---- data integrity check: two independent aggregations of the same fetched data,
+    // computed once -- both totals come straight from `data`, not reactive to any slider,
+    // same shape as the forecast call above. ----
+    renderReconciliation(data);
 
     // ---- tenant scorecards + interactive thresholds ----
     var byTenant = {};
@@ -1562,6 +1590,56 @@
 
     function pillColorVar(zone){
       return zone === "best" ? "rgb(var(--c-success))" : zone === "warning" ? "rgb(var(--c-danger))" : "rgb(var(--c-text-secondary))";
+    }
+
+    // ---- data integrity check: bottom-up (sum of every tenant-day's total_cost) vs.
+    // top-down (sum of every cluster-day's active_cost + idle_cost) -- two independent
+    // aggregations of the same underlying data that should land close to each other if
+    // tenant costs are genuinely built from the cluster-level split (they are). A named,
+    // stated tolerance -- not literal float equality -- since real floating-point sums over
+    // different row counts (tenant-day rows vs. cluster-day rows) never land bit-identical
+    // even when nothing is wrong; a fake "$0.00 exactly" claim would be less honest than a
+    // small, explained, within-tolerance gap. fmtUSD can't display this -- it rounds to 0
+    // decimals above $100, so both totals would print as the same "$411" and the whole
+    // point of the check would be invisible -- so this uses .toFixed(4) instead, just here.
+    // (RECONCILE_TOLERANCE itself is declared near the top of render(data), not here --
+    // see the comment there for why.)
+    function computeReconciliation(data){
+      var bottomUp = data.tenant_costs.reduce(function(a, r){ return a + r.total_cost; }, 0);
+      var topDown = data.cluster_costs.reduce(function(a, r){ return a + r.active_cost + r.idle_cost; }, 0);
+      var variance = bottomUp - topDown;
+      return {
+        bottomUp: bottomUp, topDown: topDown, variance: variance,
+        reconciled: Math.abs(variance) <= RECONCILE_TOLERANCE,
+        tenantRows: data.tenant_costs.length, clusterRows: data.cluster_costs.length
+      };
+    }
+    function narrateReconciliation(rc){
+      // Only the verb used to branch here, leaving the trailing clause unconditional --
+      // which meant a genuine failure (unreachable with today's static data, but the code
+      // must still be correct for it) would have rendered "...does NOT reconcile ... not a
+      // sign anything is actually wrong," directly contradicting itself and the red pill
+      // next to it. Same "invisible until the other branch actually runs" shape as the
+      // RECONCILE_TOLERANCE hoisting bug caught earlier -- branch the whole sentence.
+      var closing = rc.reconciled
+        ? 'well inside the <b>$' + RECONCILE_TOLERANCE.toFixed(2) + '</b> threshold this check holds itself to — the kind of sub-cent difference you\'d expect from rounding at two different levels of aggregation, not a sign anything is actually wrong.'
+        : 'outside the <b>$' + RECONCILE_TOLERANCE.toFixed(2) + '</b> threshold this check holds itself to — worth investigating before trusting the totals above.';
+      var statusWord = rc.reconciled ? "reconcile" : "do NOT reconcile";
+      return '<div class="card insight"><span class="tag">In plain terms</span>' +
+        'Adding up every tenant\'s own daily bill (' + rc.tenantRows + ' rows) gives <b>$' + rc.bottomUp.toFixed(4) + '</b>. Adding up the cluster\'s daily active-plus-idle cost (' + rc.clusterRows + ' rows) — the same number the "Total GPU spend" KPI at the very top of this page is actually built from — gives <b>$' + rc.topDown.toFixed(4) + '</b>. ' +
+        'The two ' + statusWord + ': a <b>$' + Math.abs(rc.variance).toFixed(4) + '</b> gap, ' + closing + '</div>';
+    }
+    function renderReconciliation(data){
+      var rc = computeReconciliation(data);
+      var pillClass = rc.reconciled ? "z-best" : "z-warning";
+      var pillLabel = rc.reconciled ? "Reconciled" : "Variance detected";
+      document.getElementById("reconciliationWrap").innerHTML =
+        '<div style="display:flex; flex-wrap:wrap; gap:20px; align-items:center">' +
+        '<div class="field" style="margin-top:0; flex:1; min-width:200px"><div class="fl"><span>Bottom-up (sum of tenant bills)</span><b class="tabular">$' + rc.bottomUp.toFixed(4) + '</b></div></div>' +
+        '<div class="field" style="margin-top:0; flex:1; min-width:200px"><div class="fl"><span>Top-down (sum of cluster cost)</span><b class="tabular">$' + rc.topDown.toFixed(4) + '</b></div></div>' +
+        '<span class="pill ' + pillClass + '"><span class="sw"></span>' + pillLabel + '</span>' +
+        '</div>';
+      document.getElementById("reconciliationInsight").innerHTML = narrateReconciliation(rc);
     }
 
     warnSlider.addEventListener("input", renderTenants);
