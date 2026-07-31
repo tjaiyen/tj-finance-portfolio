@@ -509,7 +509,7 @@
       <div class="inputs-row">
         <div class="nfield"><label for="econFacCapex">Facility CapEx ($)</label><input type="text" inputmode="decimal" id="econFacCapex" /></div>
         <div class="nfield"><label for="econCompCapex">Compute (GPU) CapEx ($)</label><input type="text" inputmode="decimal" id="econCompCapex" /></div>
-        <div class="nfield"><label for="econEbit">Site EBIT, annual ($)</label><input type="text" inputmode="decimal" id="econEbit" /></div>
+        <div class="nfield"><label for="econRevenue">Site annual revenue ($)</label><input type="text" inputmode="decimal" id="econRevenue" /></div>
       </div>
     </details>
 
@@ -549,6 +549,20 @@
         <input type="range" id="delaySlider" min="0" max="24" step="1" value="6" />
       </div>
     </div>
+  </section>
+
+  <section class="card panel">
+    <div class="panel-head">
+      <div>
+        <div style="display:flex; align-items:center; gap:7px">
+          <h2>Site-level P&amp;L</h2>
+          <button class="infobtn inline" type="button" data-info="pnlInfo" aria-label="What is this?" aria-expanded="false">i</button>
+        </div>
+        <p class="lede" style="margin-top:2px">Revenue, operating cost, and depreciation assembled into the statement RODA above is actually built from — EBIT here is computed, not a separately typed number.</p>
+      </div>
+    </div>
+    <div class="chart-wrap" id="pnlWrap"><div class="skel">loading…</div></div>
+    <div id="pnlInsight"></div>
   </section>
 
   <section class="card panel">
@@ -687,12 +701,13 @@
     delayInfo: "A real site doesn't flip from under-construction to fully-earning overnight, GPUs typically arrive and get racked after the building itself is ready. This slider asks: what if that gap were longer or shorter?",
     tornadoInfo: "A tornado chart is a standard finance technique for stress-testing an estimate: move one input at a time by the same percentage, holding everything else fixed, and see which one swings the result the most. The widest bar is the number most worth double-checking.",
     portfolioInfo: "Everything above modeled one site. Real deployments are usually a fleet -- several sites at once, each at a different stage from early planning to fully live. This section is a static, illustrative snapshot of six such sites, not something you can edit like the calculator above.",
-    portfolioCapital: "How much of the money set aside for these six sites has actually been spent so far, versus how much was planned in total.",
+    portfolioCapital: "How much of the money set aside for these six sites has actually been spent so far, versus how much was planned in total. The remaining figure is what's still needed to finish every site in the portfolio -- the forward-looking capital number, not just a look back at spend to date.",
     portfolioCapacity: "Across all six sites, how many megawatts are actually live and delivering today, compared to what the finished portfolio is targeting. Sites still in planning or construction count toward the target but not yet toward what's delivered.",
     portfolioBehind: "How many of the six sites are running later than planned. A site still early in planning isn't counted as behind -- there's no schedule to miss yet.",
     portfolioDelayCost: "For every site that's running behind, this adds up the GPU depreciation that ran during the delay with no site there yet to use it -- the same idea as the single-site \"cost of a delayed ramp\" above, added across the whole portfolio.",
     varianceInfo: "\"Budget\" isn't a separate number someone typed in -- it's the same best-in-class margin line from the threshold panel above. This compares what each tenant actually earned, on average, against that line. Note this uses each tenant's whole-period average margin, not just the latest day shown on its card above, so the percentage here can read a little differently than the card's headline number.",
-    forecastInfo: "The starting point (month 0) is the real, dbt-tested blended margin from the top of this page. Everything after that is illustrative -- three simple, made-up monthly trend lines, not a statistical projection, showing roughly how far apart a good, a middling, and a bad next 12 months could look."
+    forecastInfo: "The starting point (month 0) is the real, dbt-tested blended margin from the top of this page. Everything after that is illustrative -- three simple, made-up monthly trend lines, not a statistical projection, showing roughly how far apart a good, a middling, and a bad next 12 months could look.",
+    pnlInfo: "Revenue is the one number you type in. Operating cost and depreciation are pulled from the numbers already computed elsewhere on this page, not typed separately. EBIT falls out of that subtraction -- it's not its own input, so it can never quietly disagree with the return-on-assets number above, which is built from this same EBIT."
   };
   var infoPop = document.getElementById("infoPop");
   document.addEventListener("click", function(e){
@@ -791,13 +806,13 @@
     econCap: 40, econLoad: 30,
     econShell: 144000000, econMep: 456000000, econFitout: 200000000, econMw: 50,
     econRack: 60, econRate: 0.1063, econPueL: 1.58, econPueE: 1.10,
-    econFacCapex: 742000000, econCompCapex: 1186000000, econEbit: 251000000,
+    econFacCapex: 742000000, econCompCapex: 1186000000, econRevenue: 580000000,
     retrofitCostPerRack: 8000
   };
   var econIds = Object.keys(ECON_DEFAULTS);
   // Comma-formatted for readability (742000000 -> 742,000,000); parseNum() strips the commas
   // back out before computing, so every econ field -- number or text -- reads the same way.
-  var ECON_CURRENCY_IDS = ["econShell", "econMep", "econFitout", "econFacCapex", "econCompCapex", "econEbit", "retrofitCostPerRack"];
+  var ECON_CURRENCY_IDS = ["econShell", "econMep", "econFitout", "econFacCapex", "econCompCapex", "econRevenue", "retrofitCostPerRack"];
 
   function parseNum(v){ return Number(String(v).replace(/,/g, "")) || 0; }
 
@@ -820,13 +835,27 @@
     var efficientCost = v.econRack * v.econPueE * HOURS_PER_YEAR * v.econRate;
     var savings = legacyCost - efficientCost;
     var totalCapexBase = v.econFacCapex + v.econCompCapex;
-    var roda = totalCapexBase > 0 ? v.econEbit / totalCapexBase : 0;
+    // Site-level P&L: revenue is the one typed assumption; operating cost and depreciation
+    // are derived from figures already computed elsewhere on this page (efficientCost per
+    // rack, scaled by active racks; the same straight-line GPU/building depreciation the
+    // "cost of a delayed ramp" section uses) -- EBIT is COMPUTED here, not typed, so there
+    // is exactly one EBIT on the page, not two independently-typed numbers that could
+    // silently disagree. fixedCosts is exposed so the RODA sensitivity tornado can
+    // recompute ebit at a perturbed revenue rather than perturbing ebit directly.
+    var activeRacks = v.econRack > 0 ? (v.econLoad * 1000) / v.econRack : 0;
+    var opexAnnual = activeRacks * efficientCost;
+    var depreciationAnnual = (v.econCompCapex / GPU_LIFE_YEARS) + (v.econFacCapex / BUILDING_LIFE_YEARS);
+    var fixedCosts = opexAnnual + depreciationAnnual;
+    var ebit = v.econRevenue - fixedCosts;
+    var roda = totalCapexBase > 0 ? ebit / totalCapexBase : 0;
     // Guarded, not just divided: savings can legitimately go negative (swap the two PUE
     // inputs) or zero, and a retrofit that saves nothing has no payback period to report.
     var paybackYears = (v.retrofitCostPerRack > 0 && savings > 0) ? v.retrofitCostPerRack / savings : null;
     return { utilization: utilization, totalBuildCapex: totalBuildCapex, costPerMW: costPerMW,
       legacyCost: legacyCost, efficientCost: efficientCost, savings: savings,
-      totalCapexBase: totalCapexBase, roda: roda, paybackYears: paybackYears };
+      totalCapexBase: totalCapexBase, activeRacks: activeRacks, opexAnnual: opexAnnual,
+      depreciationAnnual: depreciationAnnual, fixedCosts: fixedCosts, ebit: ebit, roda: roda,
+      paybackYears: paybackYears };
   }
 
   function renderSiteEconomics(animate){
@@ -866,7 +895,7 @@
       "Legacy " + fmtUSD(r.legacyCost) + " → Efficient " + fmtUSD(r.efficientCost);
     document.getElementById("econPueSub").textContent = "vs. " + fmtRatio(v.econPueL) + " industry average";
     document.getElementById("econRodaSub").textContent =
-      "EBIT " + fmtUSD(v.econEbit) + " / CapEx " + fmtUSD(r.totalCapexBase);
+      "EBIT " + fmtUSD(r.ebit) + " / CapEx " + fmtUSD(r.totalCapexBase);
     document.getElementById("econPaybackSub").textContent = r.paybackYears === null
       ? "No savings at current assumptions"
       : fmtUSD(v.retrofitCostPerRack) + "/rack ÷ " + fmtUSD(r.savings) + "/yr saved";
@@ -879,11 +908,12 @@
       'switching from the legacy setup to this one saves <b>' + fmtUSD(r.savings) + '</b> per rack every year. Put together, the site returns ' +
       '<b>' + fmtPct(r.roda) + '</b> on the money invested in it each year — ' + narrateRodaWord(r.roda) + ' return by typical infrastructure standards.</div>';
 
-    // Depreciation and RODA-sensitivity both derive from these same econ inputs (plus,
-    // for depreciation, the separate delayMonths slider) -- recomputing them here keeps
-    // every derived section in sync on every input change, not just the 6 KPI tiles.
+    // Depreciation, the P&L, and RODA-sensitivity all derive from these same econ inputs
+    // (plus, for depreciation, the separate delayMonths slider) -- recomputing them here
+    // keeps every derived section in sync on every input change, not just the 6 KPI tiles.
     renderDepreciation(v);
-    renderTornado(v, r.roda);
+    renderPnl(v, r);
+    renderTornado(v, r.roda, r.ebit, r.fixedCosts);
   }
   function narrateUtilWord(u){
     return u >= 0.85 ? "excellent" : u >= 0.65 ? "solid" : u >= 0.4 ? "underwhelming" : "poor";
@@ -949,11 +979,17 @@
     var base = facCapex + compCapex;
     return base > 0 ? ebit / base : 0;
   }
-  function computeRodaSensitivity(v){
+  function computeRodaSensitivity(v, ebit, fixedCosts){
     var drivers = [
-      { label: "Facility CapEx", low: rodaAt(v.econFacCapex * 1.1, v.econCompCapex, v.econEbit), high: rodaAt(v.econFacCapex * 0.9, v.econCompCapex, v.econEbit) },
-      { label: "Compute (GPU) CapEx", low: rodaAt(v.econFacCapex, v.econCompCapex * 1.1, v.econEbit), high: rodaAt(v.econFacCapex, v.econCompCapex * 0.9, v.econEbit) },
-      { label: "Site EBIT", low: rodaAt(v.econFacCapex, v.econCompCapex, v.econEbit * 0.9), high: rodaAt(v.econFacCapex, v.econCompCapex, v.econEbit * 1.1) }
+      { label: "Facility CapEx", low: rodaAt(v.econFacCapex * 1.1, v.econCompCapex, ebit), high: rodaAt(v.econFacCapex * 0.9, v.econCompCapex, ebit) },
+      { label: "Compute (GPU) CapEx", low: rodaAt(v.econFacCapex, v.econCompCapex * 1.1, ebit), high: rodaAt(v.econFacCapex, v.econCompCapex * 0.9, ebit) },
+      // Revenue is the genuinely independent typed input now that EBIT is derived, not
+      // typed -- perturb revenue and recompute EBIT from the same fixed operating +
+      // depreciation costs, rather than perturbing the already-computed EBIT directly.
+      // EBIT has operating leverage against revenue (fixed costs don't move with it), so
+      // perturbing EBIT itself would understate the real swing -- and it keeps this driver
+      // apples-to-apples with the other two, which each hold everything but themselves fixed.
+      { label: "Site Revenue", low: rodaAt(v.econFacCapex, v.econCompCapex, (v.econRevenue * 0.9) - fixedCosts), high: rodaAt(v.econFacCapex, v.econCompCapex, (v.econRevenue * 1.1) - fixedCosts) }
     ];
     drivers.forEach(function(d){ d.swing = Math.abs(d.high - d.low); });
     drivers.sort(function(a, b){ return b.swing - a.swing; }); // widest swing on top (tornado convention)
@@ -988,8 +1024,8 @@
       '<b>' + swingPp + ' percentage points</b> of RODA, more than the other two drivers on their own. ' +
       'That\'s the number worth double-checking first if this estimate needs to hold up.</div>';
   }
-  function renderTornado(v, baseRoda){
-    var drivers = computeRodaSensitivity(v);
+  function renderTornado(v, baseRoda, ebit, fixedCosts){
+    var drivers = computeRodaSensitivity(v, ebit, fixedCosts);
     document.getElementById("tornadoWrap").innerHTML = tornadoSVG(drivers, baseRoda);
     document.getElementById("tornadoInsight").innerHTML = narrateTornado(drivers);
   }
@@ -1029,6 +1065,9 @@
     return {
       totalPlanned: totalPlanned, totalDeployed: totalDeployed,
       pctDeployed: totalPlanned > 0 ? totalDeployed / totalPlanned : 0,
+      // How much capital is still needed to finish the portfolio -- floored at 0 so a site
+      // that's already spent past its own plan can't make the portfolio total look smaller.
+      remainingCapital: Math.max(totalPlanned - totalDeployed, 0),
       totalTargetMW: totalTargetMW, totalCurrentMW: totalCurrentMW,
       pctDelivered: totalTargetMW > 0 ? totalCurrentMW / totalTargetMW : 0,
       totalDelayCost: totalDelayCost, behind: behind
@@ -1071,7 +1110,7 @@
   function renderPortfolio(){
     var p = computePortfolio();
     document.getElementById("portfolioCapitalVal").textContent = fmtUSDCompact(p.totalDeployed);
-    document.getElementById("portfolioCapitalSub").textContent = fmtPct(p.pctDeployed) + " of " + fmtUSDCompact(p.totalPlanned) + " planned";
+    document.getElementById("portfolioCapitalSub").textContent = fmtPct(p.pctDeployed) + " deployed · " + fmtUSDCompact(p.remainingCapital) + " remaining";
     document.getElementById("portfolioCapacityVal").textContent = fmtPct(p.pctDelivered);
     document.getElementById("portfolioCapacitySub").textContent = p.totalCurrentMW + " of " + p.totalTargetMW + " MW live";
     document.getElementById("portfolioBehindVal").textContent = p.behind.length + " of 6";
@@ -1348,6 +1387,50 @@
     }).join("");
     var zeroLine = '<line x1="0" x2="' + w + '" y1="' + zeroY.toFixed(1) + '" y2="' + zeroY.toFixed(1) + '" stroke="rgb(var(--c-text-secondary) / .25)" stroke-width="1" stroke-dasharray="2 3"/>';
     return '<svg class="chart waterfall" viewBox="0 0 ' + w + ' ' + h + '" style="width:100%;height:140px" role="img" aria-label="Revenue to margin breakdown">' + zeroLine + parts + '</svg>';
+  }
+
+  // Same 4-bar shape as waterfallSVG above (start, -cost, -cost, net) but kept as its own
+  // function rather than a generalization of it -- matches this file's existing precedent
+  // (depreciationSVG/tornadoSVG were both written as new siblings, not refactors of
+  // waterfallSVG, even though they're all "bar chart" shaped) and avoids regression risk
+  // to the already-shipped tenant breakdown chart for the sake of one new caller. Unlike
+  // waterfallSVG, this uses fmtUSDCompact -- site-level $ figures run into the hundreds of
+  // millions, not the tenant section's small dollar amounts.
+  function pnlWaterfallSVG(revenue, opex, depreciation){
+    var ebit = revenue - opex - depreciation;
+    var w = 320, h = 140, padT = 20, padB = 26;
+    var innerH = h - padT - padB;
+    var maxV = Math.max(revenue, 0), minV = Math.min(ebit, 0);
+    var range = (maxV - minV) || 1;
+    var yAt = function(v){ return padT + innerH - ((v - minV) / range) * innerH; };
+    var zeroY = yAt(0);
+    var slotW = w / 4, barW = slotW * 0.5;
+    var bars = [
+      { label: "Revenue", val: revenue, top: revenue, bottom: 0, color: "var(--c-accent)" },
+      { label: "Operating cost", val: -opex, top: revenue, bottom: revenue - opex, color: "var(--c-text-secondary)" },
+      { label: "Depreciation", val: -depreciation, top: revenue - opex, bottom: ebit, color: "var(--c-danger)" },
+      { label: "EBIT", val: ebit, top: Math.max(ebit, 0), bottom: Math.min(ebit, 0), color: ebit >= 0 ? "var(--c-success)" : "var(--c-danger)" }
+    ];
+    var parts = bars.map(function(b, i){
+      var x = slotW * i + (slotW - barW) / 2;
+      var yTop = yAt(Math.max(b.top, b.bottom)), yBot = yAt(Math.min(b.top, b.bottom));
+      var bh = Math.max(yBot - yTop, 2);
+      var rgb = 'rgb(' + b.color + ')';
+      var sign = b.val > 0 ? "+" : b.val < 0 ? "−" : "";
+      return '<rect x="' + x.toFixed(1) + '" y="' + yTop.toFixed(1) + '" width="' + barW.toFixed(1) + '" height="' + bh.toFixed(1) + '" rx="3" fill="' + rgb + '"/>' +
+        '<text x="' + (x + barW / 2).toFixed(1) + '" y="' + (yTop - 5).toFixed(1) + '" text-anchor="middle" fill="' + rgb + '">' + sign + fmtUSDCompact(Math.abs(b.val)) + '</text>' +
+        '<text x="' + (x + barW / 2).toFixed(1) + '" y="' + (h - 8) + '" text-anchor="middle" class="axislabel">' + b.label + '</text>';
+    }).join("");
+    var zeroLine = '<line x1="0" x2="' + w + '" y1="' + zeroY.toFixed(1) + '" y2="' + zeroY.toFixed(1) + '" stroke="rgb(var(--c-text-secondary) / .25)" stroke-width="1" stroke-dasharray="2 3"/>';
+    return '<svg class="chart waterfall" viewBox="0 0 ' + w + ' ' + h + '" style="width:100%;height:140px" role="img" aria-label="Site-level P&amp;L, revenue to EBIT">' + zeroLine + parts + '</svg>';
+  }
+  function narratePnl(v, r){
+    return '<div class="card insight"><span class="tag">In plain terms</span>' +
+      'At <b>' + fmtUSDCompact(v.econRevenue) + '</b> in annual revenue, after <b>' + fmtUSDCompact(r.opexAnnual) + '</b> in power and cooling across ' + Math.round(r.activeRacks) + ' active racks and <b>' + fmtUSDCompact(r.depreciationAnnual) + '</b> in straight-line depreciation on the GPUs and building, this site nets <b>' + fmtUSDCompact(r.ebit) + '</b> in EBIT — the same number the return-on-assets figure above is built from, not a separately typed one.</div>';
+  }
+  function renderPnl(v, r){
+    document.getElementById("pnlWrap").innerHTML = pnlWaterfallSVG(v.econRevenue, r.opexAnnual, r.depreciationAnnual);
+    document.getElementById("pnlInsight").innerHTML = narratePnl(v, r);
   }
 
   function sparklineSVG(rows, th, zone, cid){
