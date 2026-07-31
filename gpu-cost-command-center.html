@@ -388,6 +388,35 @@
     </div>
   </section>
 
+  <section class="card panel">
+    <div class="panel-head">
+      <div>
+        <div style="display:flex; align-items:center; gap:7px">
+          <h2>Budget vs. actual — margin variance</h2>
+          <button class="infobtn inline" type="button" data-info="varianceInfo" aria-label="What is this?" aria-expanded="false">i</button>
+        </div>
+        <p class="lede" style="margin-top:2px">"Budget" here is the same best-in-class threshold set in the panel above — drag it and this re-renders too.</p>
+      </div>
+    </div>
+    <div class="chart-wrap" id="varianceWrap"><div class="skel">loading…</div></div>
+    <div id="varianceInsight"></div>
+  </section>
+
+  <section class="card panel">
+    <div class="panel-head">
+      <div>
+        <div style="display:flex; align-items:center; gap:7px">
+          <h2>12-month rolling forecast</h2>
+          <button class="infobtn inline" type="button" data-info="forecastInfo" aria-label="What is this?" aria-expanded="false">i</button>
+        </div>
+        <p class="lede" style="margin-top:2px">Month 0 is the real, dbt-tested blended margin above. The 12-month projection forward is an illustrative what-if, not a forecast sourced from data.</p>
+      </div>
+      <div class="legend" id="forecastLegend"></div>
+    </div>
+    <div class="chart-wrap" id="forecastWrap"><div class="skel">loading…</div></div>
+    <div id="forecastInsight"></div>
+  </section>
+
   <section class="divider">
     <div class="eyebrow">Capital efficiency · a second lens<span class="live-badge"><span class="dot2"></span>Live calculator</span></div>
     <h2 style="font-size:18px; margin-top:8px">Site deployment economics</h2>
@@ -661,7 +690,9 @@
     portfolioCapital: "How much of the money set aside for these six sites has actually been spent so far, versus how much was planned in total.",
     portfolioCapacity: "Across all six sites, how many megawatts are actually live and delivering today, compared to what the finished portfolio is targeting. Sites still in planning or construction count toward the target but not yet toward what's delivered.",
     portfolioBehind: "How many of the six sites are running later than planned. A site still early in planning isn't counted as behind -- there's no schedule to miss yet.",
-    portfolioDelayCost: "For every site that's running behind, this adds up the GPU depreciation that ran during the delay with no site there yet to use it -- the same idea as the single-site \"cost of a delayed ramp\" above, added across the whole portfolio."
+    portfolioDelayCost: "For every site that's running behind, this adds up the GPU depreciation that ran during the delay with no site there yet to use it -- the same idea as the single-site \"cost of a delayed ramp\" above, added across the whole portfolio.",
+    varianceInfo: "\"Budget\" isn't a separate number someone typed in -- it's the same best-in-class margin line from the threshold panel above. This compares what each tenant actually earned, on average, against that line. Note this uses each tenant's whole-period average margin, not just the latest day shown on its card above, so the percentage here can read a little differently than the card's headline number.",
+    forecastInfo: "The starting point (month 0) is the real, dbt-tested blended margin from the top of this page. Everything after that is illustrative -- three simple, made-up monthly trend lines, not a statistical projection, showing roughly how far apart a good, a middling, and a bad next 12 months could look."
   };
   var infoPop = document.getElementById("infoPop");
   document.addEventListener("click", function(e){
@@ -752,6 +783,10 @@
   // since it's a dedicated slider like the margin-zone thresholds, not a generic input) so
   // econReset has one place to read from instead of a second hardcoded "6".
   var DELAY_DEFAULT = 6;
+  // 12-month rolling forecast: illustrative monthly-delta constants only, not fit to any
+  // data -- three simple trend lines to show a spread, not a statistical model.
+  var FORECAST_MONTHS = 12;
+  var FORECAST_DELTA = { base: 0.003, upside: 0.008, downside: -0.004 };
   var ECON_DEFAULTS = {
     econCap: 40, econLoad: 30,
     econShell: 144000000, econMep: 456000000, econFitout: 200000000, econMw: 50,
@@ -1111,6 +1146,11 @@
       '<div class="card insight"><span class="tag">In plain terms</span>Idle capacity made up <b>' + fmtPct(s.idle_cost_pct_of_spend) +
       '</b> of total spend over this period — ' + narrateIdleShare(s.idle_cost_pct_of_spend) + '.</div>';
 
+    // ---- 12-month rolling forecast (month 0 = real dbt-tested value, projection is
+    // illustrative -- reads the live blended_gross_margin_pct every render, never a
+    // hardcoded snapshot of it) ----
+    renderForecast(s.blended_gross_margin_pct);
+
     // ---- tenant scorecards + interactive thresholds ----
     var byTenant = {};
     data.tenant_costs.forEach(function(r){
@@ -1178,6 +1218,61 @@
           document.getElementById("breakdown-" + cid).classList.toggle("show", expandedTenants[cid]);
         });
       });
+      // "budget" = th.best (the same slider value re-colors the cards above), so this
+      // is deliberately hung off the SAME re-render call as the cards, not a parallel
+      // render path -- dragging either slider must move both.
+      renderVariance(byTenant, th);
+    }
+
+    // ---- budget-vs-actual margin variance: budget is th.best (real dbt_project.yml
+    // config, already wired to bestSlider), actual is each tenant's PERIOD-WEIGHTED
+    // AVERAGE margin -- not latest.gross_margin_pct (the card headline above uses latest,
+    // this uses the period average) -- because the dollar variance is period revenue x
+    // variance rate, and mixing a single-day rate with period revenue produces a wrong
+    // magnitude and can even flip which tenants look favorable/unfavorable.
+    function computeVariance(byTenant, th){
+      return Object.keys(byTenant).sort().map(function(cid){
+        var rows = byTenant[cid];
+        var totalRev = rows.reduce(function(a,r){ return a + r.revenue; }, 0);
+        var totalCost = rows.reduce(function(a,r){ return a + r.total_cost; }, 0);
+        var actualPct = totalRev > 0 ? (totalRev - totalCost) / totalRev : 0;
+        var variancePct = actualPct - th.best;
+        return { cid: cid, actualPct: actualPct, budgetPct: th.best, variancePct: variancePct, varianceDollars: variancePct * totalRev };
+      });
+    }
+    function varianceSVG(items){
+      var rowH = 34, padT = 10, padB = 20, labelW = 60, valueW = 170;
+      var w = 640, h = padT + items.length * rowH + padB;
+      var barZoneW = w - labelW - valueW;
+      var maxAbs = Math.max.apply(null, items.map(function(i){ return Math.abs(i.variancePct); }).concat([0.01]));
+      var centerX = labelW + barZoneW / 2;
+      var scale = (barZoneW / 2) / maxAbs;
+      var rows = items.map(function(it, i){
+        var y = padT + i * rowH, midY = y + rowH * 0.5;
+        var barW = Math.max(Math.abs(it.variancePct) * scale, 2);
+        var x = it.variancePct >= 0 ? centerX : centerX - barW;
+        var rgb = it.variancePct >= 0 ? 'rgb(var(--c-success))' : 'rgb(var(--c-danger))';
+        var sign = it.variancePct >= 0 ? '+' : '−';
+        return '<text x="4" y="' + (midY + 4).toFixed(1) + '" class="axislabel" text-anchor="start">' + it.cid + '</text>' +
+          '<rect x="' + x.toFixed(1) + '" y="' + (midY - 7).toFixed(1) + '" width="' + barW.toFixed(1) + '" height="14" rx="3" fill="' + rgb + '"/>' +
+          '<text x="' + (labelW + barZoneW + 8) + '" y="' + (midY + 4).toFixed(1) + '" class="axislabel" text-anchor="start">' + sign + Math.abs(it.variancePct * 100).toFixed(1) + 'pp · ' + fmtUSDCompact(it.varianceDollars) + '</text>';
+      }).join("");
+      var centerLine = '<line x1="' + centerX.toFixed(1) + '" x2="' + centerX.toFixed(1) + '" y1="' + padT + '" y2="' + (padT + items.length * rowH) + '" stroke="rgb(var(--c-text-secondary) / .5)" stroke-width="1" stroke-dasharray="2 3"/>';
+      return '<svg class="chart" viewBox="0 0 ' + w + ' ' + h + '" style="width:100%;height:auto" role="img" aria-label="Budget vs actual margin variance by tenant">' + centerLine + rows + '</svg>';
+    }
+    function narrateVariance(items){
+      var favorableCount = items.filter(function(i){ return i.variancePct >= 0; }).length;
+      var worst = items.slice().sort(function(a,b){ return a.varianceDollars - b.varianceDollars; })[0];
+      var worstText = worst.variancePct < 0
+        ? '<b>' + worst.cid + '</b> carries the largest unfavorable variance — running <b>' + Math.abs(worst.variancePct * 100).toFixed(1) + ' points</b> below budget on average, about <b>' + fmtUSDCompact(Math.abs(worst.varianceDollars)) + '</b> short of what the best-in-class line would have earned over this window'
+        : 'every tenant is at or above the budget line right now';
+      return '<div class="card insight"><span class="tag">In plain terms</span>' +
+        favorableCount + ' of ' + items.length + ' tenants are running at or above the best-in-class budget line, on a whole-period average. ' + worstText + '.</div>';
+    }
+    function renderVariance(byTenant, th){
+      var items = computeVariance(byTenant, th);
+      document.getElementById("varianceWrap").innerHTML = varianceSVG(items);
+      document.getElementById("varianceInsight").innerHTML = narrateVariance(items);
     }
 
     function pillColorVar(zone){
@@ -1300,6 +1395,117 @@
       });
       dot.addEventListener("mouseleave", function(){ tip.classList.remove("show"); });
     });
+  }
+
+  function clamp01(x){ return Math.max(0, Math.min(1, x)); }
+  function computeForecast(anchorPct){
+    var months = [];
+    for (var m = 0; m <= FORECAST_MONTHS; m++) {
+      months.push({
+        m: m,
+        base: clamp01(anchorPct + FORECAST_DELTA.base * m),
+        upside: clamp01(anchorPct + FORECAST_DELTA.upside * m),
+        downside: clamp01(anchorPct + FORECAST_DELTA.downside * m)
+      });
+    }
+    return months;
+  }
+  function forecastSVG(months){
+    var wrap = document.getElementById("forecastWrap");
+    var W = 1000, H = 220, padL = 40, padR = 8, padT = 10, padB = 22;
+    var innerW = W - padL - padR, innerH = H - padT - padB;
+    var n = months.length;
+    var allVals = months.reduce(function(a, mo){ return a.concat([mo.base, mo.upside, mo.downside]); }, []);
+    var minV = Math.min.apply(null, allVals), maxV = Math.max.apply(null, allVals);
+    var pad = (maxV - minV) * 0.15 || 0.02;
+    minV = Math.max(0, minV - pad); maxV = Math.min(1, maxV + pad);
+    if (maxV === minV) { maxV = minV + 0.01; }
+    var xSpan = (n - 1) || 1;
+    var xAt = function(i){ return padL + (i / xSpan) * innerW; };
+    var yAt = function(v){ return padT + innerH - ((v - minV) / (maxV - minV)) * innerH; };
+
+    // fixed hue order, reused from elsewhere on this page, not invented here: accent =
+    // neutral/base value (same role it plays everywhere else -- gridlines, the composition
+    // chart's "Active" series), success/danger = the same good/bad status pair already
+    // used for margin-zone pills -- this is an ordered worse<-neutral->better axis, not an
+    // arbitrary categorical set, so reusing the status pair is consistent, not a clash.
+    var seriesDef = [
+      { key: "downside", color: "var(--c-danger)", label: "Downside" },
+      { key: "base", color: "var(--c-accent)", label: "Base" },
+      { key: "upside", color: "var(--c-success)", label: "Upside" }
+    ];
+    var paths = seriesDef.map(function(s){
+      var d = months.map(function(mo, i){ return (i === 0 ? "M" : "L") + xAt(i).toFixed(1) + "," + yAt(mo[s.key]).toFixed(1); }).join(" ");
+      return '<path d="' + d + '" fill="none" stroke="rgb(' + s.color + ')" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>';
+    }).join("");
+
+    var gridLines = [0, 0.25, 0.5, 0.75, 1].map(function(f){
+      var yy = padT + innerH * (1 - f);
+      var val = fmtPct0(minV + (maxV - minV) * f);
+      return '<line class="gridline" x1="' + padL + '" x2="' + (W - padR) + '" y1="' + yy.toFixed(1) + '" y2="' + yy.toFixed(1) + '"/>' +
+        '<text class="axislabel" x="' + (padL - 6) + '" y="' + (yy + 3).toFixed(1) + '" text-anchor="end">' + val + '</text>';
+    }).join("");
+
+    var labelIdx = [0, 3, 6, 9, 12].filter(function(i){ return i < n; });
+    var xLabels = labelIdx.map(function(i){
+      return '<text class="axislabel" x="' + xAt(i).toFixed(1) + '" y="' + (H - 4) + '" text-anchor="middle">' + (i === 0 ? "Now" : "M" + i) + '</text>';
+    }).join("");
+
+    var hoverDots = months.map(function(mo, i){
+      return '<circle data-i="' + i + '" cx="' + xAt(i).toFixed(1) + '" cy="' + yAt(mo.base).toFixed(1) + '" r="9" fill="transparent" style="cursor:crosshair"/>';
+    }).join("");
+
+    var svg = '<svg class="chart" id="forecastSvg" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" role="img" aria-label="12-month rolling forecast, three scenarios">' +
+      gridLines + paths +
+      '<line id="forecastCross" class="crosshair" x1="0" y1="' + padT + '" x2="0" y2="' + (padT + innerH) + '"/>' +
+      xLabels + hoverDots +
+      '</svg>' +
+      '<div class="tip" id="forecastTip"></div>';
+    wrap.innerHTML = svg;
+
+    var svgEl = document.getElementById("forecastSvg");
+    var tip = document.getElementById("forecastTip");
+    var cross = document.getElementById("forecastCross");
+    svgEl.querySelectorAll("circle[data-i]").forEach(function(dot){
+      dot.addEventListener("mouseenter", function(){
+        var i = Number(dot.getAttribute("data-i"));
+        var mo = months[i];
+        var pxRatio = wrap.clientWidth / W;
+        cross.setAttribute("x1", xAt(i).toFixed(1));
+        cross.setAttribute("x2", xAt(i).toFixed(1));
+        cross.classList.add("show");
+        tip.innerHTML =
+          '<div class="d">' + (i === 0 ? "Now" : "Month " + i) + '</div>' +
+          '<div class="r"><span><i style="background:rgb(var(--c-success))"></i> Upside</span><b class="tabular">' + fmtPct(mo.upside) + '</b></div>' +
+          '<div class="r"><span><i style="background:rgb(var(--c-accent))"></i> Base</span><b class="tabular">' + fmtPct(mo.base) + '</b></div>' +
+          '<div class="r"><span><i style="background:rgb(var(--c-danger))"></i> Downside</span><b class="tabular">' + fmtPct(mo.downside) + '</b></div>';
+        tip.classList.add("show");
+        var left = xAt(i) * pxRatio - tip.offsetWidth / 2;
+        left = Math.max(4, Math.min(left, wrap.clientWidth - tip.offsetWidth - 4));
+        tip.style.left = left + "px";
+        tip.style.top = "-8px";
+      });
+      dot.addEventListener("mouseleave", function(){
+        tip.classList.remove("show");
+        cross.classList.remove("show");
+      });
+    });
+  }
+  function narrateForecast(months, anchorPct){
+    var end = months[months.length - 1];
+    var spreadPp = (end.upside - end.downside) * 100;
+    return '<div class="card insight"><span class="tag">In plain terms</span>' +
+      'Starting from today\'s real <b>' + fmtPct(anchorPct) + '</b> blended margin, twelve months out the three illustrative tracks spread from ' +
+      '<b>' + fmtPct(end.downside) + '</b> (downside) to <b>' + fmtPct(end.upside) + '</b> (upside) — a <b>' + spreadPp.toFixed(1) + '-point range</b>, a reminder of how much a few points of monthly drift compounds over a year.</div>';
+  }
+  function renderForecast(anchorPct){
+    var months = computeForecast(anchorPct);
+    forecastSVG(months);
+    document.getElementById("forecastLegend").innerHTML =
+      '<span><i style="background:rgb(var(--c-success))"></i>Upside</span>' +
+      '<span><i style="background:rgb(var(--c-accent))"></i>Base</span>' +
+      '<span><i style="background:rgb(var(--c-danger))"></i>Downside</span>';
+    document.getElementById("forecastInsight").innerHTML = narrateForecast(months, anchorPct);
   }
 
   function renderComposition(days){
