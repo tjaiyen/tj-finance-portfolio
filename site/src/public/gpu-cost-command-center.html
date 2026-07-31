@@ -85,10 +85,17 @@
 
   /* KPI strip */
   .kpis{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:16px}
-  /* econ strip has 5 tiles (PUE added), not 4 -- flex to fit rather than stranding one
-     tile alone on its own row under a fixed 4-column track. Tenant strip (#kpis) keeps
-     the clean 4-up above, untouched. */
-  #econKpis{grid-template-columns:repeat(auto-fit, minmax(200px, 1fr))}
+  /* econ strip has 6 tiles (PUE + payback added), not 4. auto-fit/minmax alone isn't
+     safe here: for 6 tiles, ANY minmax floor has a width band where the browser lands
+     on exactly 5 columns (6 mod 5 = 1), stranding the 6th tile alone on its own row --
+     empirically confirmed at ~1050px window width with a 180px floor, the exact
+     stranded-tile failure mode this section was supposed to avoid. auto-fit only avoids
+     stranding when the tile count divides evenly by the column count it lands on, so
+     this uses fixed column counts at explicit breakpoints instead (6 wide / 3 medium /
+     1 narrow -- 6 divides evenly into all three, so it can never land on 5). Tenant
+     strip (#kpis) keeps the clean 4-up above, untouched. */
+  #econKpis{grid-template-columns:repeat(6, 1fr)}
+  @media (max-width:1200px){ #econKpis{grid-template-columns:repeat(3, 1fr)} }
   .kpi{padding:16px 18px; position:relative}
   .kpi .lbl{font-size:11px; color:rgb(var(--c-text-secondary)); font-weight:600; text-transform:uppercase; letter-spacing:.06em; padding-right:20px}
   .kpi .val{font-size:26px; font-weight:700; margin-top:6px; letter-spacing:-.02em}
@@ -284,6 +291,8 @@
     /* margin-left:auto pushed Theme/Repo flush-right even after wrapping to their own line
        under the badge, leaving a dead gap; let them flow left instead. */
     .bar .right{margin-left:0}
+    /* the 6-tile econ grid's 3-column mid-size layout is too wide for a phone; 1 up. */
+    #econKpis{grid-template-columns:1fr}
   }
   @media (prefers-reduced-motion: reduce){ *{transition:none !important; animation:none !important} }
 </style>
@@ -383,7 +392,7 @@
     <div class="eyebrow">Capital efficiency · a second lens<span class="live-badge"><span class="dot2"></span>Live calculator</span></div>
     <h2 style="font-size:18px; margin-top:8px">Site deployment economics</h2>
     <p class="lede">A different question than the tenant view above: not "who pays for shared compute," but
-      "how efficiently is capital turned into revenue-generating capacity." The 5 figures below are computed
+      "how efficiently is capital turned into revenue-generating capacity." The 6 figures below are computed
       <b style="color:rgb(var(--c-text-primary))">live, in your browser, from the assumptions you set</b> —
       unlike the tenant section, they are not dbt-tested columns. Change any field to model a different site.</p>
   </section>
@@ -412,6 +421,12 @@
       <div class="lbl">Power usage effectiveness</div>
       <div class="val tabular" id="econPueVal">—</div>
       <div class="sub" id="econPueSub">—</div>
+    </div>
+    <div class="card kpi">
+      <button class="infobtn" type="button" data-info="econPayback" aria-label="What is this?" aria-expanded="false">i</button>
+      <div class="lbl">Efficiency retrofit payback</div>
+      <div class="val tabular" id="econPaybackVal">—</div>
+      <div class="sub" id="econPaybackSub">—</div>
     </div>
     <div class="card kpi">
       <button class="infobtn" type="button" data-info="econRoda" aria-label="What is this?" aria-expanded="false">i</button>
@@ -469,12 +484,61 @@
       </div>
     </details>
 
+    <details class="igroup" open>
+      <summary>Efficiency retrofit</summary>
+      <div class="inputs-row">
+        <div class="nfield"><label for="retrofitCostPerRack">Retrofit cost per rack ($)</label><input type="text" inputmode="decimal" id="retrofitCostPerRack" /></div>
+      </div>
+    </details>
+
     <p class="lede" style="margin-top:16px">Illustrative defaults, not this project's employer or any confirmed
       site's real figures — swap in your own numbers. Operating hours/year is fixed at 24 × 365 = 8,760.</p>
   </section>
 
+  <section class="split">
+    <div class="card panel">
+      <div class="panel-head">
+        <div>
+          <div style="display:flex; align-items:center; gap:7px">
+            <h2>Cost of a delayed ramp — GPUs vs. the building shell</h2>
+            <button class="infobtn inline" type="button" data-info="depreciationInfo" aria-label="What is this?" aria-expanded="false">i</button>
+          </div>
+          <p class="lede" style="margin-top:2px">GPUs and buildings write off their capital cost at very different speeds — that mismatch is why a slow ramp is expensive.</p>
+        </div>
+      </div>
+      <div class="chart-wrap" id="depreciationWrap"><div class="skel">loading…</div></div>
+      <div id="depreciationInsight"></div>
+    </div>
+    <div class="card controls">
+      <div style="display:flex; align-items:center; gap:7px">
+        <h3>Model a delayed ramp</h3>
+        <button class="infobtn inline" type="button" data-info="delayInfo" aria-label="What is this?" aria-expanded="false">i</button>
+      </div>
+      <p class="lede">Months between the building being ready and GPUs actually going live and earning revenue.</p>
+      <div class="field">
+        <div class="fl"><span>Delay</span><b id="delayVal">6 months</b></div>
+        <input type="range" id="delaySlider" min="0" max="24" step="1" value="6" />
+      </div>
+    </div>
+  </section>
+
+  <section class="card panel">
+    <div class="panel-head">
+      <div>
+        <div style="display:flex; align-items:center; gap:7px">
+          <h2>What moves RODA the most — a sensitivity check</h2>
+          <button class="infobtn inline" type="button" data-info="tornadoInfo" aria-label="What is this?" aria-expanded="false">i</button>
+        </div>
+        <p class="lede" style="margin-top:2px">Nudge each input ±10% on its own, holding the other two steady, and see which one swings the return the most.</p>
+      </div>
+    </div>
+    <div class="chart-wrap" id="tornadoWrap"><div class="skel">loading…</div></div>
+    <div id="tornadoInsight"></div>
+  </section>
+
   <footer>
     <span>Synthetic data — no employer or confidential information. Model: <a href="https://github.com/tjaiyen/tj-finance-portfolio/tree/main/dbt_gpu_cost_attribution" target="_blank" rel="noopener">dbt_gpu_cost_attribution</a></span>
+    <span>Built with 24 automated dbt tests across 3 tiers (data, unit, singular) · <code>dbt build</code> passes clean · CI on every push</span>
     <span id="genAt"></span>
   </footer>
 
@@ -536,11 +600,15 @@
     econCostMw: "What it costs to build one megawatt of ready-to-use capacity — the building, the power and cooling systems, and the tech installed inside it. A standard way builders compare one site to another.",
     econSavings: "Cooling and power systems aren't all equally efficient. This is how much one rack of servers would save every year by running on a more efficient setup instead of an older, less efficient one — same electricity price either way.",
     econRoda: "For every dollar spent building this site and filling it with GPUs, how many cents come back as profit each year. A simple gut-check for whether the money was well spent.",
+    econPayback: "If you spent money upgrading a rack to the more efficient cooling/power setup, how many years of the savings it produces would it take to earn that spend back. Shorter is better — it means the upgrade pays for itself faster.",
     econPue: "For every 1 unit of power that actually reaches the servers, this is how many total units the whole building draws — the rest goes to cooling, lighting, and other overhead. 1.0 would mean zero overhead, which no real building hits. Lower is better.",
     compositionInfo: "Think of the cluster's daily bill as a pie. The blue slice is compute that customers actually used. The gray slice is capacity that was reserved and paid for, but nobody used it that day.",
     allocationInfo: "The unused capacity above isn't split evenly — it's split by how much each tenant actually used. Send more requests, and you pick up a bigger share of the leftover, unused capacity too.",
     thresholdInfo: "Drag these to change where a tenant counts as “in trouble” versus “doing great.” This only changes the labels and colors on the cards above — it never changes the dollar figures themselves.",
-    assumptionsInfo: "Every box below is something you can change to ask “what if” — what if the building cost more, what if the site ran hotter, what if electricity got pricier. The five numbers above update instantly as you type."
+    assumptionsInfo: "Every box below is something you can change to ask a what-if question, e.g. what if the building cost more, what if the site ran hotter, what if electricity got pricier. The six numbers above update instantly as you type.",
+    depreciationInfo: "Depreciation just means spreading a big purchase's cost over the years it stays useful, instead of counting it all on day one. GPUs wear out, and go obsolete, much faster than a building shell does, so every idle month costs very different amounts depending on which one is sitting unused.",
+    delayInfo: "A real site doesn't flip from under-construction to fully-earning overnight, GPUs typically arrive and get racked after the building itself is ready. This slider asks: what if that gap were longer or shorter?",
+    tornadoInfo: "A tornado chart is a standard finance technique for stress-testing an estimate: move one input at a time by the same percentage, holding everything else fixed, and see which one swings the result the most. The widest bar is the number most worth double-checking."
   };
   var infoPop = document.getElementById("infoPop");
   document.addEventListener("click", function(e){
@@ -622,16 +690,26 @@
 
   // ---- site deployment economics: independent, client-side, not sourced from dbt ----
   var HOURS_PER_YEAR = 24 * 365;
+  // Fixed, not user-adjustable -- typical straight-line depreciable-life midpoints (GPUs:
+  // industry-typical 4-6yr useful life before replacement/obsolescence; building shell:
+  // 15-20yr). Simplified straight-line, explicitly labeled illustrative in the UI copy.
+  var GPU_LIFE_YEARS = 5;
+  var BUILDING_LIFE_YEARS = 17.5;
+  // delaySlider default -- kept as its own constant (not folded into ECON_DEFAULTS/econIds,
+  // since it's a dedicated slider like the margin-zone thresholds, not a generic input) so
+  // econReset has one place to read from instead of a second hardcoded "6".
+  var DELAY_DEFAULT = 6;
   var ECON_DEFAULTS = {
     econCap: 40, econLoad: 30,
     econShell: 144000000, econMep: 456000000, econFitout: 200000000, econMw: 50,
     econRack: 60, econRate: 0.1063, econPueL: 1.58, econPueE: 1.10,
-    econFacCapex: 742000000, econCompCapex: 1186000000, econEbit: 251000000
+    econFacCapex: 742000000, econCompCapex: 1186000000, econEbit: 251000000,
+    retrofitCostPerRack: 8000
   };
   var econIds = Object.keys(ECON_DEFAULTS);
   // Comma-formatted for readability (742000000 -> 742,000,000); parseNum() strips the commas
   // back out before computing, so every econ field -- number or text -- reads the same way.
-  var ECON_CURRENCY_IDS = ["econShell", "econMep", "econFitout", "econFacCapex", "econCompCapex", "econEbit"];
+  var ECON_CURRENCY_IDS = ["econShell", "econMep", "econFitout", "econFacCapex", "econCompCapex", "econEbit", "retrofitCostPerRack"];
 
   function parseNum(v){ return Number(String(v).replace(/,/g, "")) || 0; }
 
@@ -655,9 +733,12 @@
     var savings = legacyCost - efficientCost;
     var totalCapexBase = v.econFacCapex + v.econCompCapex;
     var roda = totalCapexBase > 0 ? v.econEbit / totalCapexBase : 0;
+    // Guarded, not just divided: savings can legitimately go negative (swap the two PUE
+    // inputs) or zero, and a retrofit that saves nothing has no payback period to report.
+    var paybackYears = (v.retrofitCostPerRack > 0 && savings > 0) ? v.retrofitCostPerRack / savings : null;
     return { utilization: utilization, totalBuildCapex: totalBuildCapex, costPerMW: costPerMW,
       legacyCost: legacyCost, efficientCost: efficientCost, savings: savings,
-      totalCapexBase: totalCapexBase, roda: roda };
+      totalCapexBase: totalCapexBase, roda: roda, paybackYears: paybackYears };
   }
 
   function renderSiteEconomics(animate){
@@ -669,19 +750,26 @@
     var savingsEl = document.getElementById("econSavingsVal");
     var pueEl = document.getElementById("econPueVal");
     var rodaEl = document.getElementById("econRodaVal");
+    var paybackEl = document.getElementById("econPaybackVal");
     var fmtRatio = function(x){ return x.toFixed(2); };
+    var fmtPayback = function(x){ return x === null ? "N/A" : x.toFixed(1) + " yrs"; };
     if (animate) {
       animateValue(utilEl, r.utilization, fmtPct);
       animateValue(costMwEl, r.costPerMW, function(x){ return fmtUSDCompact(x) + "/MW"; });
       animateValue(savingsEl, r.savings, fmtUSDCompact);
       animateValue(pueEl, v.econPueE, fmtRatio);
       animateValue(rodaEl, r.roda, fmtPct);
+      // paybackYears is null on a guarded edge, not a number -- animateValue's count-up
+      // math (fromRaw + (toRaw-fromRaw)*eased) can't tween through null, so this tile
+      // always lands its final text immediately rather than counting up.
+      paybackEl.textContent = fmtPayback(r.paybackYears); paybackEl.dataset.raw = r.paybackYears || 0;
     } else {
       utilEl.textContent = fmtPct(r.utilization); utilEl.dataset.raw = r.utilization;
       costMwEl.textContent = fmtUSDCompact(r.costPerMW) + "/MW"; costMwEl.dataset.raw = r.costPerMW;
       savingsEl.textContent = fmtUSDCompact(r.savings); savingsEl.dataset.raw = r.savings;
       pueEl.textContent = fmtRatio(v.econPueE); pueEl.dataset.raw = v.econPueE;
       rodaEl.textContent = fmtPct(r.roda); rodaEl.dataset.raw = r.roda;
+      paybackEl.textContent = fmtPayback(r.paybackYears); paybackEl.dataset.raw = r.paybackYears || 0;
     }
 
     document.getElementById("econUtilSub").textContent = v.econLoad + " of " + v.econCap + " MW active";
@@ -691,6 +779,9 @@
     document.getElementById("econPueSub").textContent = "vs. " + fmtRatio(v.econPueL) + " industry average";
     document.getElementById("econRodaSub").textContent =
       "EBIT " + fmtUSD(v.econEbit) + " / CapEx " + fmtUSD(r.totalCapexBase);
+    document.getElementById("econPaybackSub").textContent = r.paybackYears === null
+      ? "No savings at current assumptions"
+      : fmtUSD(v.retrofitCostPerRack) + "/rack ÷ " + fmtUSD(r.savings) + "/yr saved";
 
     document.getElementById("economicsInsight").innerHTML =
       '<div class="card insight"><span class="tag">In plain terms</span>' +
@@ -699,6 +790,12 @@
       'At a PUE of <b>' + fmtRatio(v.econPueE) + '</b>, this site\'s cooling and power overhead is <b>' + narratePueWord(v.econPueE) + '</b> by industry standards — ' +
       'switching from the legacy setup to this one saves <b>' + fmtUSD(r.savings) + '</b> per rack every year. Put together, the site returns ' +
       '<b>' + fmtPct(r.roda) + '</b> on the money invested in it each year — ' + narrateRodaWord(r.roda) + ' return by typical infrastructure standards.</div>';
+
+    // Depreciation and RODA-sensitivity both derive from these same econ inputs (plus,
+    // for depreciation, the separate delayMonths slider) -- recomputing them here keeps
+    // every derived section in sync on every input change, not just the 6 KPI tiles.
+    renderDepreciation(v);
+    renderTornado(v, r.roda);
   }
   function narrateUtilWord(u){
     return u >= 0.85 ? "excellent" : u >= 0.65 ? "solid" : u >= 0.4 ? "underwhelming" : "poor";
@@ -710,6 +807,103 @@
   // leaders ~1.1, "good" modern facilities ~1.2-1.5, legacy/average ~1.5-2.0, 2.0+ is poor).
   function narratePueWord(pue){
     return pue < 1.2 ? "excellent" : pue < 1.5 ? "good" : pue < 2.0 ? "about average" : "poor";
+  }
+
+  // ---- depreciation / cost-of-delay: same two-bar hand-rolled house style as waterfallSVG ----
+  function depreciationSVG(gpuAnnual, bldgAnnual){
+    var w = 320, h = 140, padT = 20, padB = 26;
+    var innerH = h - padT - padB;
+    var maxV = Math.max(gpuAnnual, bldgAnnual) || 1;
+    var yAt = function(v){ return padT + innerH - (v / maxV) * innerH; };
+    var slotW = w / 2, barW = slotW * 0.45;
+    var bars = [
+      { label: "GPU (5-yr life)", val: gpuAnnual, color: "var(--c-accent)" },
+      { label: "Building shell (17.5-yr life)", val: bldgAnnual, color: "var(--c-text-secondary)" }
+    ];
+    var parts = bars.map(function(b, i){
+      var x = slotW * i + (slotW - barW) / 2;
+      var yTop = yAt(b.val);
+      var bh = Math.max(padT + innerH - yTop, 2);
+      var rgb = 'rgb(' + b.color + ')'; // b.color is already "var(--c-x)" -- rgb(var(--c-x)) is the valid form
+      return '<rect x="' + x.toFixed(1) + '" y="' + yTop.toFixed(1) + '" width="' + barW.toFixed(1) + '" height="' + bh.toFixed(1) + '" rx="3" fill="' + rgb + '"/>' +
+        '<text x="' + (x + barW / 2).toFixed(1) + '" y="' + (yTop - 5).toFixed(1) + '" text-anchor="middle" fill="' + rgb + '">' + fmtUSDCompact(b.val) + '/yr</text>' +
+        '<text x="' + (x + barW / 2).toFixed(1) + '" y="' + (h - 8) + '" text-anchor="middle" class="axislabel">' + b.label + '</text>';
+    }).join("");
+    return '<svg class="chart" viewBox="0 0 ' + w + ' ' + h + '" style="width:100%;height:140px" role="img" aria-label="Annual GPU vs. building-shell depreciation">' + parts + '</svg>';
+  }
+  function narrateDepreciation(delayMonths, costOfDelay, gpuAnnual, bldgAnnual){
+    var ratio = bldgAnnual > 0 ? gpuAnnual / bldgAnnual : 0;
+    var ratioWord = ratio >= 3 ? "several times faster" : ratio >= 1.5 ? "notably faster" : "at a similar pace";
+    return '<div class="card insight"><span class="tag">In plain terms</span>' +
+      'A GPU\'s 5-year useful life burns through its cost <b>' + ratioWord + '</b> than a 17.5-year building shell does — ' +
+      '<b>' + fmtUSDCompact(gpuAnnual) + '</b>/year of GPU depreciation vs. <b>' + fmtUSDCompact(bldgAnnual) + '</b>/year for the shell. ' +
+      'That\'s why deployment speed matters so much: a <b>' + delayMonths + '-month</b> delay between the building being ready and GPUs actually earning revenue costs about ' +
+      '<b>' + fmtUSDCompact(costOfDelay) + '</b> in GPU depreciation that ran with nothing to show for it.</div>';
+  }
+  function renderDepreciation(v){
+    var delayMonths = Number(document.getElementById("delaySlider").value);
+    document.getElementById("delayVal").textContent = delayMonths + (delayMonths === 1 ? " month" : " months");
+    var gpuAnnual = v.econCompCapex / GPU_LIFE_YEARS;
+    var bldgAnnual = v.econFacCapex / BUILDING_LIFE_YEARS;
+    var gpuMonthly = gpuAnnual / 12;
+    var costOfDelay = gpuMonthly * delayMonths;
+    document.getElementById("depreciationWrap").innerHTML =
+      depreciationSVG(gpuAnnual, bldgAnnual) +
+      '<div class="card kpi" style="margin-top:12px"><div class="lbl">Cost of a ' + delayMonths + '-month delay</div>' +
+      '<div class="val tabular">' + fmtUSDCompact(costOfDelay) + '</div>' +
+      '<div class="sub">' + fmtUSDCompact(gpuMonthly) + '/month of GPU depreciation while idle</div></div>';
+    document.getElementById("depreciationInsight").innerHTML = narrateDepreciation(delayMonths, costOfDelay, gpuAnnual, bldgAnnual);
+  }
+
+  // ---- RODA sensitivity: roda = ebit / (facCapex + compCapex) -- utilization and PUE do
+  // NOT feed this formula anywhere in the model, so they are deliberately not drivers here. ----
+  function rodaAt(facCapex, compCapex, ebit){
+    var base = facCapex + compCapex;
+    return base > 0 ? ebit / base : 0;
+  }
+  function computeRodaSensitivity(v){
+    var drivers = [
+      { label: "Facility CapEx", low: rodaAt(v.econFacCapex * 1.1, v.econCompCapex, v.econEbit), high: rodaAt(v.econFacCapex * 0.9, v.econCompCapex, v.econEbit) },
+      { label: "Compute (GPU) CapEx", low: rodaAt(v.econFacCapex, v.econCompCapex * 1.1, v.econEbit), high: rodaAt(v.econFacCapex, v.econCompCapex * 0.9, v.econEbit) },
+      { label: "Site EBIT", low: rodaAt(v.econFacCapex, v.econCompCapex, v.econEbit * 0.9), high: rodaAt(v.econFacCapex, v.econCompCapex, v.econEbit * 1.1) }
+    ];
+    drivers.forEach(function(d){ d.swing = Math.abs(d.high - d.low); });
+    drivers.sort(function(a, b){ return b.swing - a.swing; }); // widest swing on top (tornado convention)
+    return drivers;
+  }
+  function tornadoSVG(drivers, baseRoda){
+    var rowH = 34, padL = 6, padT = 10, padB = 20;
+    var w = 640, h = padT + drivers.length * rowH + padB;
+    var labelW = 150, valueW = 90, barZoneW = w - labelW - valueW;
+    var allVals = drivers.reduce(function(a, d){ return a.concat([d.low, d.high]); }, [baseRoda]);
+    var minV = Math.min.apply(null, allVals), maxV = Math.max.apply(null, allVals);
+    if (maxV === minV) { maxV = minV + 0.01; }
+    var xAt = function(v){ return labelW + ((v - minV) / (maxV - minV)) * barZoneW; };
+    var rows = drivers.map(function(d, i){
+      var y = padT + i * rowH;
+      var midY = y + rowH * 0.5;
+      var x1 = xAt(Math.min(d.low, d.high)), x2 = xAt(Math.max(d.low, d.high));
+      var barW = Math.max(x2 - x1, 2);
+      return '<text x="' + padL + '" y="' + (midY + 4).toFixed(1) + '" class="axislabel" text-anchor="start">' + d.label + '</text>' +
+        '<rect x="' + x1.toFixed(1) + '" y="' + (midY - 7).toFixed(1) + '" width="' + barW.toFixed(1) + '" height="14" rx="3" fill="rgb(var(--c-accent) / .55)"/>' +
+        '<text x="' + (labelW + barZoneW + 8) + '" y="' + (midY + 4).toFixed(1) + '" class="axislabel" text-anchor="start">' + fmtPct(d.low) + '–' + fmtPct(d.high) + '</text>';
+    }).join("");
+    var baseX = xAt(baseRoda);
+    var baseLine = '<line x1="' + baseX.toFixed(1) + '" x2="' + baseX.toFixed(1) + '" y1="' + padT + '" y2="' + (padT + drivers.length * rowH) + '" stroke="rgb(var(--c-text-secondary) / .5)" stroke-width="1" stroke-dasharray="2 3"/>';
+    return '<svg class="chart" viewBox="0 0 ' + w + ' ' + h + '" style="width:100%;height:auto" role="img" aria-label="RODA sensitivity to each driver, plus or minus ten percent">' + baseLine + rows + '</svg>';
+  }
+  function narrateTornado(drivers){
+    var top = drivers[0];
+    var swingPp = (top.swing * 100).toFixed(1);
+    return '<div class="card insight"><span class="tag">In plain terms</span>' +
+      'Move any one of these three inputs by 10% and <b>' + top.label + '</b> swings the return the most — about ' +
+      '<b>' + swingPp + ' percentage points</b> of RODA, more than the other two drivers on their own. ' +
+      'That\'s the number worth double-checking first if this estimate needs to hold up.</div>';
+  }
+  function renderTornado(v, baseRoda){
+    var drivers = computeRodaSensitivity(v);
+    document.getElementById("tornadoWrap").innerHTML = tornadoSVG(drivers, baseRoda);
+    document.getElementById("tornadoInsight").innerHTML = narrateTornado(drivers);
   }
 
   econIds.forEach(function(id){
@@ -724,8 +918,13 @@
   document.getElementById("econReset").addEventListener("click", function(){
     econIds.forEach(function(id){ document.getElementById(id).value = ECON_DEFAULTS[id]; });
     ECON_CURRENCY_IDS.forEach(formatCurrencyField);
+    document.getElementById("delaySlider").value = DELAY_DEFAULT; // not in econIds -- reset it explicitly
     renderSiteEconomics(true);
   });
+  // delaySlider is its own control (mirrors the tenant section's margin-zone-threshold
+  // sliders), not one of the generic econIds -- it only needs to re-render the
+  // depreciation section, not recompute the other 6 KPI tiles.
+  document.getElementById("delaySlider").addEventListener("input", function(){ renderDepreciation(econValues()); });
   renderSiteEconomics(true);
 
   function render(data){
