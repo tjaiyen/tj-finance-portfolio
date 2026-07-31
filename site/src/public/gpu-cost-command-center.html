@@ -563,6 +563,14 @@
       </div>
     </details>
 
+    <details class="igroup" open>
+      <summary>Capital structure</summary>
+      <div class="inputs-row">
+        <div class="nfield"><label for="debtInterestRate">Debt interest rate (%)</label><input type="number" id="debtInterestRate" min="0" step="0.1" /></div>
+        <div class="nfield"><label for="equityHurdleRate">Equity hurdle rate (%)</label><input type="number" id="equityHurdleRate" min="0" step="0.1" /></div>
+      </div>
+    </details>
+
     <p class="lede" style="margin-top:16px">Illustrative defaults, not this project's employer or any confirmed
       site's real figures — swap in your own numbers. Operating hours/year is fixed at 24 × 365 = 8,760.</p>
   </section>
@@ -606,6 +614,33 @@
     </div>
     <div class="chart-wrap" id="pnlWrap"><div class="skel">loading…</div></div>
     <div id="pnlInsight"></div>
+  </section>
+
+  <section class="split">
+    <div class="card panel">
+      <div class="panel-head">
+        <div>
+          <div style="display:flex; align-items:center; gap:7px">
+            <h2>Capital structure — debt vs. equity</h2>
+            <button class="infobtn inline" type="button" data-info="capitalStructureInfo" aria-label="What is this?" aria-expanded="false">i</button>
+          </div>
+          <p class="lede" style="margin-top:2px">The P&amp;L above ends at EBIT. This is what's left after paying for however that capital was actually financed.</p>
+        </div>
+      </div>
+      <div id="capitalStructureWrap"><div class="skel">loading…</div></div>
+      <div id="capitalStructureInsight"></div>
+    </div>
+    <div class="card controls">
+      <div style="display:flex; align-items:center; gap:7px">
+        <h3>Explore the financing mix</h3>
+        <button class="infobtn inline" type="button" data-info="debtSliderInfo" aria-label="What is this?" aria-expanded="false">i</button>
+      </div>
+      <p class="lede">Real infrastructure builds are rarely all-equity — this models funding part of the build with asset-backed debt instead.</p>
+      <div class="field">
+        <div class="fl"><span>Debt-financed</span><b id="debtVal">55%</b></div>
+        <input type="range" id="debtSlider" min="0" max="100" step="1" value="55" />
+      </div>
+    </div>
   </section>
 
   <section class="card panel">
@@ -772,7 +807,9 @@
     portfolioDelayCost: "For every site that's running behind, this adds up the GPU depreciation that ran during the delay with no site there yet to use it -- the same idea as the single-site \"cost of a delayed ramp\" above, added across the whole portfolio.",
     varianceInfo: "\"Budget\" isn't a separate number someone typed in -- it's the same best-in-class margin line from the threshold panel above. This compares what each tenant actually earned, on average, against that line. Note this uses each tenant's whole-period average margin, not just the latest day shown on its card above, so the percentage here can read a little differently than the card's headline number.",
     forecastInfo: "The starting point (month 0) is the real, dbt-tested blended margin from the top of this page. Everything after that is illustrative -- three simple, made-up monthly trend lines, not a statistical projection, showing roughly how far apart a good, a middling, and a bad next 12 months could look.",
-    pnlInfo: "Revenue is the one number you type in. Operating cost and depreciation are pulled from the numbers already computed elsewhere on this page, not typed separately. EBIT falls out of that subtraction -- it's not its own input, so it can never quietly disagree with the return-on-assets number above, which is built from this same EBIT."
+    pnlInfo: "Revenue is the one number you type in. Operating cost and depreciation are pulled from the numbers already computed elsewhere on this page, not typed separately. EBIT falls out of that subtraction -- it's not its own input, so it can never quietly disagree with the return-on-assets number above, which is built from this same EBIT.",
+    capitalStructureInfo: "The return-on-assets figure above treats every dollar of capital the same, however it was raised. In practice, a data-center build is usually funded by a mix of debt (a loan, secured against the GPUs or the site itself) and equity. Debt has an explicit yearly cost -- interest. Equity's cost is less visible but real -- investors expect a higher return for taking on more risk than a lender does. This section splits the capital and shows what's actually left for equity holders once the debt is paid.",
+    debtSliderInfo: "This slider models the mix, not a change to how much the site costs to build -- the total capital needed stays the same. What changes is how much of it comes from a lender (debt) versus an investor (equity), and each has a different price."
   };
   var infoPop = document.getElementById("infoPop");
   document.addEventListener("click", function(e){
@@ -863,6 +900,9 @@
   // since it's a dedicated slider like the margin-zone thresholds, not a generic input) so
   // econReset has one place to read from instead of a second hardcoded "6".
   var DELAY_DEFAULT = 6;
+  // debtSlider default -- same "own dedicated slider, own constant" pattern as delaySlider
+  // above, not folded into ECON_DEFAULTS/econIds.
+  var DEBT_DEFAULT = 55;
   // 12-month rolling forecast: illustrative monthly-delta constants only, not fit to any
   // data -- three simple trend lines to show a spread, not a statistical model.
   var FORECAST_MONTHS = 12;
@@ -872,7 +912,12 @@
     econShell: 144000000, econMep: 456000000, econFitout: 200000000, econMw: 50,
     econRack: 60, econRate: 0.1063, econPueL: 1.58, econPueE: 1.10,
     econFacCapex: 742000000, econCompCapex: 1186000000, econRevenue: 580000000,
-    retrofitCostPerRack: 8000
+    retrofitCostPerRack: 8000,
+    // Stored as whole percentages (8.5, not 0.085) -- matches the warnSlider/bestSlider
+    // margin-threshold convention already used elsewhere on this page (store whole-percent,
+    // divide by 100 at compute time), not the econPueL/econPueE decimal-ratio convention,
+    // since a PUE isn't a percentage to begin with.
+    debtInterestRate: 8.5, equityHurdleRate: 18
   };
   var econIds = Object.keys(ECON_DEFAULTS);
   // Comma-formatted for readability (742000000 -> 742,000,000); parseNum() strips the commas
@@ -973,11 +1018,13 @@
       'switching from the legacy setup to this one saves <b>' + fmtUSD(r.savings) + '</b> per rack every year. Put together, the site returns ' +
       '<b>' + fmtPct(r.roda) + '</b> on the money invested in it each year — ' + narrateRodaWord(r.roda) + ' return by typical infrastructure standards.</div>';
 
-    // Depreciation, the P&L, and RODA-sensitivity all derive from these same econ inputs
-    // (plus, for depreciation, the separate delayMonths slider) -- recomputing them here
-    // keeps every derived section in sync on every input change, not just the 6 KPI tiles.
+    // Depreciation, the P&L, capital structure, and RODA-sensitivity all derive from these
+    // same econ inputs (plus, for depreciation and capital structure, their own separate
+    // sliders) -- recomputing them here keeps every derived section in sync on every input
+    // change, not just the 6 KPI tiles.
     renderDepreciation(v);
     renderPnl(v, r);
+    renderCapitalStructure(v, r);
     renderTornado(v, r.roda, r.ebit, r.fixedCosts);
   }
   function narrateUtilWord(u){
@@ -1202,12 +1249,19 @@
     econIds.forEach(function(id){ document.getElementById(id).value = ECON_DEFAULTS[id]; });
     ECON_CURRENCY_IDS.forEach(formatCurrencyField);
     document.getElementById("delaySlider").value = DELAY_DEFAULT; // not in econIds -- reset it explicitly
+    document.getElementById("debtSlider").value = DEBT_DEFAULT; // not in econIds -- reset it explicitly
     renderSiteEconomics(true);
   });
   // delaySlider is its own control (mirrors the tenant section's margin-zone-threshold
   // sliders), not one of the generic econIds -- it only needs to re-render the
   // depreciation section, not recompute the other 6 KPI tiles.
   document.getElementById("delaySlider").addEventListener("input", function(){ renderDepreciation(econValues()); });
+  // debtSlider is the same "own dedicated control" pattern -- but capital structure needs
+  // both v and the computed r (r.totalCapexBase, r.ebit, r.roda), not just v.
+  document.getElementById("debtSlider").addEventListener("input", function(){
+    var v = econValues();
+    renderCapitalStructure(v, computeSiteEconomics(v));
+  });
   renderSiteEconomics(true);
   // Runs here, alongside the other synchronous initial renders -- NOT deferred until after
   // the dbt fetch settles. renderPortfolio()/renderSiteEconomics(true) above already run (and
@@ -1506,6 +1560,68 @@
   function renderPnl(v, r){
     document.getElementById("pnlWrap").innerHTML = pnlWaterfallSVG(v.econRevenue, r.opexAnnual, r.depreciationAnnual);
     document.getElementById("pnlInsight").innerHTML = narratePnl(v, r);
+  }
+
+  // ---- capital structure: debt vs. equity financing mix, and the levered return that mix
+  // produces on top of the unlevered r.roda already computed above. ----
+  function computeCapitalStructure(v, r, debtPct){
+    var debtCapital = r.totalCapexBase * debtPct;
+    var equityCapital = r.totalCapexBase * (1 - debtPct);
+    var costOfDebt = v.debtInterestRate / 100;
+    var costOfEquity = v.equityHurdleRate / 100;
+    var annualInterestExpense = debtCapital * costOfDebt;
+    var netIncome = r.ebit - annualInterestExpense;
+    // Illustrative, simplified blend -- no tax shield, no target-vs-actual-structure split --
+    // not a rigorous WACC, same "simplified, says so" framing as the straight-line
+    // depreciation section above.
+    var weightedCostOfCapital = debtPct * costOfDebt + (1 - debtPct) * costOfEquity;
+    // Guarded to match r.roda's own fallback: with no capital base at all, both read 0, not
+    // "N/A" -- N/A is reserved for the different case of 100% debt financing (debtPct=1),
+    // where a real capital base exists but there's no equity slice left to measure a return on.
+    var returnOnEquity = equityCapital > 0 ? netIncome / equityCapital : (r.totalCapexBase > 0 ? null : 0);
+    return {
+      debtCapital: debtCapital, equityCapital: equityCapital,
+      costOfDebt: costOfDebt, costOfEquity: costOfEquity,
+      annualInterestExpense: annualInterestExpense, netIncome: netIncome,
+      weightedCostOfCapital: weightedCostOfCapital, returnOnEquity: returnOnEquity
+    };
+  }
+  function narrateCapitalStructure(v, r, cs, debtPct){
+    var roeText = cs.returnOnEquity === null ? "N/A — no equity left in the mix to measure a return on" : fmtPct(cs.returnOnEquity);
+    // Leverage is accretive to equity exactly when the return on assets (RODA) beats the cost
+    // of the debt funding part of those assets -- compared against the cost of DEBT alone, not
+    // the blended cost of capital. (ROE = RODA + D/E x (RODA - cost of debt): the WACC doesn't
+    // appear in that identity at all, so comparing RODA to WACC here would answer a different
+    // question -- "does this site clear its overall cost of capital" -- not "does leverage help
+    // or hurt the equity return," which is what this section is actually about.)
+    var direction = r.roda > cs.costOfDebt
+      ? 'accretive to equity holders — the site earns more on its assets (' + fmtPct(r.roda) + ') than the debt costs (' + fmtPct(cs.costOfDebt) + '), so the spread flows through to equity'
+      : 'dilutive to equity holders — the debt costs more (' + fmtPct(cs.costOfDebt) + ') than the site earns on its assets (' + fmtPct(r.roda) + '), so leverage is working against equity here';
+    return '<div class="card insight"><span class="tag">In plain terms</span>' +
+      'At <b>' + fmtPct0(debtPct) + '</b> debt-financed, this site\'s blended cost of capital runs about <b>' + fmtPct(cs.weightedCostOfCapital) + '</b> — a simplified blend, not a full WACC. ' +
+      'Leverage here is <b>' + direction + '</b>: the levered return on equity comes out to <b>' + roeText + '</b>, versus <b>' + fmtPct(r.roda) + '</b> unlevered.</div>';
+  }
+  function renderCapitalStructure(v, r){
+    var debtPct = Number(document.getElementById("debtSlider").value) / 100;
+    document.getElementById("debtVal").textContent = fmtPct0(debtPct);
+    var cs = computeCapitalStructure(v, r, debtPct);
+    var equityPct = 1 - debtPct;
+    // Two-segment reuse of the same .alloc-bar/.alloc-seg pattern the allocation-key chart and
+    // the portfolio progress bars already use -- debt/equity is a composition (two shares of
+    // one whole), the exact shape that CSS is for, not a new pattern.
+    document.getElementById("capitalStructureWrap").innerHTML =
+      '<div class="alloc-bar">' +
+      '<div class="alloc-seg" style="width:' + (debtPct * 100).toFixed(1) + '%; background:rgb(var(--c-accent) / 1)" title="Debt ' + fmtPct0(debtPct) + '"></div>' +
+      '<div class="alloc-seg" style="width:' + (equityPct * 100).toFixed(1) + '%; background:rgb(var(--c-accent) / .32)" title="Equity ' + fmtPct0(equityPct) + '"></div>' +
+      '</div>' +
+      '<div class="alloc-legend">' +
+      '<span><i style="background:rgb(var(--c-accent) / 1)"></i>Debt <b>' + fmtPct0(debtPct) + '</b> · ' + fmtUSDCompact(cs.debtCapital) + '</span>' +
+      '<span><i style="background:rgb(var(--c-accent) / .32)"></i>Equity <b>' + fmtPct0(equityPct) + '</b> · ' + fmtUSDCompact(cs.equityCapital) + '</span>' +
+      '</div>' +
+      '<div class="field" style="margin-top:14px"><div class="fl"><span>Blended cost of capital</span><b>' + fmtPct(cs.weightedCostOfCapital) + '</b></div></div>' +
+      '<div class="field"><div class="fl"><span>Return on equity (levered)</span><b>' + (cs.returnOnEquity === null ? "N/A" : fmtPct(cs.returnOnEquity)) + '</b></div></div>' +
+      '<div class="field"><div class="fl"><span>Return on deployed assets (unlevered)</span><b>' + fmtPct(r.roda) + '</b></div></div>';
+    document.getElementById("capitalStructureInsight").innerHTML = narrateCapitalStructure(v, r, cs, debtPct);
   }
 
   function sparklineSVG(rows, th, zone, cid){
