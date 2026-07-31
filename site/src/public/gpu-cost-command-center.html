@@ -192,12 +192,18 @@
   .tcard .stats{display:flex; gap:16px; margin-top:8px; font-size:11.5px; color:rgb(var(--c-text-secondary))}
   .tcard .stats b{display:block; color:rgb(var(--c-text-primary)); font-size:12.5px; font-weight:700}
   .tcard .spark{margin-top:12px}
-  .tcard .expand-btn{
+  /* .expand-btn-site is a DELIBERATELY separate class from .expand-btn (not shared, not a
+     second class on the same element) -- the tenant cards' own wiring uses an unscoped
+     document.querySelectorAll(".expand-btn") that re-runs on every tenant slider drag; giving
+     the portfolio buttons that same class (even alongside a second one) would still match that
+     selector by membership and double-wire a mismatched click handler onto them. Identical
+     visual style, distinct selector. */
+  .tcard .expand-btn, .tcard .expand-btn-site{
     margin-top:12px; width:100%; background:transparent; border:1px dashed rgb(var(--c-accent) / .3);
     border-radius:7px; padding:6px; color:rgb(var(--c-text-secondary)); font:600 10.5px inherit;
     cursor:pointer; text-transform:uppercase; letter-spacing:.04em; transition:all .15s;
   }
-  .tcard .expand-btn:hover{color:rgb(var(--c-text-primary)); border-color:rgb(var(--c-accent) / .6)}
+  .tcard .expand-btn:hover, .tcard .expand-btn-site:hover{color:rgb(var(--c-text-primary)); border-color:rgb(var(--c-accent) / .6)}
   .tcard .breakdown{display:none; margin-top:4px; padding-top:8px; border-top:1px dashed rgb(var(--c-accent) / .2)}
   .tcard .breakdown.show{display:block}
   .waterfall text{font:600 9px ui-monospace,monospace}
@@ -971,6 +977,23 @@
     }
   });
 
+  // Portfolio site cards' cost-breakdown toggle -- a SEPARATE delegated listener, added once
+  // on document, same idiom as .infobtn above. NOT the tenant cards' own per-render
+  // document.querySelectorAll(".expand-btn").forEach(addEventListener) pattern (renderTenants
+  // re-runs that on every tenant slider drag) -- a delegated listener is immune to re-renders
+  // by construction, since it never re-binds to specific DOM nodes at all.
+  var expandedPortfolioSites = {}; // siteKey -> bool, survives renderPortfolioSites() re-renders
+  document.addEventListener("click", function(e){
+    var btn = e.target.closest && e.target.closest(".expand-btn-site");
+    if (!btn) return;
+    var siteKey = btn.getAttribute("data-site");
+    expandedPortfolioSites[siteKey] = !expandedPortfolioSites[siteKey];
+    btn.textContent = expandedPortfolioSites[siteKey] ? "Hide cost breakdown ▴" : "Show cost breakdown ▾";
+    btn.setAttribute("aria-expanded", expandedPortfolioSites[siteKey]);
+    var el = document.getElementById("breakdown-" + siteKey);
+    if (el) el.classList.toggle("show", expandedPortfolioSites[siteKey]);
+  });
+
   // ---- count-up number animation; respects prefers-reduced-motion, and never leaves a
   // tile stuck on its placeholder -- a backgrounded tab throttles/pauses requestAnimationFrame
   // (measured: hidden tab -> rAF never fires -> tile stays "-" forever with no rAF fallback),
@@ -1377,7 +1400,35 @@
       pv: pv, ev: ev, ac: ac, cv: cv, sv: sv,
       cpi: (mature && ac > 0) ? ev / ac : null,
       spi: (mature && pv > 0) ? ev / pv : null,
-      mature: mature
+      mature: mature, pctComplete: pctComplete
+    };
+  }
+  // ---- Cost Variance driver split: Compute (GPU) vs. Facility -- CV, not SV. AC already
+  // splits cleanly by category (computeCapexDeployed exists per site); the only gap was the
+  // PLANNED side, closed here with one constant. SV is deliberately NOT split: without a
+  // category-specific progress estimate (nothing tracks "compute is 40% done, facility is 90%
+  // done" separately), splitting SV by this same fixed ratio would just scale the whole-site SV
+  // by share/(1-share) for every site -- a constant multiple, not new information.
+  //
+  // Deliberately reads ECON_DEFAULTS (a fixed snapshot), NOT the live v.econCompCapex/
+  // econFacCapex from Chapter 2's calculator -- exploring a hypothetical site's mix in Chapter 2
+  // must not silently reshape what "typical compute/facility mix" means for this real static
+  // six-site portfolio. Contrast with gpuLifeYears (a genuine physical constant, correctly
+  // shared live across chapters two rounds ago): this is a dollar-mix ratio for one
+  // hypothetical site's build, which has no principled claim to represent six real sites' plans.
+  var PORTFOLIO_COMPUTE_SHARE = ECON_DEFAULTS.econCompCapex / (ECON_DEFAULTS.econCompCapex + ECON_DEFAULTS.econFacCapex);
+  function computeSiteCvSplit(site, evm){
+    var plannedCompute = site.capexPlanned * PORTFOLIO_COMPUTE_SHARE;
+    var plannedFacility = site.capexPlanned * (1 - PORTFOLIO_COMPUTE_SHARE);
+    var actualCompute = site.computeCapexDeployed;
+    var actualFacility = site.capexDeployed - site.computeCapexDeployed;
+    // Same blended pctComplete already used for the whole-site EV above -- not a second,
+    // independent progress estimate per category (that data doesn't exist).
+    var evCompute = evm.pctComplete * plannedCompute;
+    var evFacility = evm.pctComplete * plannedFacility;
+    return {
+      cvCompute: evCompute - actualCompute,
+      cvFacility: evFacility - actualFacility
     };
   }
   function computePortfolio(gpuLifeYears){
@@ -1454,6 +1505,9 @@
         // math is genuinely noisy this early (a near-zero PV denominator), not just unavailable.
         evmBlock = '<div class="field" style="margin-top:10px"><div class="fl"><span>Cost / schedule performance</span><b>Too early to read</b></div></div>';
       } else {
+        var siteKey = s.name.replace(/\s+/g, "-");
+        var split = computeSiteCvSplit(s, evm);
+        var expanded = !!expandedPortfolioSites[siteKey];
         evmBlock =
           '<div class="field" style="margin-top:10px">' +
           '<div class="fl"><span>Cost variance (CV)</span><b>' + fmtUSDCompact(evm.cv) + '</b></div>' +
@@ -1462,6 +1516,11 @@
           '<div style="display:flex; gap:8px; margin-top:8px">' +
           '<span class="pill ' + evmPillClass(evm.cpi) + '"><span class="sw"></span>CPI ' + evm.cpi.toFixed(2) + '×</span>' +
           '<span class="pill ' + evmPillClass(evm.spi) + '"><span class="sw"></span>SPI ' + evm.spi.toFixed(2) + '×</span>' +
+          '</div>' +
+          '<button class="expand-btn-site" type="button" data-site="' + siteKey + '" aria-expanded="' + expanded + '" aria-controls="breakdown-' + siteKey + '">' + (expanded ? "Hide cost breakdown ▴" : "Show cost breakdown ▾") + '</button>' +
+          '<div class="breakdown' + (expanded ? " show" : "") + '" id="breakdown-' + siteKey + '">' +
+          '<div class="field" style="margin-top:0"><div class="fl"><span>— Compute (GPU)</span><b>' + fmtUSDCompact(split.cvCompute) + '</b></div></div>' +
+          '<div class="field"><div class="fl"><span>— Facility</span><b>' + fmtUSDCompact(split.cvFacility) + '</b></div></div>' +
           '</div>';
       }
       return '<div class="card tcard">' +
@@ -1633,7 +1692,7 @@
         def: "Money actually spent so far — the one number a simple budget-tracking system would normally show you on its own.",
         example: "Site 03 has spent $980M of its $1,100M plan — AC = $980M." },
       { term: "Cost Variance (CV)", anchor: "portfolioKpis",
-        def: "Earned Value minus Actual Cost. Negative means over budget for the work actually delivered; positive means under.",
+        def: "Earned Value minus Actual Cost. Negative means over budget for the work actually delivered; positive means under. Each site card below can break this down further into Compute (GPU) vs. Facility spend — an assumption-based split (this portfolio doesn't track a category-level plan per site), not a tracked actual.",
         example: "Site 03: $345.7M earned − $980M spent = −$634.3M — badly over budget for what's actually been built." },
       { term: "Schedule Variance (SV)", anchor: "portfolioKpis",
         def: "Earned Value minus Planned Value. Negative means behind schedule in value terms; positive means ahead.",
