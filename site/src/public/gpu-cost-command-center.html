@@ -85,6 +85,10 @@
 
   /* KPI strip */
   .kpis{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:16px}
+  /* econ strip has 5 tiles (PUE added), not 4 -- flex to fit rather than stranding one
+     tile alone on its own row under a fixed 4-column track. Tenant strip (#kpis) keeps
+     the clean 4-up above, untouched. */
+  #econKpis{grid-template-columns:repeat(auto-fit, minmax(200px, 1fr))}
   .kpi{padding:16px 18px; position:relative}
   .kpi .lbl{font-size:11px; color:rgb(var(--c-text-secondary)); font-weight:600; text-transform:uppercase; letter-spacing:.06em; padding-right:20px}
   .kpi .val{font-size:26px; font-weight:700; margin-top:6px; letter-spacing:-.02em}
@@ -379,7 +383,7 @@
     <div class="eyebrow">Capital efficiency · a second lens<span class="live-badge"><span class="dot2"></span>Live calculator</span></div>
     <h2 style="font-size:18px; margin-top:8px">Site deployment economics</h2>
     <p class="lede">A different question than the tenant view above: not "who pays for shared compute," but
-      "how efficiently is capital turned into revenue-generating capacity." The 4 figures below are computed
+      "how efficiently is capital turned into revenue-generating capacity." The 5 figures below are computed
       <b style="color:rgb(var(--c-text-primary))">live, in your browser, from the assumptions you set</b> —
       unlike the tenant section, they are not dbt-tested columns. Change any field to model a different site.</p>
   </section>
@@ -402,6 +406,12 @@
       <div class="lbl">Annual power savings / rack</div>
       <div class="val tabular" id="econSavingsVal">—</div>
       <div class="sub" id="econSavingsSub">—</div>
+    </div>
+    <div class="card kpi">
+      <button class="infobtn" type="button" data-info="econPue" aria-label="What is this?" aria-expanded="false">i</button>
+      <div class="lbl">Power usage effectiveness</div>
+      <div class="val tabular" id="econPueVal">—</div>
+      <div class="sub" id="econPueSub">—</div>
     </div>
     <div class="card kpi">
       <button class="infobtn" type="button" data-info="econRoda" aria-label="What is this?" aria-expanded="false">i</button>
@@ -510,10 +520,11 @@
     econCostMw: "What it costs to build one megawatt of ready-to-use capacity — the building, the power and cooling systems, and the tech installed inside it. A standard way builders compare one site to another.",
     econSavings: "Cooling and power systems aren't all equally efficient. This is how much one rack of servers would save every year by running on a more efficient setup instead of an older, less efficient one — same electricity price either way.",
     econRoda: "For every dollar spent building this site and filling it with GPUs, how many cents come back as profit each year. A simple gut-check for whether the money was well spent.",
+    econPue: "For every 1 unit of power that actually reaches the servers, this is how many total units the whole building draws — the rest goes to cooling, lighting, and other overhead. 1.0 would mean zero overhead, which no real building hits. Lower is better.",
     compositionInfo: "Think of the cluster's daily bill as a pie. The blue slice is compute that customers actually used. The gray slice is capacity that was reserved and paid for, but nobody used it that day.",
     allocationInfo: "The unused capacity above isn't split evenly — it's split by how much each tenant actually used. Send more requests, and you pick up a bigger share of the leftover, unused capacity too.",
     thresholdInfo: "Drag these to change where a tenant counts as “in trouble” versus “doing great.” This only changes the labels and colors on the cards above — it never changes the dollar figures themselves.",
-    assumptionsInfo: "Every box below is something you can change to ask “what if” — what if the building cost more, what if the site ran hotter, what if electricity got pricier. The four numbers above update instantly as you type."
+    assumptionsInfo: "Every box below is something you can change to ask “what if” — what if the building cost more, what if the site ran hotter, what if electricity got pricier. The five numbers above update instantly as you type."
   };
   var infoPop = document.getElementById("infoPop");
   document.addEventListener("click", function(e){
@@ -640,16 +651,20 @@
     var utilEl = document.getElementById("econUtilVal");
     var costMwEl = document.getElementById("econCostMwVal");
     var savingsEl = document.getElementById("econSavingsVal");
+    var pueEl = document.getElementById("econPueVal");
     var rodaEl = document.getElementById("econRodaVal");
+    var fmtRatio = function(x){ return x.toFixed(2); };
     if (animate) {
       animateValue(utilEl, r.utilization, fmtPct);
       animateValue(costMwEl, r.costPerMW, function(x){ return fmtUSD(x) + "/MW"; });
       animateValue(savingsEl, r.savings, fmtUSD);
+      animateValue(pueEl, v.econPueE, fmtRatio);
       animateValue(rodaEl, r.roda, fmtPct);
     } else {
       utilEl.textContent = fmtPct(r.utilization); utilEl.dataset.raw = r.utilization;
       costMwEl.textContent = fmtUSD(r.costPerMW) + "/MW"; costMwEl.dataset.raw = r.costPerMW;
       savingsEl.textContent = fmtUSD(r.savings); savingsEl.dataset.raw = r.savings;
+      pueEl.textContent = fmtRatio(v.econPueE); pueEl.dataset.raw = v.econPueE;
       rodaEl.textContent = fmtPct(r.roda); rodaEl.dataset.raw = r.roda;
     }
 
@@ -657,6 +672,7 @@
     document.getElementById("econCostMwSub").textContent = fmtUSD(r.totalBuildCapex) + " total build, " + v.econMw + " MW";
     document.getElementById("econSavingsSub").textContent =
       "Legacy " + fmtUSD(r.legacyCost) + " → Efficient " + fmtUSD(r.efficientCost);
+    document.getElementById("econPueSub").textContent = "vs. " + fmtRatio(v.econPueL) + " industry average";
     document.getElementById("econRodaSub").textContent =
       "EBIT " + fmtUSD(v.econEbit) + " / CapEx " + fmtUSD(r.totalCapexBase);
 
@@ -664,7 +680,8 @@
       '<div class="card insight"><span class="tag">In plain terms</span>' +
       'At <b>' + fmtPct(r.utilization) + '</b> utilization, how much of this site\'s capacity is actually earning money is <b>' + narrateUtilWord(r.utilization) + '</b> — ' +
       'the rest still costs money, used or not. Building a new megawatt of capacity here runs <b>' + fmtUSD(r.costPerMW) + '</b>. ' +
-      'Switching to the more efficient cooling setup would save <b>' + fmtUSD(r.savings) + '</b> per rack every year. Put together, the site returns ' +
+      'At a PUE of <b>' + fmtRatio(v.econPueE) + '</b>, this site\'s cooling and power overhead is <b>' + narratePueWord(v.econPueE) + '</b> by industry standards — ' +
+      'switching from the legacy setup to this one saves <b>' + fmtUSD(r.savings) + '</b> per rack every year. Put together, the site returns ' +
       '<b>' + fmtPct(r.roda) + '</b> on the money invested in it each year — ' + narrateRodaWord(r.roda) + ' return by typical infrastructure standards.</div>';
   }
   function narrateUtilWord(u){
@@ -672,6 +689,11 @@
   }
   function narrateRodaWord(roda){
     return roda >= 0.15 ? "a strong" : roda >= 0.08 ? "a reasonable" : "a weak";
+  }
+  // PUE: lower is better. Bands roughly track published industry benchmarks (hyperscale
+  // leaders ~1.1, "good" modern facilities ~1.2-1.5, legacy/average ~1.5-2.0, 2.0+ is poor).
+  function narratePueWord(pue){
+    return pue < 1.2 ? "excellent" : pue < 1.5 ? "good" : pue < 2.0 ? "about average" : "poor";
   }
 
   econIds.forEach(function(id){
