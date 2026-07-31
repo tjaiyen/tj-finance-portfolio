@@ -788,10 +788,35 @@
       <div class="val tabular" id="portfolioDelayCostVal">—</div>
       <div class="sub" id="portfolioDelayCostSub">—</div>
     </div>
+    <div class="card kpi">
+      <button class="infobtn" type="button" data-info="portfolioCPI" aria-label="What is this?" aria-expanded="false">i</button>
+      <div class="lbl">Cost performance (CPI)</div>
+      <div class="val tabular" id="portfolioCPIVal">—</div>
+      <div class="sub" id="portfolioCPISub">—</div>
+    </div>
+    <div class="card kpi">
+      <button class="infobtn" type="button" data-info="portfolioSPI" aria-label="What is this?" aria-expanded="false">i</button>
+      <div class="lbl">Schedule performance (SPI)</div>
+      <div class="val tabular" id="portfolioSPIVal">—</div>
+      <div class="sub" id="portfolioSPISub">—</div>
+    </div>
+    <div class="card kpi">
+      <button class="infobtn" type="button" data-info="portfolioEAC" aria-label="What is this?" aria-expanded="false">i</button>
+      <div class="lbl">Estimate at completion (EAC)</div>
+      <div class="val tabular" id="portfolioEACVal">—</div>
+      <div class="sub" id="portfolioEACSub">—</div>
+    </div>
+    <div class="card kpi">
+      <button class="infobtn" type="button" data-info="portfolioVAC" aria-label="What is this?" aria-expanded="false">i</button>
+      <div class="lbl">Variance at completion (VAC)</div>
+      <div class="val tabular" id="portfolioVACVal">—</div>
+      <div class="sub" id="portfolioVACSub">—</div>
+    </div>
   </section>
 
   <section class="tenants" id="portfolioSites"><div class="skel">loading…</div></section>
   <section id="portfolioInsight"></section>
+  <section id="portfolioEvmInsight"></section>
 
   <section style="margin-top:34px">
     <div class="card insight" style="margin-top:0">
@@ -914,7 +939,11 @@
     debtSliderInfo: "This slider models the mix, not a change to how much the site costs to build -- the total capital needed stays the same. What changes is how much of it comes from a lender (debt) versus an investor (equity), and each has a different price.",
     reconciliationInfo: "A standard finance-controls technique: calculate the same total two completely different ways, from the same underlying data, and check they agree. Bottom-up adds up every tenant's own daily bill. Top-down adds up the cluster's daily active-plus-idle cost. If tenant costs are genuinely built from the cluster split (they are), the two should land within a hair of each other -- and a real gap here, not just a rounding one, is exactly the kind of thing this check exists to catch.",
     dscrInfo: "DSCR (debt service coverage ratio) is what a lender actually checks: does this site's EBIT cover the interest it owes, with room to spare? This assumes interest-only debt -- no principal repayment modeled anywhere on this page -- so it's a simplified, not a complete, covenant check. Below 1.2x is thin by typical lender standards; above 1.5x is comfortable.",
-    irrInfo: "Every other number on this page is a single year. This carries the same site out 10 years -- the upfront build cost, a GPU refresh partway through (GPUs wear out faster than the building does), and the after-tax cash the site generates each year -- and discounts all of it back to today's dollars at the blended cost of capital above. It's a project-level (unlevered) estimate, not a levered equity return, and it assumes no resale or ongoing value past year 10 -- a conservative choice, not a missing one."
+    irrInfo: "Every other number on this page is a single year. This carries the same site out 10 years -- the upfront build cost, a GPU refresh partway through (GPUs wear out faster than the building does), and the after-tax cash the site generates each year -- and discounts all of it back to today's dollars at the blended cost of capital above. It's a project-level (unlevered) estimate, not a levered equity return, and it assumes no resale or ongoing value past year 10 -- a conservative choice, not a missing one.",
+    portfolioCPI: "Cost Performance Index -- for every dollar actually spent (Actual Cost), how many dollars of planned value has the site delivered (Earned Value, measured by physical progress -- MW actually commissioned, or an independent construction estimate for sites not live yet -- never by money spent, or this would trivially read 1.00x for every site). Below 1.00x means over budget for what's been delivered; above means under budget. Summed across all six sites first, then divided -- never averaged site-by-site.",
+    portfolioSPI: "Schedule Performance Index -- Earned Value against Planned Value (the budgeted cost of work that SHOULD be done by now, given each site's own planned schedule). Below 1.00x means behind schedule in value-weighted terms; above means ahead. A different question from the \"months behind schedule\" note on each site card below, which tracks simple lateness, not value delivered.",
+    portfolioEAC: "Estimate At Completion -- if this portfolio keeps spending at its current cost efficiency (CPI) for the work still remaining, this is the total it's actually projected to cost, not what was originally budgeted (shown just below).",
+    portfolioVAC: "Variance At Completion -- the gap between the original budget (Budget At Completion) and the forecast Estimate At Completion. A negative number means the portfolio is projected to cost more than planned."
   };
   var infoPop = document.getElementById("infoPop");
   document.addEventListener("click", function(e){
@@ -1293,13 +1322,22 @@
   // GPU slice of capital ALREADY SPENT (capexDeployed), not of the total plan -- a site
   // still in Planning hasn't shipped GPUs yet, so its idle-depreciation exposure is
   // genuinely zero, not just unmeasured.
+  // plannedDurationMonths/monthsElapsed exist ONLY to build a real Planned Value baseline for
+  // EVM below (PV = monthsElapsed/plannedDurationMonths x capexPlanned) -- a genuine schedule
+  // assumption, deliberately independent of monthsBehindSchedule (which drives the unrelated,
+  // already-shipped siteCostOfDelay figure). constructionPctComplete is set ONLY on sites with
+  // zero commissioned capacity (currentMW=0) -- computeSiteEvm derives physical percent-complete
+  // from currentMW/targetMW directly for any site that's actually turned MW on, so there's no
+  // second, potentially-stale source of truth for Sites 01-03. Deliberately NOT equal to each
+  // site's capexDeployed/capexPlanned ratio (0.492/0.981/0.017 respectively) -- if it were, CPI
+  // would be tautologically ~1.00 by construction, defeating the point of the metric.
   var PORTFOLIO_SITES = [
-    { name: "Site 01", stage: "Live", capexPlanned: 950000000, capexDeployed: 950000000, computeCapexDeployed: 580000000, targetMW: 60, currentMW: 54, monthsBehindSchedule: 0 },
-    { name: "Site 02", stage: "Live", capexPlanned: 700000000, capexDeployed: 700000000, computeCapexDeployed: 430000000, targetMW: 40, currentMW: 30, monthsBehindSchedule: 0 },
-    { name: "Site 03", stage: "Ramping", capexPlanned: 1100000000, capexDeployed: 980000000, computeCapexDeployed: 600000000, targetMW: 70, currentMW: 22, monthsBehindSchedule: 3 },
-    { name: "Site 04", stage: "Under construction", capexPlanned: 1300000000, capexDeployed: 640000000, computeCapexDeployed: 380000000, targetMW: 80, currentMW: 0, monthsBehindSchedule: 5 },
-    { name: "Site 05", stage: "Under construction", capexPlanned: 520000000, capexDeployed: 510000000, computeCapexDeployed: 300000000, targetMW: 30, currentMW: 0, monthsBehindSchedule: 0 },
-    { name: "Site 06", stage: "Planning", capexPlanned: 900000000, capexDeployed: 15000000, computeCapexDeployed: 0, targetMW: 55, currentMW: 0, monthsBehindSchedule: 0 }
+    { name: "Site 01", stage: "Live", capexPlanned: 950000000, capexDeployed: 950000000, computeCapexDeployed: 580000000, targetMW: 60, currentMW: 54, monthsBehindSchedule: 0, plannedDurationMonths: 20, monthsElapsed: 17 },
+    { name: "Site 02", stage: "Live", capexPlanned: 700000000, capexDeployed: 700000000, computeCapexDeployed: 430000000, targetMW: 40, currentMW: 30, monthsBehindSchedule: 0, plannedDurationMonths: 16, monthsElapsed: 11 },
+    { name: "Site 03", stage: "Ramping", capexPlanned: 1100000000, capexDeployed: 980000000, computeCapexDeployed: 600000000, targetMW: 70, currentMW: 22, monthsBehindSchedule: 3, plannedDurationMonths: 24, monthsElapsed: 12 },
+    { name: "Site 04", stage: "Under construction", capexPlanned: 1300000000, capexDeployed: 640000000, computeCapexDeployed: 380000000, targetMW: 80, currentMW: 0, monthsBehindSchedule: 5, plannedDurationMonths: 20, monthsElapsed: 13, constructionPctComplete: 0.40 },
+    { name: "Site 05", stage: "Under construction", capexPlanned: 520000000, capexDeployed: 510000000, computeCapexDeployed: 300000000, targetMW: 30, currentMW: 0, monthsBehindSchedule: 0, plannedDurationMonths: 14, monthsElapsed: 13, constructionPctComplete: 0.92 },
+    { name: "Site 06", stage: "Planning", capexPlanned: 900000000, capexDeployed: 15000000, computeCapexDeployed: 0, targetMW: 55, currentMW: 0, monthsBehindSchedule: 0, plannedDurationMonths: 26, monthsElapsed: 1, constructionPctComplete: 0.04 }
   ];
   function siteCostOfDelay(site, gpuLifeYears){
     // Same mechanism as the single-site "cost of a delayed ramp" section: GPU capital
@@ -1310,8 +1348,41 @@
     gpuLifeYears = gpuLifeYears > 0 ? gpuLifeYears : 1;
     return site.monthsBehindSchedule > 0 ? (site.computeCapexDeployed / gpuLifeYears / 12) * site.monthsBehindSchedule : 0;
   }
+  // ---- Earned Value Management, per site: Planned Value (PV, budgeted cost of work scheduled
+  // to date), Earned Value (EV, budgeted cost of work actually completed, measured by physical
+  // progress -- NOT by money spent), Actual Cost (AC, money actually spent). Everything else
+  // (CV, SV, CPI, SPI) derives from those three. ----
+  function computeSiteEvm(site){
+    var plannedPct = site.plannedDurationMonths > 0 ? Math.min(site.monthsElapsed / site.plannedDurationMonths, 1) : 0;
+    // Physical percent-complete: derived from real commissioned capacity for any site that has
+    // turned MW on (a live measure, not a second stored field that could silently disagree with
+    // currentMW/targetMW), falling back to the independent constructionPctComplete estimate only
+    // for sites with zero commissioned capacity so far. Guarded (targetMW>0, clamped to 1) the
+    // same way plannedPct above already is -- not reachable with today's PORTFOLIO_SITES (every
+    // site's currentMW <= targetMW), but a future site entered with currentMW > targetMW or a
+    // targetMW of 0 shouldn't be able to push EV past capexPlanned or divide by zero.
+    var pctComplete = site.targetMW > 0 && site.currentMW > 0 ? Math.min(site.currentMW / site.targetMW, 1) : (site.constructionPctComplete || 0);
+    var pv = plannedPct * site.capexPlanned;
+    var ev = pctComplete * site.capexPlanned;
+    var ac = site.capexDeployed;
+    var cv = ev - ac;
+    var sv = ev - pv;
+    // EVM ratios are unreliable this early in a project -- a near-zero PV denominator makes
+    // CPI/SPI noisy and precise-looking numbers actively misleading (Site 06 at ~4% planned-
+    // complete would otherwise show a 2.4x CPI from $21M of variance on a $15M base). Guarded
+    // the same way paybackYears/returnOnEquity/dscr/computeIRR already are on this page: an
+    // explicit "too early" beats a technically-correct-but-misleading number.
+    var mature = plannedPct >= 0.05;
+    return {
+      pv: pv, ev: ev, ac: ac, cv: cv, sv: sv,
+      cpi: (mature && ac > 0) ? ev / ac : null,
+      spi: (mature && pv > 0) ? ev / pv : null,
+      mature: mature
+    };
+  }
   function computePortfolio(gpuLifeYears){
     var totalPlanned = 0, totalDeployed = 0, totalTargetMW = 0, totalCurrentMW = 0, totalDelayCost = 0, behind = [];
+    var totalPV = 0, totalEV = 0, totalAC = 0, worstCpiSite = null, worstSpiSite = null, bestCpiAchieved = null;
     PORTFOLIO_SITES.forEach(function(s){
       totalPlanned += s.capexPlanned;
       totalDeployed += s.capexDeployed;
@@ -1320,7 +1391,23 @@
       var delay = siteCostOfDelay(s, gpuLifeYears);
       totalDelayCost += delay;
       if (s.monthsBehindSchedule > 0) behind.push(s.name);
+      var evm = computeSiteEvm(s);
+      totalPV += evm.pv; totalEV += evm.ev; totalAC += evm.ac;
+      if (evm.mature) {
+        if (!worstCpiSite || evm.cpi < worstCpiSite.cpi) worstCpiSite = { name: s.name, cpi: evm.cpi };
+        if (!worstSpiSite || evm.spi < worstSpiSite.spi) worstSpiSite = { name: s.name, spi: evm.spi };
+        if (bestCpiAchieved === null || evm.cpi > bestCpiAchieved) bestCpiAchieved = evm.cpi;
+      }
     });
+    var bac = totalPlanned; // Budget At Completion -- the original total plan, unchanged by actuals
+    // Portfolio-level CPI/SPI: sum PV/EV/AC across all six sites FIRST, then divide -- never
+    // average the six sites' individual ratios (a common real-world EVM mistake this avoids).
+    var cpi = totalAC > 0 ? totalEV / totalAC : 0;
+    var spi = totalPV > 0 ? totalEV / totalPV : 0;
+    var eac = cpi > 0 ? totalAC + (bac - totalEV) / cpi : null; // "current cost trend continues" -- the standard EAC default
+    var vac = eac !== null ? bac - eac : null;
+    var etc = eac !== null ? eac - totalAC : null;
+    var tcpi = (bac - totalAC) !== 0 ? (bac - totalEV) / (bac - totalAC) : null;
     return {
       totalPlanned: totalPlanned, totalDeployed: totalDeployed,
       pctDeployed: totalPlanned > 0 ? totalDeployed / totalPlanned : 0,
@@ -1329,7 +1416,10 @@
       remainingCapital: Math.max(totalPlanned - totalDeployed, 0),
       totalTargetMW: totalTargetMW, totalCurrentMW: totalCurrentMW,
       pctDelivered: totalTargetMW > 0 ? totalCurrentMW / totalTargetMW : 0,
-      totalDelayCost: totalDelayCost, behind: behind
+      totalDelayCost: totalDelayCost, behind: behind,
+      totalPV: totalPV, totalEV: totalEV, totalAC: totalAC, bac: bac,
+      cpi: cpi, spi: spi, eac: eac, vac: vac, etc: etc, tcpi: tcpi,
+      worstCpiSite: worstCpiSite, worstSpiSite: worstSpiSite, bestCpiAchieved: bestCpiAchieved
     };
   }
   function portfolioStagePill(stage){
@@ -1343,17 +1433,42 @@
       '<div class="alloc-bar" style="background:rgb(var(--c-bg-primary))"><div class="alloc-seg" style="width:' + (pct * 100).toFixed(1) + '%; background:rgb(var(--c-accent))"></div></div>' +
       '</div>';
   }
+  // CPI/SPI target 1.0 (on plan), not "higher is always better without bound" like DSCR --
+  // >=1.0 (at/under budget or ahead of schedule) is favorable, 0.85-1.0 is a mild miss, <0.85
+  // is a real overrun/slip. Reuses the exact 3-tier .pill convention DSCR established, with its
+  // own explicit thresholds (not inherited from DSCR's 1.2/1.5, which target a different scale).
+  function evmPillClass(x){
+    if (x === null) return "z-standard";
+    return x >= 1.0 ? "z-best" : x >= 0.85 ? "z-standard" : "z-warning";
+  }
   function renderPortfolioSites(gpuLifeYears){
     var html = PORTFOLIO_SITES.map(function(s){
       var delay = siteCostOfDelay(s, gpuLifeYears);
       var note = s.monthsBehindSchedule > 0
         ? '<div class="note" style="color:rgb(var(--c-danger))">' + s.monthsBehindSchedule + (s.monthsBehindSchedule === 1 ? " month" : " months") + ' behind schedule — about ' + fmtUSDCompact(delay) + ' in idle GPU depreciation so far</div>'
         : '<div class="note">On track</div>';
+      var evm = computeSiteEvm(s);
+      var evmBlock;
+      if (!evm.mature) {
+        // Same "N/A beats a misleading number" guard this page uses everywhere else -- CPI/SPI
+        // math is genuinely noisy this early (a near-zero PV denominator), not just unavailable.
+        evmBlock = '<div class="field" style="margin-top:10px"><div class="fl"><span>Cost / schedule performance</span><b>Too early to read</b></div></div>';
+      } else {
+        evmBlock =
+          '<div class="field" style="margin-top:10px">' +
+          '<div class="fl"><span>Cost variance (CV)</span><b>' + fmtUSDCompact(evm.cv) + '</b></div>' +
+          '<div class="fl"><span>Schedule variance (SV)</span><b>' + fmtUSDCompact(evm.sv) + '</b></div>' +
+          '</div>' +
+          '<div style="display:flex; gap:8px; margin-top:8px">' +
+          '<span class="pill ' + evmPillClass(evm.cpi) + '"><span class="sw"></span>CPI ' + evm.cpi.toFixed(2) + '×</span>' +
+          '<span class="pill ' + evmPillClass(evm.spi) + '"><span class="sw"></span>SPI ' + evm.spi.toFixed(2) + '×</span>' +
+          '</div>';
+      }
       return '<div class="card tcard">' +
         '<div class="top"><span class="cid">' + s.name + '</span>' + portfolioStagePill(s.stage) + '</div>' +
         portfolioBar("Capital deployed", s.capexDeployed, s.capexPlanned, fmtUSDCompact) +
         portfolioBar("Capacity live", s.currentMW, s.targetMW, function(n){ return n + " MW"; }) +
-        note + '</div>';
+        note + evmBlock + '</div>';
     }).join("");
     document.getElementById("portfolioSites").innerHTML = html;
   }
@@ -1365,6 +1480,27 @@
       'Across the portfolio, <b>' + fmtPct(p.pctDeployed) + '</b> of planned capital (' + fmtUSDCompact(p.totalDeployed) + ' of ' + fmtUSDCompact(p.totalPlanned) + ') has actually been spent, ' +
       'and <b>' + fmtPct(p.pctDelivered) + '</b> of the target capacity (' + p.totalCurrentMW + ' of ' + p.totalTargetMW + ' MW) is live and earning today — the rest is still being built. ' +
       'Right now, <b>' + behindText + '</b>.</div>';
+  }
+  function narrateEvm(p){
+    // TCPI compared against the best CPI any site has actually hit so far -- not a hardcoded
+    // threshold -- so the "out of reach" claim is grounded in this portfolio's own data, not a
+    // guessed cutoff.
+    var tcpiText = (p.tcpi === null || p.bestCpiAchieved === null) ? "" :
+      (p.tcpi > p.bestCpiAchieved
+        ? 'Hitting the original budget from here would need the remaining work to run at a cost efficiency of <b>' + p.tcpi.toFixed(2) + '×</b> (TCPI) — above the best cost performance any site here has hit so far (<b>' + p.bestCpiAchieved.toFixed(2) + '×</b>), so treat the original budget as effectively out of reach.'
+        : 'The remaining work would need a cost efficiency of <b>' + p.tcpi.toFixed(2) + '×</b> (TCPI) to land on the original budget — within reach of what this portfolio has already achieved (best so far: <b>' + p.bestCpiAchieved.toFixed(2) + '×</b>).');
+    var vacText = p.vac === null ? "" : (p.vac < 0
+      ? 'about <b>' + fmtUSDCompact(Math.abs(p.vac)) + '</b> more than the original <b>' + fmtUSDCompact(p.bac) + '</b> budget'
+      : 'about <b>' + fmtUSDCompact(p.vac) + '</b> under the original <b>' + fmtUSDCompact(p.bac) + '</b> budget');
+    var axisText = (p.worstCpiSite && p.worstSpiSite)
+      ? (p.worstCpiSite.name === p.worstSpiSite.name
+          ? '<b>' + p.worstCpiSite.name + '</b> reads worst on both axes — the most over budget for what it\'s delivered (CPI ' + p.worstCpiSite.cpi.toFixed(2) + '×) AND the furthest behind on schedule in value-weighted terms (SPI ' + p.worstSpiSite.spi.toFixed(2) + '×).'
+          : '<b>' + p.worstCpiSite.name + '</b> carries the worst cost overrun (CPI ' + p.worstCpiSite.cpi.toFixed(2) + '×); <b>' + p.worstSpiSite.name + '</b> is furthest behind on schedule in value-weighted terms (SPI ' + p.worstSpiSite.spi.toFixed(2) + '×) — two different problems, not the same site failing at both.')
+      : "";
+    return '<div class="card insight"><span class="tag">In plain terms</span>' +
+      'Summed across all six sites — value delivered against value planned, not just money spent — this portfolio\'s blended cost performance is <b>' + p.cpi.toFixed(2) + '×</b> (CPI) and schedule performance is <b>' + p.spi.toFixed(2) + '×</b> (SPI): for every dollar spent, about <b>' + (p.cpi * 100).toFixed(0) + '¢</b> of planned value has actually been delivered. ' +
+      axisText + ' ' +
+      'At current cost trends, this portfolio is forecast to cost <b>' + fmtUSDCompact(p.eac) + '</b> to finish — ' + vacText + '. ' + tcpiText + '</div>';
   }
   function renderPortfolio(gpuLifeYears){
     var p = computePortfolio(gpuLifeYears);
@@ -1378,8 +1514,17 @@
     document.getElementById("portfolioDelayCostSub").textContent = p.behind.length > 0
       ? "across " + p.behind.length + " behind-schedule site" + (p.behind.length === 1 ? "" : "s")
       : "no sites behind schedule";
+    document.getElementById("portfolioCPIVal").textContent = p.cpi.toFixed(2) + "×";
+    document.getElementById("portfolioCPISub").textContent = fmtUSDCompact(p.totalEV) + " earned / " + fmtUSDCompact(p.totalAC) + " spent";
+    document.getElementById("portfolioSPIVal").textContent = p.spi.toFixed(2) + "×";
+    document.getElementById("portfolioSPISub").textContent = fmtUSDCompact(p.totalEV) + " earned / " + fmtUSDCompact(p.totalPV) + " planned";
+    document.getElementById("portfolioEACVal").textContent = p.eac === null ? "N/A" : fmtUSDCompact(p.eac);
+    document.getElementById("portfolioEACSub").textContent = "vs. " + fmtUSDCompact(p.bac) + " original budget";
+    document.getElementById("portfolioVACVal").textContent = p.vac === null ? "N/A" : fmtUSDCompact(p.vac);
+    document.getElementById("portfolioVACSub").textContent = p.vac === null ? "—" : (p.vac < 0 ? "projected over budget" : "projected under budget");
     renderPortfolioSites(gpuLifeYears);
     document.getElementById("portfolioInsight").innerHTML = narratePortfolio(p);
+    document.getElementById("portfolioEvmInsight").innerHTML = narrateEvm(p);
   }
   // NOTE: no standalone renderPortfolio() call here anymore -- it now needs a live
   // v.gpuLifeYears, which doesn't exist until econIds are wired to their default values
@@ -1476,6 +1621,35 @@
       { term: "Scenario analysis", anchor: null,
         def: "Modeling a few different overall futures at once, rather than nudging one variable at a time.",
         example: "Instead of nudging one number, model three whole futures — a strong year, a normal year, and a weak year — and see how far apart they land." }
+    ]},
+    { group: "Earned Value Management (EVM)", terms: [
+      { term: "Planned Value (PV)", anchor: "portfolioKpis",
+        def: "The budgeted cost of the work that SHOULD be done by now, given the project's own planned schedule — a baseline, not an actual.",
+        example: "Site 03 is 12 months into a planned 24-month build on a $1,100M budget — it should be 50% through, so PV = $550.0M." },
+      { term: "Earned Value (EV)", anchor: "portfolioKpis",
+        def: "The budgeted cost of the work actually completed, measured by real physical progress — not by money spent. This is the part most people skip, and it's the whole point of EVM.",
+        example: "Site 03 has 22 of its 70 target MW actually live (31.4%) — EV = 31.4% × $1,100M = $345.7M." },
+      { term: "Actual Cost (AC)", anchor: "portfolioKpis",
+        def: "Money actually spent so far — the one number a simple budget-tracking system would normally show you on its own.",
+        example: "Site 03 has spent $980M of its $1,100M plan — AC = $980M." },
+      { term: "Cost Variance (CV)", anchor: "portfolioKpis",
+        def: "Earned Value minus Actual Cost. Negative means over budget for the work actually delivered; positive means under.",
+        example: "Site 03: $345.7M earned − $980M spent = −$634.3M — badly over budget for what's actually been built." },
+      { term: "Schedule Variance (SV)", anchor: "portfolioKpis",
+        def: "Earned Value minus Planned Value. Negative means behind schedule in value terms; positive means ahead.",
+        example: "Site 03: $345.7M earned − $550.0M planned by now = −$204.3M behind." },
+      { term: "Cost Performance Index (CPI)", anchor: "portfolioKpis",
+        def: "Earned Value divided by Actual Cost — how many dollars of value came back for every dollar spent. Below 1.00× is a cost overrun.",
+        example: "Site 03: $345.7M ÷ $980M = 0.35× — about 35 cents of value for every dollar spent." },
+      { term: "Schedule Performance Index (SPI)", anchor: "portfolioKpis",
+        def: "Earned Value divided by Planned Value — how much value showed up compared to how much should have by now. Below 1.00× is behind schedule.",
+        example: "Site 03: $345.7M ÷ $550.0M = 0.63× — running behind the value the schedule called for." },
+      { term: "Estimate at Completion (EAC)", anchor: "portfolioKpis",
+        def: "A forecast of the total final cost, assuming the project keeps spending at its current cost efficiency (CPI) for whatever work is left.",
+        example: "This portfolio's blended CPI (0.73×) projects a final cost of about $7.5B against a $5.5B original budget." },
+      { term: "Variance at Completion (VAC)", anchor: "portfolioKpis",
+        def: "The original budget minus the forecast final cost (EAC). Negative means projected to finish over budget.",
+        example: "$5.5B budgeted − $7.5B forecast ≈ −$2.1B — this portfolio is currently tracking to finish about $2.1B over its original budget." }
     ]}
   ];
   function renderGlossary(){
