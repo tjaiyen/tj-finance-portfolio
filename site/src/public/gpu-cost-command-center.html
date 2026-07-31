@@ -295,9 +295,52 @@
     #econKpis{grid-template-columns:1fr}
   }
   @media (prefers-reduced-motion: reduce){ *{transition:none !important; animation:none !important} }
+
+  /* ---- scroll storytelling: reveal-on-scroll, a scroll-progress rail, hover-lift on card-shaped
+     units, and a slightly more confident heading scale. Additive/presentational only -- nothing
+     here changes what any section computes or which numbers are dbt-tested vs. illustrative. ---- */
+  .scroll-progress{position:fixed; top:0; left:0; height:3px; width:0%; background:rgb(var(--c-accent)); z-index:10; pointer-events:none}
+  /* JS only ever adds .reveal-init when IntersectionObserver exists AND reduced-motion is off
+     (see the script below) -- the base/no-JS state is always fully visible, never hidden. Resting
+     state is "transform:none", not "translateY(0)": a translateY(0) is still a non-none transform
+     value, which per the CSS Transforms spec makes the element the containing block for any
+     position:fixed descendant -- would silently break #infoPop/#sparkTip's viewport-relative
+     getBoundingClientRect() math if either ever ended up nested inside a revealed section again. */
+  .reveal-init{opacity:0; transform:translateY(16px)}
+  .reveal-visible{opacity:1; transform:none; transition:opacity .45s ease, transform .45s ease}
+  .card.kpi, .card.panel, .card.tcard{transition:transform .18s ease, box-shadow .18s ease}
+  .card.kpi:hover, .card.panel:hover, .card.tcard:hover{transform:translateY(-2px); box-shadow:0 10px 28px rgb(0 0 0 / .18)}
+  h1{text-wrap:balance}
+  h2{text-wrap:balance}
+
+  /* chapter markers: a distinct numbered-pill treatment, deliberately NOT reusing .eyebrow's
+     typographic style -- the two existing "second lens"/"third lens" eyebrows already narrate the
+     same 3-part structure in prose; a chapter label styled identically would read as a duplicated
+     micro-label stacked on the same fact rather than a distinct piece of UI. */
+  .chapter{display:inline-flex; align-items:center; gap:8px; margin-bottom:10px; font:700 10.5px/1 ui-monospace,monospace; letter-spacing:.1em; text-transform:uppercase; color:rgb(var(--c-accent))}
+  .chapter .num{display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; border-radius:50%; background:rgb(var(--c-accent) / .12); border:1px solid rgb(var(--c-accent) / .4)}
+
+  /* hero background motif: a faint blueprint/graph-paper grid, contained to the hero only.
+     .1 alpha matches this file's own existing .gridline precedent (stroke-based marks need more
+     alpha than a solid fill to register once anti-aliased -- .insight's .05 solid-fill precedent
+     is the wrong comparison for a grid of thin lines). Uses the existing --c-accent token at both
+     themes' own lightness, so it never needs a separate light/dark value; masked to fade out
+     toward the bottom of the hero rather than reading as a hard-edged box. */
+  .hero-motif{position:relative}
+  .hero-motif::before{
+    content:""; position:absolute; inset:0; z-index:-1; pointer-events:none;
+    background-image:
+      linear-gradient(rgb(var(--c-accent) / .1) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(var(--c-accent) / .1) 1px, transparent 1px);
+    background-size:32px 32px;
+    -webkit-mask-image:linear-gradient(to bottom, black, transparent);
+    mask-image:linear-gradient(to bottom, black, transparent);
+  }
 </style>
 </head>
 <body>
+
+<div class="scroll-progress" id="scrollProgress"></div>
 
 <div class="bar">
   <div class="bar-in">
@@ -315,9 +358,10 @@
 
 <div class="wrap">
 
-  <section style="margin-top:26px">
+  <section class="hero-motif" style="margin-top:26px; padding:4px 4px 20px">
+    <div class="chapter"><span class="num">1</span>The ledger</div>
     <div class="eyebrow">FinOps · overhead absorption</div>
-    <h1 style="font-size:24px; margin-top:6px">Who actually pays for idle GPU capacity?</h1>
+    <h1 style="font-size:clamp(28px, 4vw, 40px); margin-top:10px">Who actually pays for idle GPU capacity?</h1>
     <p class="lede">Shared inference cluster cost, split into an active pool (compute actually used) and an idle pool
       (provisioned but unused — the overhead), then absorbed across tenants by token share, exactly like a factory
       absorbs shared equipment cost across job orders by machine-hours. Every number below is a column produced and
@@ -366,8 +410,6 @@
     <div>
       <h2 style="font-size:14.5px; margin-bottom:10px">Tenant margin — by absorbed overhead</h2>
       <div class="tenants" id="tenants"><div class="skel">loading…</div></div>
-      <div class="tip" id="sparkTip"></div>
-      <div class="infopop" id="infoPop"></div>
     </div>
     <div class="card controls">
       <div style="display:flex; align-items:center; gap:7px">
@@ -418,6 +460,7 @@
   </section>
 
   <section class="divider">
+    <div class="chapter"><span class="num">2</span>The site</div>
     <div class="eyebrow">Capital efficiency · a second lens<span class="live-badge"><span class="dot2"></span>Live calculator</span></div>
     <h2 style="font-size:18px; margin-top:8px">Site deployment economics</h2>
     <p class="lede">A different question than the tenant view above: not "who pays for shared compute," but
@@ -580,6 +623,7 @@
   </section>
 
   <section class="divider">
+    <div class="chapter"><span class="num">3</span>The portfolio</div>
     <div class="eyebrow">Site deployments · a third lens<span class="live-badge"><span class="dot2"></span>Illustrative snapshot</span></div>
     <div style="display:flex; align-items:center; gap:7px; margin-top:8px">
       <h2 style="font-size:18px">Deployment portfolio</h2>
@@ -620,11 +664,32 @@
   <section class="tenants" id="portfolioSites"><div class="skel">loading…</div></section>
   <section id="portfolioInsight"></section>
 
+  <section style="margin-top:34px">
+    <div class="card insight" style="margin-top:0">
+      <span class="tag">The throughline</span>
+      Three chapters, one problem, at three different scales. Chapter 1 shows it in a single
+      customer's bill — idle capacity, split by who used the cluster the most. Chapter 2 shows it
+      in a single site's economics — the same idle capacity, reframed as depreciation running with
+      nothing yet to show for it. Chapter 3 shows it across a fleet — the same clock, ticking on
+      every site still ramping at once. Different scale, same math, every time it could be checked
+      against a tested number, it was.
+    </div>
+  </section>
+
   <footer>
     <span>Synthetic data — no employer or confidential information. Model: <a href="https://github.com/tjaiyen/tj-finance-portfolio/tree/main/dbt_gpu_cost_attribution" target="_blank" rel="noopener">dbt_gpu_cost_attribution</a></span>
     <span>Built with 24 automated dbt tests across 3 tiers (data, unit, singular) · <code>dbt build</code> passes clean · CI on every push</span>
     <span id="genAt"></span>
   </footer>
+
+  <!-- Shared floating tooltip/popover elements -- deliberately siblings of every <section>, never
+       nested inside one. A CSS transform on an ancestor becomes the containing block for a
+       position:fixed descendant, which would break these elements' viewport-relative
+       getBoundingClientRect() positioning math if a scroll-reveal transform ever landed on an
+       ancestor section. Living here, outside every <section>, makes that structurally impossible
+       regardless of what reveal-related CSS classes get added above. -->
+  <div class="tip" id="sparkTip"></div>
+  <div class="infopop" id="infoPop"></div>
 
 </div>
 
@@ -1144,6 +1209,16 @@
   // depreciation section, not recompute the other 6 KPI tiles.
   document.getElementById("delaySlider").addEventListener("input", function(){ renderDepreciation(econValues()); });
   renderSiteEconomics(true);
+  // Runs here, alongside the other synchronous initial renders -- NOT deferred until after
+  // the dbt fetch settles. renderPortfolio()/renderSiteEconomics(true) above already run (and
+  // their KPI tiles already finish their count-up animation) independent of that fetch, so
+  // gating the reveal system behind it would hide already-visible, already-animated content
+  // and pop it back in "pre-cooked" a moment later -- a real, visible glitch on first paint,
+  // not a hypothetical one. IntersectionObserver re-checks automatically as layout shifts
+  // while a target is still observed, so it doesn't need sections at their final height to
+  // work correctly -- worst case a still-loading skeleton section reveals a frame before its
+  // real dbt content lands, which is far less jarring than the hide-then-restore this avoids.
+  initScrollReveal();
 
   function render(data){
     document.getElementById("genAt").textContent = "Data as of " + data.generated_at.slice(0,10);
@@ -1671,6 +1746,53 @@
         cross.classList.remove("show");
       });
     });
+  }
+
+  // ---- scroll-progress rail: rAF-throttled, no dependency on section reveal below ----
+  (function(){
+    var bar = document.getElementById("scrollProgress");
+    var ticking = false;
+    function update(){
+      var max = document.documentElement.scrollHeight - window.innerHeight;
+      var pct = max > 0 ? Math.min(window.scrollY / max, 1) * 100 : 0;
+      bar.style.width = pct + "%";
+      ticking = false;
+    }
+    window.addEventListener("scroll", function(){
+      if (!ticking) { requestAnimationFrame(update); ticking = true; }
+    }, { passive: true });
+    update();
+  })();
+
+  // ---- scroll-triggered section reveal: strictly additive, feature-detected, one-shot per
+  // section. If IntersectionObserver is missing OR prefers-reduced-motion is set, this never
+  // runs at all and every section stays in its normal, fully-visible base CSS state -- there is
+  // no code path that can leave a section stuck hidden. Called synchronously alongside the
+  // other initial renders (see the call site above, before the dbt fetch), NOT deferred until
+  // that fetch settles -- an earlier version waited for it, on the theory that sections should
+  // only be observed at their final rendered height, but renderPortfolio()/
+  // renderSiteEconomics(true) already run (and their KPI tiles already finish counting up)
+  // independent of that fetch, so deferring this hid already-visible, already-animated content
+  // and popped it back in a moment later on every load -- a real, visible glitch on first
+  // paint. IntersectionObserver re-checks automatically as layout shifts while a target stays
+  // observed, so it doesn't actually need the final height to begin with.
+  function initScrollReveal(){
+    if (!("IntersectionObserver" in window) || REDUCE_MOTION) return;
+    var sections = document.querySelectorAll("body > .wrap > section");
+    sections.forEach(function(s){ s.classList.add("reveal-init"); });
+    // Same-batch entries (e.g. a fast PageDown crossing several short, closely-stacked sections
+    // at once) get a small stagger instead of popping in simultaneously -- IntersectionObserver
+    // delivers everything newly-crossed in one callback, so the stagger has to happen here, not
+    // via rootMargin tuning (which can't distinguish "one section entered" from "five did").
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry, i){
+        if (!entry.isIntersecting) return;
+        var el = entry.target;
+        setTimeout(function(){ el.classList.add("reveal-visible"); }, i * 70);
+        io.unobserve(el);
+      });
+    }, { rootMargin: "0px 0px -10% 0px" });
+    sections.forEach(function(s){ io.observe(s); });
   }
 
   // ---- load data ----
