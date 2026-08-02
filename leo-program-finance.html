@@ -357,6 +357,17 @@
     <p id="headlineInsightText"></p>
   </div>
 
+  <!-- Executive summary -- the glance version of the Chapter 4 recommendation
+       below, for a reader who won't scroll that far. Deliberately terse: 3
+       numbers + 1 action, re-synthesized from data already computed further
+       down the page, never a second data source. -->
+  <div class="section" id="execSummary" style="display:none">
+    <h2>Executive Summary <span class="src-tag illustrative" style="margin-left:6px">illustrative</span></h2>
+    <p class="section-sub">The full reasoning is below, chapter by chapter — this is the version for a reader who only has ten seconds.</p>
+    <div class="grid3" id="execSummaryCards"></div>
+    <div class="plain" id="execSummaryAction" style="margin-top:12px"></div>
+  </div>
+
   <!-- 1. Milestone risk -->
   <div class="section" id="ch1">
     <h2>Regulatory Milestone Risk</h2>
@@ -1774,6 +1785,18 @@
     document.getElementById("plainReliabilityTrend").innerHTML =
       '<span class="lp-tag">Applying: Earn Trust</span><br>' +
       '<span class="eyebrow">In plain terms</span>Every one of the 3 dated launch events was a success, so this line reads a flat 0% the whole way across — but don\'t read that as "launch risk is fine." The ' + undatedAdverse.length + ' real adverse events this program has actually had (' + esc(undatedAdverse.map(function(e){ return e.launch_vehicle + ' ' + e.event_type; }).join(', ')) + ') are exactly the ones without a disclosed exact date, so they can\'t appear on this timeline at all. A clean-looking chart here is an artifact of which events happen to have dates, not evidence launch risk improved.';
+
+    // Executive summary -- the glance version of the closing recommendation below,
+    // reusing the exact same already-computed variables (risk/near/lastCum/firstCum/
+    // topDriver). No new data, no new logic -- a second render target near the top
+    // of the page for the reader who won't scroll to Chapter 4.
+    document.getElementById("execSummaryCards").innerHTML =
+      '<div class="card"><div class="kpi label">Program Risk</div><div class="kpi val"><span class="status ' + tierClass + '">' + esc(tierLabel) + '</span></div><div class="kpi note">' + risk.composite_score_pct + '% composite score</div></div>' +
+      '<div class="card"><div class="kpi label">Near-Term Milestone</div><div class="kpi val">' + (nearOk ? 'On track' : 'Short by ' + Number(near.modeled_projected_shortfall).toLocaleString()) + '</div><div class="kpi note">' + (nearOk ? 'clears the ' + Number(near.satellites_required).toLocaleString() + '-satellite target' : 'satellites vs. the ' + esc(near.milestone_date) + ' deadline') + '</div></div>' +
+      '<div class="card"><div class="kpi label">Cost Trajectory</div><div class="kpi val">+' + (lastCum.pct_change_from_prior*100).toFixed(0) + '%</div><div class="kpi note">since ' + esc(firstCum.as_of_date) + ', Amazon\'s own stated figures</div></div>';
+    document.getElementById("execSummaryAction").innerHTML =
+      '<span class="eyebrow">If you read nothing else</span><b>' + esc(topDriver.label) + '</b> is the single largest driver of the ' + esc(tierLabel) + ' risk read (' + topDriver.value.toFixed(1) + '% of the composite score) — that\'s the one conversation to have first. Full reasoning is below, chapter by chapter.';
+    document.getElementById("execSummary").style.display = "block";
 
     // Closing recommendation summary -- synthesized from the same data, never hardcoded.
     document.getElementById("recommendationSummary").innerHTML =
