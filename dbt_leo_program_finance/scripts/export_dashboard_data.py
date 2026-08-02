@@ -124,6 +124,25 @@ def main():
         order by as_of_date
     """))
 
+    op1_op2_plan = rows_as_dicts(con.execute("""
+        select fiscal_year, opex_usd, capex_usd, headcount, capex_yoy_change_usd, is_illustrative, notes
+        from main.mart_op1_op2_plan
+        order by fiscal_year
+    """))
+
+    roi_payback_scenarios = rows_as_dicts(con.execute("""
+        select scenario_name, capex_usd, annual_benefit_usd, payback_years, roi_pct, is_illustrative, notes
+        from main.mart_roi_payback_scenarios
+        order by payback_years
+    """))
+
+    operational_kpi_framework = rows_as_dicts(con.execute("""
+        select domain_order, domain, kpi_name, definition, target_benchmark, frequency,
+               strategic_objective, is_illustrative, notes
+        from main.mart_operational_kpi_framework
+        order by domain_order, kpi_name
+    """))
+
     payload = {
         "project": "dbt_leo_program_finance",
         "disclaimer": (
@@ -147,6 +166,9 @@ def main():
         "safety_incidents": safety_incidents,
         "d2d_pipeline": d2d_pipeline,
         "workforce_signal": workforce_signal,
+        "op1_op2_plan": op1_op2_plan,
+        "roi_payback_scenarios": roi_payback_scenarios,
+        "operational_kpi_framework": operational_kpi_framework,
     }
 
     def default(o):

@@ -56,6 +56,16 @@ number.
   - `mart_makevsbuy_scenario` / `mart_variance_methodology_demo` -- fully synthetic methodology
     demonstrations of the make-vs-buy/TCO and price-volume-scope-timing variance-decomposition
     frameworks named in the JD, using generic category labels
+  - `mart_op1_op2_plan` -- fully synthetic multi-year OpEx/CapEx/headcount roadmap with a computed
+    YoY CapEx delta, illustrating the JD's "financial models...across multi-year program roadmaps"
+  - `mart_roi_payback_scenarios` -- fully synthetic capital-investment scenarios with computed
+    `payback_years` and `roi_pct`, illustrating the JD's "ROI frameworks"
+  - `mart_operational_kpi_framework` -- a generic, industry-typical operational-KPI scorecard (54
+    KPIs across 9 domains: Finance, Accounting, Spacecraft Production, Launch Operations,
+    Logistics & Supply Chain, Systems Engineering, Commercialization & Sales, Vendor Management,
+    Inventory & Quality Control) applied to this case; target benchmarks are illustrative, not
+    Amazon-disclosed figures -- two of them are cross-checked live on the dashboard against this
+    project's own real deployment-rate and milestone-risk marts
 - **tests**
   - data tests -- not_null/unique, `accepted_values` on every categorical/status column
   - singular tests -- variance drivers must reconcile exactly to the total (nothing lost or
@@ -78,10 +88,11 @@ dbt_leo_program_finance/
   seeds/   raw_deployment_checkpoints.csv, raw_deployment_rate.csv, raw_fcc_milestones.csv,
            raw_program_cost_estimates.csv, raw_unit_cost.csv, raw_makevsbuy_scenario.csv,
            raw_variance_demo.csv, raw_launch_vehicle_events.csv, raw_supplier_concentration.csv,
-           raw_safety_incidents.csv, raw_d2d_regulatory_pipeline.csv, raw_workforce_signal.csv
+           raw_safety_incidents.csv, raw_d2d_regulatory_pipeline.csv, raw_workforce_signal.csv,
+           raw_op1_op2_plan.csv, raw_roi_payback_scenarios.csv, raw_operational_kpi_framework.csv
   models/
-    staging/   12 typed staging models + staging.yml
-    marts/     12 marts + marts.yml
+    staging/   15 typed staging models + staging.yml
+    marts/     15 marts + marts.yml
   tests/   assert_variance_drivers_reconcile.sql, assert_illustrative_marts_are_flagged.sql,
            assert_unlaunched_inventory_range_ordered.sql
   scripts/ export_dashboard_data.py -- exports all marts to the site dashboard's JSON

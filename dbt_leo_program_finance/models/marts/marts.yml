@@ -128,3 +128,49 @@ models:
           - accepted_values:
               arguments:
                 values: ['scaling_signal_not_distress']
+
+  - name: mart_op1_op2_plan
+    description: "Synthetic multi-year OpEx/CapEx/headcount roadmap with a computed YoY capex delta."
+    columns:
+      - name: fiscal_year
+        tests: [not_null, unique]
+      - name: is_illustrative
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true]
+
+  - name: mart_roi_payback_scenarios
+    description: "Synthetic capital-investment scenarios with computed payback_years and roi_pct."
+    columns:
+      - name: scenario_name
+        tests: [not_null, unique]
+      - name: payback_years
+        tests: [not_null]
+      - name: roi_pct
+        tests: [not_null]
+      - name: is_illustrative
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true]
+
+  - name: mart_operational_kpi_framework
+    description: >
+      A generic, industry-typical operational-KPI scorecard (54 KPIs across 9 domains --
+      Finance, Accounting, Spacecraft Production, Launch Operations, Logistics & Supply Chain,
+      Systems Engineering, Commercialization & Sales, Vendor Management, Inventory & Quality
+      Control) applied to this case. Target benchmarks are illustrative, not Amazon-disclosed.
+    columns:
+      - name: kpi_name
+        tests: [not_null, unique]
+      - name: domain
+        tests: [not_null]
+      - name: is_illustrative
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true]

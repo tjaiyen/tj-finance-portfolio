@@ -130,3 +130,29 @@ seeds:
         signal: varchar
         source: varchar
         source_url: varchar
+    raw_op1_op2_plan:
+      +column_types:
+        fiscal_year: integer
+        opex_usd: bigint
+        capex_usd: bigint
+        headcount: integer
+        is_illustrative: boolean
+        notes: varchar
+    raw_roi_payback_scenarios:
+      +column_types:
+        scenario_name: varchar
+        capex_usd: bigint
+        annual_benefit_usd: bigint
+        is_illustrative: boolean
+        notes: varchar
+    raw_operational_kpi_framework:
+      +column_types:
+        domain_order: integer
+        domain: varchar
+        kpi_name: varchar
+        definition: varchar
+        target_benchmark: varchar
+        frequency: varchar
+        strategic_objective: varchar
+        is_illustrative: boolean
+        notes: varchar

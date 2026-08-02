@@ -140,3 +140,39 @@ models:
           - accepted_values:
               arguments:
                 values: ['scaling_signal_not_distress']
+
+  - name: stg_op1_op2_plan
+    description: "Fully synthetic multi-year OpEx/CapEx/headcount roadmap -- generic hardware-program shape, not Amazon's real Leo P&L."
+    columns:
+      - name: fiscal_year
+        tests: [not_null, unique]
+      - name: is_illustrative
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true]
+
+  - name: stg_roi_payback_scenarios
+    description: "Fully synthetic capital-investment ROI/payback scenarios -- generic categories, not a real Amazon decision."
+    columns:
+      - name: scenario_name
+        tests: [not_null, unique]
+      - name: is_illustrative
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true]
+
+  - name: stg_operational_kpi_framework
+    description: "Generic operational-KPI framework (9 domains) applied to this case -- target benchmarks are illustrative, not Amazon-disclosed figures."
+    columns:
+      - name: kpi_name
+        tests: [not_null, unique]
+      - name: is_illustrative
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true]

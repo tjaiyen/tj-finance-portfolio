@@ -41,3 +41,4 @@ AGENTS.md
 
 # impeccable design hook artifacts (local cache, never commit)
 .impeccable/
+.claude/
