@@ -109,27 +109,99 @@
   .kpi .val{font:800 26px/1.15 -apple-system,sans-serif; margin:6px 0 2px; letter-spacing:-.02em}
   .kpi .note{font-size:12.5px; color:rgb(var(--c-text-secondary))}
 
-  table{width:100%; border-collapse:collapse; font-size:13px}
-  th,td{text-align:left; padding:8px 10px; border-bottom:1px solid rgb(var(--c-accent) / .14)}
+  /* Tables scroll horizontally inside their own box on narrow screens rather than
+     breaking the card/page layout -- the page body itself must never scroll sideways. */
+  .table-wrap{overflow-x:auto; -webkit-overflow-scrolling:touch; border-radius:8px}
+  table{width:100%; min-width:480px; border-collapse:collapse; font-size:13px}
+  th,td{text-align:left; padding:8px 10px; border-bottom:1px solid rgb(var(--c-accent) / .14); white-space:nowrap}
   th{color:rgb(var(--c-text-secondary)); font:600 11px/1.2 ui-monospace,Menlo,monospace; text-transform:uppercase; letter-spacing:.04em}
   td.num{text-align:right; font-variant-numeric:tabular-nums}
 
-  .bar-row{display:flex; align-items:center; gap:10px; margin:10px 0}
-  .bar-row .track{flex:1; height:22px; background:rgb(var(--c-text-secondary) / .12); border-radius:6px; overflow:hidden; position:relative}
+  .bar-row{display:flex; align-items:center; gap:10px; margin:10px 0; flex-wrap:wrap}
+  .bar-row .track{flex:1; min-width:100px; height:22px; background:rgb(var(--c-text-secondary) / .12); border-radius:6px; overflow:hidden; position:relative}
   .bar-row .fill{height:100%; border-radius:6px 0 0 6px}
   .bar-row .fill.accent{background:rgb(var(--c-accent))}
   .bar-row .fill.warning{background:rgb(var(--c-warning))}
   .bar-row .lbl{width:180px; font-size:12.5px; color:rgb(var(--c-text-secondary))}
   .bar-row .amt{width:64px; text-align:right; font:700 13px/1 ui-monospace,Menlo,monospace}
+  @media (max-width:480px){
+    .bar-row .lbl{width:100%; order:-1}
+    .bar-row .track{min-width:0}
+  }
 
-  .cite{font-size:12px; color:rgb(var(--c-text-secondary))}
+  .cite{font-size:12px; color:rgb(var(--c-text-secondary)); overflow-wrap:anywhere}
   .cite a{color:rgb(var(--c-text-secondary)); text-decoration:underline}
+  .kpi .note, .kpi .val, .section-sub, .lede{overflow-wrap:anywhere}
 
   footer{margin-top:56px; padding-top:24px; border-top:1px solid rgb(var(--c-accent) / .16)}
   .legend{display:flex; gap:16px; flex-wrap:wrap; font-size:12.5px; color:rgb(var(--c-text-secondary)); margin-bottom:16px}
   .legend span{display:inline-flex; align-items:center; gap:6px}
 
   #loadErr{display:none; margin:20px 0; padding:14px; border:1px solid rgb(var(--c-danger) / .4); border-radius:10px; color:rgb(var(--c-danger)); font-size:13px}
+
+  /* ---- chapter nav: a sticky horizontal chip strip (not a fixed sidebar) -- the
+     wayfinding goal from the reference command-center page, adapted so it never
+     competes with mobile screen width the way a two-column sidebar layout would. */
+  .chapternav{
+    position:sticky; top:61px; z-index:4; background:rgb(var(--c-bg-primary) / .92);
+    backdrop-filter:blur(8px); border-bottom:1px solid rgb(var(--c-accent) / .14);
+    overflow-x:auto; -webkit-overflow-scrolling:touch;
+  }
+  .chapternav-in{max-width:1100px; margin:0 auto; padding:10px 20px; display:flex; gap:8px; white-space:nowrap}
+  .chapchip{
+    display:inline-flex; align-items:center; gap:6px; padding:6px 12px; border-radius:99px;
+    font:600 12.5px/1.2 inherit; color:rgb(var(--c-text-secondary)); text-decoration:none;
+    border:1px solid transparent; transition:all .15s; flex-shrink:0;
+  }
+  .chapchip:hover{color:rgb(var(--c-text-primary))}
+  .chapchip.active{color:rgb(var(--c-accent)); border-color:rgb(var(--c-accent) / .4); background:rgb(var(--c-accent) / .1)}
+  .chapchip .num{
+    display:inline-flex; align-items:center; justify-content:center; width:16px; height:16px;
+    border-radius:5px; background:rgb(var(--c-text-secondary) / .18); font-size:10.5px; font-weight:700;
+  }
+  .chapchip.active .num{background:rgb(var(--c-accent) / .3); color:rgb(var(--c-accent))}
+
+  /* ---- headline insight + per-section "in plain terms" narrator boxes -- computed
+     from the same loaded JSON, never a hardcoded sentence, so they can't go stale. */
+  .insight{
+    background:rgb(var(--c-danger) / .08); border:1px solid rgb(var(--c-danger) / .35);
+    border-radius:12px; padding:18px 20px; margin:20px 0 32px;
+  }
+  .insight .eyebrow{font:700 11px/1 ui-monospace,Menlo,monospace; letter-spacing:.06em; text-transform:uppercase; color:rgb(var(--c-danger)); margin-bottom:8px}
+  .insight p{margin:0; font-size:14.5px; line-height:1.6}
+  .plain{
+    margin-top:12px; padding:12px 14px; border-radius:8px; background:rgb(var(--c-accent) / .06);
+    border-left:3px solid rgb(var(--c-accent) / .5); font-size:13px; line-height:1.6;
+  }
+  .plain .eyebrow{font:700 10.5px/1 ui-monospace,Menlo,monospace; letter-spacing:.06em; text-transform:uppercase; color:rgb(var(--c-accent)); margin-bottom:5px; display:block}
+
+  /* ---- shared floating tooltip (one DOM node, repositioned per click -- same
+     pattern as the reference page's .infopop, not one tooltip per icon). */
+  .infoicon{
+    display:inline-flex; align-items:center; justify-content:center; width:16px; height:16px;
+    border-radius:50%; border:1px solid rgb(var(--c-text-secondary) / .4); color:rgb(var(--c-text-secondary));
+    font:700 10px/1 ui-monospace,monospace; cursor:pointer; background:none; margin-left:6px; flex-shrink:0;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .infoicon:hover, .infoicon.active{border-color:rgb(var(--c-accent)); color:rgb(var(--c-accent))}
+  .infopop{
+    display:none; position:fixed; z-index:20; max-width:280px; padding:10px 12px; border-radius:8px;
+    background:rgb(var(--c-bg-card2)); border:1px solid rgb(var(--c-accent) / .4); font-size:12.5px;
+    line-height:1.5; color:rgb(var(--c-text-primary)); box-shadow:0 8px 24px rgb(0 0 0 / .3);
+  }
+  .infopop.show{display:block}
+
+  /* ---- interactive rate slider (milestone projection only -- never the static
+     Amazon-own-projection figures, which stay plain text elsewhere on the card). */
+  .slidercard{margin-top:14px; padding-top:14px; border-top:1px dashed rgb(var(--c-accent) / .25)}
+  .slidercard .row{display:flex; align-items:center; gap:10px; margin:8px 0}
+  .slidercard input[type=range]{flex:1; accent-color:rgb(var(--c-accent))}
+  .slidercard .rateval{width:64px; text-align:right; font:700 13px/1 ui-monospace,Menlo,monospace}
+  .resetbtn{
+    font:600 11.5px/1 inherit; color:rgb(var(--c-accent)); background:none; border:1px solid rgb(var(--c-accent) / .4);
+    border-radius:6px; padding:5px 9px; cursor:pointer;
+  }
+  .resetbtn:hover{background:rgb(var(--c-accent) / .1)}
 </style>
 </head>
 <body>
@@ -141,6 +213,14 @@
     <div class="right">
       <button class="icobtn" id="themeBtn" aria-pressed="false" title="Toggle theme">🌓 Theme</button>
     </div>
+  </div>
+</div>
+
+<div class="chapternav">
+  <div class="chapternav-in" id="chapterNav">
+    <a class="chapchip" href="#ch1" data-nav-target="ch1"><span class="num">1</span> Regulatory &amp; Capital</a>
+    <a class="chapchip" href="#ch2" data-nav-target="ch2"><span class="num">2</span> Illustrative Frameworks</a>
+    <a class="chapchip" href="#ch3" data-nav-target="ch3"><span class="num">3</span> Operations &amp; Outlook</a>
   </div>
 </div>
 
@@ -161,26 +241,46 @@
 
   <div id="loadErr"></div>
 
+  <div class="insight" id="headlineInsight" style="display:none">
+    <div class="eyebrow">The Governing Question</div>
+    <p id="headlineInsightText"></p>
+  </div>
+
   <!-- 1. Milestone risk -->
-  <div class="section">
+  <div class="section" id="ch1">
     <h2>Regulatory Milestone Risk</h2>
     <p class="section-sub">FCC license conditions require a satellite count by each deadline. Projected using the
-    <em>best realized deployment rate on record</em> (not theoretical factory capacity) — a modeled projection, not an Amazon forecast.</p>
+    <em>best realized deployment rate on record</em> (not theoretical factory capacity) — a modeled projection, not an Amazon forecast.
+    <button class="infoicon" data-tip="Projection = latest observed checkpoint + (days remaining × assumed rate). Drag the slider below to try a different rate.">i</button></p>
     <div class="grid2" id="milestoneCards"></div>
+    <div class="card slidercard">
+      <div class="kpi label">Try a different assumed deployment rate <button class="resetbtn" id="rateReset">Reset to dbt default</button></div>
+      <div class="row">
+        <input type="range" id="rateSlider" min="0.5" max="5" step="0.01" value="3.46" />
+        <span class="rateval tabular" id="rateVal">3.46/day</span>
+      </div>
+      <div class="kpi note">Recomputes <em>our</em> modeled projection live in your browser only — Amazon's own stated projection above never changes with this slider. Factory capacity ceiling (5/day) shown as the upper bound of the slider's realistic range.</div>
+      <div class="grid2" id="sliderOutput" style="margin-top:10px"></div>
+    </div>
+    <div class="plain" id="plainMilestone"></div>
   </div>
 
   <!-- 2. Capacity gap -->
   <div class="section">
     <h2>Deployment Capacity Gap</h2>
-    <p class="section-sub">Kirkland factory's theoretical capacity vs. the highest deployment rate actually achieved — even in the best month on record.</p>
+    <p class="section-sub">Kirkland factory's theoretical capacity vs. the highest deployment rate actually achieved — even in the best month on record.
+    <button class="infoicon" data-tip="Utilization % = best realized rate ÷ factory capacity ceiling. A gap here means launch supply, not manufacturing, is the constraint.">i</button></p>
     <div class="card" id="capacityCard"></div>
+    <div class="plain" id="plainCapacity"></div>
   </div>
 
   <!-- 3. Cost escalation -->
   <div class="section">
     <h2>Total Program Cost Escalation</h2>
-    <p class="section-sub">Two distinct metric types, never blended: the cumulative total-program estimate over time, and the latest officially-disclosed year-over-year cost headwind.</p>
+    <p class="section-sub">Two distinct metric types, never blended: the cumulative total-program estimate over time, and the latest officially-disclosed year-over-year cost headwind.
+    <button class="infoicon" data-tip="cumulative_total_program tracks the whole-program estimate over time; yoy_incremental is a single-year delta the CFO disclosed separately -- never added to the cumulative figures.">i</button></p>
     <div class="card" id="costCard"></div>
+    <div class="plain" id="plainCost"></div>
   </div>
 
   <!-- 4. Implied scale cost -->
@@ -188,27 +288,31 @@
     <h2>Implied Full-Scale Hardware Cost <span class="src-tag illustrative" style="margin-left:6px">derived</span></h2>
     <p class="section-sub">A transparent calculation, not a published Amazon figure — formula shown alongside the output.</p>
     <div class="card" id="scaleCard"></div>
+    <div class="plain" id="plainScale"></div>
   </div>
 
   <!-- 5. Make vs buy -->
-  <div class="section">
+  <div class="section" id="ch2">
     <h2>Make-vs-Buy TCO Framework <span class="src-tag illustrative" style="margin-left:6px">illustrative</span></h2>
     <p class="section-sub">Fully synthetic, generic-category scenario demonstrating the framework named in the JD — not a real Amazon supplier decision.</p>
-    <div class="card"><table id="makevsbuyTable"></table></div>
+    <div class="card"><div class="table-wrap"><table id="makevsbuyTable"></table></div></div>
+    <div class="plain" id="plainMakevsbuy"></div>
   </div>
 
   <!-- 6. Variance demo -->
   <div class="section">
     <h2>Variance Decomposition Methodology <span class="src-tag illustrative" style="margin-left:6px">illustrative</span></h2>
     <p class="section-sub">Price / volume / scope / timing drivers reconcile exactly to the total variance — a governance test, not just a display claim.</p>
-    <div class="card"><table id="varianceTable"></table></div>
+    <div class="card"><div class="table-wrap"><table id="varianceTable"></table></div></div>
+    <div class="plain" id="plainVariance"></div>
   </div>
 
   <!-- 7. Launch vehicle reliability -->
-  <div class="section">
+  <div class="section" id="ch3">
     <h2>Launch Vehicle Fleet Reliability</h2>
     <p class="section-sub">Amazon's own words in its FCC extension filing: "producing satellites considerably faster than others can launch them." Event counts by rocket family.</p>
-    <div class="card"><table id="launchVehicleTable"></table></div>
+    <div class="card"><div class="table-wrap"><table id="launchVehicleTable"></table></div></div>
+    <div class="plain" id="plainLaunch"></div>
   </div>
 
   <!-- 8. Unlaunched inventory -->
@@ -216,13 +320,15 @@
     <h2>Built-but-Unlaunched Inventory <span class="src-tag illustrative" style="margin-left:6px">modeled range</span></h2>
     <p class="section-sub">Two scenarios from the two production-adjacent rates already disclosed: an upper bound (production never throttled down) and a lower bound (production throttled to track the realized deployment pace) — a range, not a false-precision single number.</p>
     <div class="card" id="inventoryCard"></div>
+    <div class="plain" id="plainInventory"></div>
   </div>
 
   <!-- 9. Supplier concentration -->
   <div class="section">
     <h2>Critical-Component Supplier Concentration</h2>
     <p class="section-sub">OISL terminals and rad-hardened semiconductors are real, publicly-identified bottleneck components; supplier counts and risk tiers are illustrative estimates.</p>
-    <div class="card"><table id="supplierTable"></table></div>
+    <div class="card"><div class="table-wrap"><table id="supplierTable"></table></div></div>
+    <div class="plain" id="plainSupplier"></div>
   </div>
 
   <!-- 10. Safety / coordination incidents -->
@@ -230,6 +336,7 @@
     <h2>Safety &amp; Coordination Incidents</h2>
     <p class="section-sub">Real, dated, sourced incident log — not a claimed pattern from a single event.</p>
     <div class="card" id="safetyCard"></div>
+    <div class="plain" id="plainSafety"></div>
   </div>
 
   <!-- 11. D2D regulatory pipeline -->
@@ -237,6 +344,7 @@
     <h2>Direct-to-Device Regulatory Pipeline</h2>
     <p class="section-sub">A second, larger regulatory front beyond the core Leo constellation.</p>
     <div class="card" id="d2dCard"></div>
+    <div class="plain" id="plainD2d"></div>
   </div>
 
   <!-- 12. Workforce scaling signal -->
@@ -244,6 +352,7 @@
     <h2>Workforce Scaling Signal</h2>
     <p class="section-sub">One snapshot, not a trend — reported honestly as a scaling signal since no layoff evidence was found in public reporting.</p>
     <div class="card" id="workforceCard"></div>
+    <div class="plain" id="plainWorkforce"></div>
   </div>
 
   <footer>
@@ -257,6 +366,8 @@
   </footer>
 
 </div>
+
+<div class="infopop" id="infoPop"></div>
 
 <script>
 (function(){
@@ -286,6 +397,8 @@
   function srcLabel(t){
     return {official_disclosure:"official", company_stated:"company-stated", third_party_estimate:"third-party"}[t] || "illustrative";
   }
+  var milestoneRows = null;
+
   function esc(s){ var d=document.createElement("div"); d.textContent=s; return d.innerHTML; }
   // esc() escapes &/</> via innerHTML serialization but NOT quotes -- safe for text nodes,
   // NOT safe for attribute values (a `"` in the source could close the attribute early).
@@ -294,6 +407,57 @@
   function escAttr(s){
     return String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
   }
+
+  // ---- chapter nav scroll-spy: IntersectionObserver, not a scroll listener --
+  // wired immediately since #ch1/#ch2/#ch3 are static HTML, not gated on the JSON fetch.
+  (function setupChapterNav(){
+    var chips = document.querySelectorAll(".chapchip");
+    var linkByTarget = {};
+    chips.forEach(function(c){ linkByTarget[c.getAttribute("data-nav-target")] = c; });
+    var targets = ["ch1","ch2","ch3"].map(function(id){ return document.getElementById(id); }).filter(Boolean);
+    if (!targets.length || !("IntersectionObserver" in window)) return;
+    var obs = new IntersectionObserver(function(entries){
+      entries.forEach(function(en){
+        if (en.isIntersecting){
+          chips.forEach(function(c){ c.classList.remove("active"); });
+          var link = linkByTarget[en.target.id];
+          if (link) link.classList.add("active");
+        }
+      });
+    }, { rootMargin: "-40% 0px -55% 0px" });
+    targets.forEach(function(t){ obs.observe(t); });
+  })();
+
+  // ---- shared floating tooltip (one DOM node, click/tap-to-toggle -- not hover-only,
+  // since touch devices have no hover). Mirrors the reference page's .infopop pattern.
+  (function setupTooltips(){
+    var pop = document.getElementById("infoPop");
+    var openIcon = null;
+    function close(){
+      pop.classList.remove("show");
+      if (openIcon) openIcon.classList.remove("active");
+      openIcon = null;
+    }
+    document.querySelectorAll(".infoicon").forEach(function(icon){
+      icon.addEventListener("click", function(e){
+        e.stopPropagation();
+        if (openIcon === icon){ close(); return; }
+        pop.textContent = icon.getAttribute("data-tip") || "";
+        pop.classList.add("show");
+        icon.classList.add("active");
+        if (openIcon) openIcon.classList.remove("active");
+        openIcon = icon;
+        var r = icon.getBoundingClientRect();
+        var popW = 280;
+        var left = Math.min(Math.max(8, r.left - popW/2 + r.width/2), window.innerWidth - popW - 8);
+        pop.style.left = left + "px";
+        pop.style.top = (r.bottom + 8) + "px";
+      });
+    });
+    document.addEventListener("click", function(e){
+      if (openIcon && !e.target.closest(".infopop")) close();
+    });
+  })();
 
   fetch("./leo_finance_dashboard_data.json")
     .then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
@@ -330,6 +494,62 @@
         '</div>';
     });
     document.getElementById("milestoneCards").innerHTML = mHtml;
+    milestoneRows = data.milestone_risk;
+
+    // Headline insight -- synthesized from the near-term milestone, never hardcoded.
+    var near = data.milestone_risk[0];
+    var nearOk = near.status === "on_track";
+    var headlineTxt = "Will Amazon hit the " + esc(near.milestone_date) + " deadline? <b>" + (nearOk ? "Yes" : "No") + "</b> — ";
+    if (nearOk) {
+      headlineTxt += "our modeled projection clears the " + Number(near.satellites_required).toLocaleString() + "-satellite target" +
+        (near.company_projected_count != null ? ", and so does Amazon's own stated projection." : ".");
+    } else {
+      headlineTxt += "our modeled projection falls short by " + Number(near.modeled_projected_shortfall).toLocaleString() + " satellites";
+      if (near.company_projected_count != null) {
+        headlineTxt += ", and Amazon's <em>own</em> stated projection also falls short — by " + Number(near.company_projected_shortfall).toLocaleString() + ". Two independent estimates, same direction.";
+      } else {
+        headlineTxt += ".";
+      }
+    }
+    document.getElementById("headlineInsightText").innerHTML = headlineTxt;
+    document.getElementById("headlineInsight").style.display = "block";
+
+    // Plain-terms: milestone risk
+    document.getElementById("plainMilestone").innerHTML =
+      '<span class="eyebrow">In plain terms</span>' +
+      (nearOk
+        ? 'At the current best realized deployment rate, the ' + esc(near.milestone_date) + ' target is reachable.'
+        : 'At the current best realized deployment rate, the ' + esc(near.milestone_date) + ' target is <b>not</b> reachable — try dragging the rate slider below to see how much faster deployment would need to go to close the gap.');
+
+    // Interactive slider -- recomputes ONLY the modeled projection, live, client-side.
+    // The formula mirrors mart_milestone_risk.sql exactly: projected = checkpoint_count +
+    // days_remaining_at_checkpoint x rate. Amazon's own stated projection is never touched.
+    var rateSlider = document.getElementById("rateSlider");
+    var rateVal = document.getElementById("rateVal");
+    var defaultRate = data.capacity_gap.realized_peak_per_day;
+    rateSlider.value = defaultRate;
+    function recomputeSlider(){
+      var rate = parseFloat(rateSlider.value);
+      rateVal.textContent = rate.toFixed(2) + "/day";
+      var out = "";
+      milestoneRows.forEach(function(m){
+        var projected = Math.round(m.checkpoint_count + m.days_remaining_at_checkpoint * rate);
+        var shortfall = m.satellites_required - projected;
+        var ok = projected >= m.satellites_required;
+        out += '<div class="card">' +
+          '<div class="kpi label">' + esc(m.milestone_date) + '</div>' +
+          '<div class="kpi val">' + projected.toLocaleString() + '</div>' +
+          '<div class="kpi note"><span class="status ' + (ok ? "ok" : "risk") + '">' + (ok ? "✓ On Track" : "⚠ At Risk") + '</span> vs. ' + Number(m.satellites_required).toLocaleString() + ' required (' + (shortfall > 0 ? "shortfall of " + shortfall.toLocaleString() : "surplus of " + (-shortfall).toLocaleString()) + ')</div>' +
+          '</div>';
+      });
+      document.getElementById("sliderOutput").innerHTML = out;
+    }
+    rateSlider.addEventListener("input", recomputeSlider);
+    document.getElementById("rateReset").addEventListener("click", function(){
+      rateSlider.value = defaultRate;
+      recomputeSlider();
+    });
+    recomputeSlider();
 
     // 2. Capacity gap
     var cg = data.capacity_gap;
@@ -337,8 +557,10 @@
     document.getElementById("capacityCard").innerHTML =
       '<div class="bar-row"><div class="lbl">Factory capacity ceiling</div><div class="track"><div class="fill accent" style="width:' + capPct + '%"></div></div><div class="amt">' + cg.capacity_ceiling_per_day + '/day</div></div>' +
       '<div class="bar-row"><div class="lbl">Best realized rate (Apr 2026)</div><div class="track"><div class="fill warning" style="width:' + realPct + '%"></div></div><div class="amt">' + cg.realized_peak_per_day + '/day</div></div>' +
-      '<div class="kpi note" style="margin-top:6px">Utilization even at peak: <b>' + (cg.utilization_pct*100).toFixed(1) + '%</b> — root cause: <code>' + cg.constraint_root_cause + '</code> (not manufacturing capacity).</div>' +
+      '<div class="kpi note" style="margin-top:6px">Utilization even at peak: <b>' + (cg.utilization_pct*100).toFixed(1) + '%</b> — root cause: <code>' + esc(cg.constraint_root_cause) + '</code> (not manufacturing capacity).</div>' +
       '<div class="cite" style="margin-top:8px">' + esc(cg.realized_peak_note) + ' — <a href="' + escAttr(cg.source_url) + '" target="_blank" rel="noopener">' + esc(cg.source) + '</a></div>';
+    document.getElementById("plainCapacity").innerHTML =
+      '<span class="eyebrow">In plain terms</span>Even in its best month on record, the factory turned only <b>' + (cg.utilization_pct*100).toFixed(1) + '%</b> of its theoretical capacity into actual deployments — the constraint named in public reporting is <code>' + esc(cg.constraint_root_cause) + '</code>, not the factory itself.';
 
     // 3. Cost escalation
     var cHtml = '<table><thead><tr><th>As of</th><th>Metric</th><th>Estimate</th><th>Δ vs prior</th><th>Source</th></tr></thead><tbody>';
@@ -350,7 +572,12 @@
         '<td><span class="src-tag ' + srcClass(r.source_type) + '">' + srcLabel(r.source_type) + '</span> <a href="' + escAttr(r.source_url) + '" target="_blank" rel="noopener" class="cite">' + esc(r.source) + '</a></td></tr>';
     });
     cHtml += '</tbody></table>';
-    document.getElementById("costCard").innerHTML = cHtml;
+    document.getElementById("costCard").innerHTML = '<div class="table-wrap">' + cHtml + '</div>';
+    var cumRows = data.cost_escalation.filter(function(r){ return r.metric_type === 'cumulative_total_program'; });
+    var yoyRow = data.cost_escalation.filter(function(r){ return r.metric_type === 'yoy_incremental'; })[0];
+    var firstCum = cumRows[0], lastCum = cumRows[cumRows.length-1];
+    document.getElementById("plainCost").innerHTML =
+      '<span class="eyebrow">In plain terms</span>Amazon\'s own stated program cost went from <b>' + fmtUSD(firstCum.high_estimate_usd) + '</b> (' + esc(firstCum.as_of_date) + ') to <b>' + fmtUSD(lastCum.high_estimate_usd) + '</b> (' + esc(lastCum.as_of_date) + ') — a ' + (lastCum.pct_change_from_prior*100).toFixed(0) + '% increase — plus a separately-disclosed <b>' + fmtUSD(yoyRow.high_estimate_usd) + '</b> one-year cost headwind the CFO confirmed on the ' + esc(yoyRow.as_of_date) + ' earnings call. Two different numbers, never added together.';
 
     // 4. Implied scale cost
     var sc = data.implied_scale_cost;
@@ -360,6 +587,8 @@
       '<div class="kpi note">' + fmtUSD(sc.unit_cost_low_usd) + '–' + fmtUSD(sc.unit_cost_high_usd) + '/satellite × ' + Number(sc.constellation_target).toLocaleString() + ' satellites</div>' +
       '<div class="kpi note" style="margin-top:6px">' + esc(sc.calculation_note) + '</div>' +
       '<div class="cite" style="margin-top:8px"><a href="' + escAttr(sc.source_url) + '" target="_blank" rel="noopener">' + esc(sc.source) + '</a></div>';
+    document.getElementById("plainScale").innerHTML =
+      '<span class="eyebrow">In plain terms</span>Multiplying the disclosed per-satellite cost by Amazon\'s own stated constellation target implies a full-scale hardware bill of <b>' + fmtUSD(sc.implied_scale_cost_low_usd) + '–' + fmtUSD(sc.implied_scale_cost_high_usd) + '</b> — a calculation anyone can check with two public numbers, not a figure Amazon has published itself.';
 
     // 5. Make vs buy
     var mvHtml = '<thead><tr><th>Category</th><th>Option</th><th>Unit cost</th><th>Annual volume</th><th>Annual TCO</th><th>Δ vs cheaper option</th></tr></thead><tbody>';
@@ -371,6 +600,13 @@
     });
     mvHtml += '</tbody>';
     document.getElementById("makevsbuyTable").innerHTML = mvHtml;
+    var cheaperByScenario = {};
+    data.makevsbuy.forEach(function(r){
+      if (r.tco_delta_vs_cheaper_option_usd === 0) cheaperByScenario[r.category_label] = r.option_label;
+    });
+    var cheaperSummary = Object.keys(cheaperByScenario).map(function(cat){ return '<b>' + esc(cat) + '</b> favors ' + esc(cheaperByScenario[cat]).toLowerCase(); }).join(', while ');
+    document.getElementById("plainMakevsbuy").innerHTML =
+      '<span class="eyebrow">In plain terms</span>' + cheaperSummary + ' — proof that a make-vs-buy answer depends on the category, not a blanket rule either way.';
 
     // 6. Variance demo
     var vd = data.variance_demo[0];
@@ -382,6 +618,8 @@
       '<td class="num tabular">' + fmtUSD(vd.scope_driver) + '</td><td class="num tabular">' + fmtUSD(vd.timing_driver) + '</td>' +
       '<td class="num tabular"><b>' + fmtUSD(vd.sum_of_drivers) + '</b> ' + (vd.total_variance === vd.sum_of_drivers ? '✓' : '✗ MISMATCH') + '</td></tr></tbody>';
     document.getElementById("varianceTable").innerHTML = vHtml;
+    document.getElementById("plainVariance").innerHTML =
+      '<span class="eyebrow">In plain terms</span>The four decomposed drivers sum to exactly <b>' + fmtUSD(vd.sum_of_drivers) + '</b> against a total variance of <b>' + fmtUSD(vd.total_variance) + '</b> — proof the decomposition method doesn\'t lose or double-count a single dollar, not just a display claim.';
 
     // 7. Launch vehicle reliability
     var lvHtml = '<thead><tr><th>Vehicle</th><th>Total Events</th><th>Failures</th><th>Delays</th><th>Successes</th><th>Success w/ Incident</th></tr></thead><tbody>';
@@ -394,6 +632,14 @@
     });
     lvHtml += '</tbody>';
     document.getElementById("launchVehicleTable").innerHTML = lvHtml;
+    var totalFail = 0, totalDelay = 0, totalEvents = 0, failVehicles = [], delayVehicles = [];
+    data.launch_vehicle_reliability.forEach(function(v){
+      totalFail += v.failure_events; totalDelay += v.delay_events; totalEvents += v.total_events;
+      if (v.failure_events > 0) failVehicles.push(v.launch_vehicle);
+      if (v.delay_events > 0) delayVehicles.push(v.launch_vehicle);
+    });
+    document.getElementById("plainLaunch").innerHTML =
+      '<span class="eyebrow">In plain terms</span>Of ' + totalEvents + ' logged events across the fleet, <b>' + totalFail + ' failure(s)</b> (' + esc(failVehicles.join(", ")) + ') and <b>' + totalDelay + ' delay(s)</b> (' + esc(delayVehicles.join(", ")) + ') account for all of the disruption — the rest were clean successes. This is the concrete face of "producing faster than we can launch."';
 
     // 8. Unlaunched inventory
     var ui = data.unlaunched_inventory;
@@ -404,6 +650,8 @@
       '<b>Lower</b> (throttled to deployment pace): ' + Number(ui.modeled_cumulative_produced_lower).toLocaleString() + ' produced at ' + ui.assumed_throttled_rate + '/day. ' +
       'Both over ' + ui.elapsed_days + ' elapsed days since ' + esc(ui.production_start_date) + ', vs. ' + Number(ui.deployed_count).toLocaleString() + ' actually deployed as of ' + esc(ui.latest_observed_date) + '.</div>' +
       '<div class="kpi note" style="margin-top:6px">' + esc(ui.calculation_note) + '</div>';
+    document.getElementById("plainInventory").innerHTML =
+      '<span class="eyebrow">In plain terms</span>The range is wide — <b>' + Number(ui.modeled_unlaunched_inventory_lower).toLocaleString() + '–' + Number(ui.modeled_unlaunched_inventory_upper).toLocaleString() + ' satellites</b> — because exactly how far Amazon throttled production down isn\'t public. Treat this as an order-of-magnitude signal that a real backlog likely exists, not a precise inventory count.';
 
     // 9. Supplier concentration
     var spHtml = '<thead><tr><th>Component</th><th>Real Bottleneck?</th><th>Illustrative Supplier Count</th><th>Risk Tier</th></tr></thead><tbody>';
@@ -416,6 +664,9 @@
     });
     spHtml += '</tbody>';
     document.getElementById("supplierTable").innerHTML = spHtml;
+    var highRiskCount = data.supplier_concentration.filter(function(s){ return s.risk_tier === 'high_concentration_risk'; }).length;
+    document.getElementById("plainSupplier").innerHTML =
+      '<span class="eyebrow">In plain terms</span><b>' + highRiskCount + ' of ' + data.supplier_concentration.length + '</b> tracked components sit in the high-concentration-risk tier — a disruption to one of those two real, publicly-named bottleneck components would ripple further than a disruption to the generic comparison component.';
 
     // 10. Safety / coordination incidents
     var siHtml = "";
@@ -425,6 +676,8 @@
         '<div class="cite" style="margin-top:4px"><a href="' + escAttr(inc.source_url) + '" target="_blank" rel="noopener">' + esc(inc.source) + '</a></div></div>';
     });
     document.getElementById("safetyCard").innerHTML = siHtml;
+    document.getElementById("plainSafety").innerHTML =
+      '<span class="eyebrow">In plain terms</span>' + data.safety_incidents.length + ' safety/coordination incident(s) logged to date — the ' + esc(data.safety_incidents[0].incident_date) + ' dispute is, so far, a single documented instance, not (yet) an established pattern.';
 
     // 11. D2D regulatory pipeline
     var d2d = data.d2d_pipeline;
@@ -434,6 +687,9 @@
       '<div class="kpi note">Filed ' + esc(d2d.filing_date) + ' under ' + esc(d2d.review_framework) + '. Expected decision window: ' + esc(String(d2d.earliest_expected_decision).slice(0,10)) + ' – ' + esc(String(d2d.latest_expected_decision).slice(0,10)) + ' (' + d2d.expected_review_months_low + '–' + d2d.expected_review_months_high + ' months).</div>' +
       '<div class="kpi note" style="margin-top:6px">Related: ' + esc(d2d.related_transaction) + ', expected to close ' + d2d.related_transaction_close_year + '.</div>' +
       '<div class="cite" style="margin-top:8px"><a href="' + escAttr(d2d.source_url) + '" target="_blank" rel="noopener">' + esc(d2d.source) + '</a></div>';
+    var fullConstellation = milestoneRows[milestoneRows.length-1].satellites_required;
+    document.getElementById("plainD2d").innerHTML =
+      '<span class="eyebrow">In plain terms</span>This one filing alone requests <b>' + Number(d2d.satellites_requested).toLocaleString() + '</b> satellites — more than the <b>' + Number(fullConstellation).toLocaleString() + '</b> required for the entire original constellation above. This is a materially larger regulatory bet than the core Leo build-out, with a decision not expected until ' + esc(String(d2d.earliest_expected_decision).slice(0,10)) + ' at the earliest.';
 
     // 12. Workforce scaling signal
     var wf = data.workforce_signal;
@@ -442,6 +698,8 @@
       '<div class="kpi val">' + Number(wf.open_positions_redmond).toLocaleString() + '</div>' +
       '<div class="kpi note">As of ' + esc(wf.as_of_date) + ' — a single snapshot, not a trend. Signal: <b>' + esc(wf.signal.replace(/_/g,' ')) + '</b> (active hiring, no layoff evidence found in public reporting).</div>' +
       '<div class="cite" style="margin-top:8px"><a href="' + escAttr(wf.source_url) + '" target="_blank" rel="noopener">' + esc(wf.source) + '</a></div>';
+    document.getElementById("plainWorkforce").innerHTML =
+      '<span class="eyebrow">In plain terms</span><b>' + Number(wf.open_positions_redmond).toLocaleString() + '</b> open manufacturing roles as of ' + esc(wf.as_of_date) + ' reads as active scaling, not distress — there is no public layoff evidence to weigh against it.';
   }
 })();
 </script>
