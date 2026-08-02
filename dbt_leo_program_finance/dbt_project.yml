@@ -164,6 +164,7 @@ seeds:
         subcategory: varchar
         plan_amount_usd: bigint
         actual_amount_usd: bigint
+        percent_complete: double
         is_illustrative: boolean
         notes: varchar
     raw_cashflow_trend:

@@ -7,6 +7,7 @@ select
     cast(subcategory as varchar) as subcategory,
     cast(plan_amount_usd as bigint) as plan_amount_usd,
     cast(actual_amount_usd as bigint) as actual_amount_usd,
+    cast(percent_complete as double) as percent_complete,
     cast(is_illustrative as boolean) as is_illustrative,
     cast(notes as varchar) as notes
 from {{ ref('raw_cashflow_breakdown') }}

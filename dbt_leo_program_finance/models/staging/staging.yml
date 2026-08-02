@@ -178,10 +178,12 @@ models:
                 values: [true]
 
   - name: stg_cashflow_breakdown
-    description: "Fully synthetic latest-period direct/indirect cash-flow breakdown, 22 subcategories."
+    description: "Fully synthetic latest-period direct/indirect cash-flow breakdown, 22 subcategories, with an illustrative percent_complete feeding per-row EVM."
     columns:
       - name: subcategory
         tests: [not_null, unique]
+      - name: percent_complete
+        tests: [not_null]
       - name: is_illustrative
         tests:
           - not_null

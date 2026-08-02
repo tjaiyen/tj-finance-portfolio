@@ -70,7 +70,15 @@ number.
     tracker: a 3-level breakdown (cost type -> 7 categories -> 22 subcategories) for the latest
     period, plus a Plan/Forecast/Actual trend where the forecast for future periods is *computed*
     from the elapsed-period run-rate (the same checkpoint-plus-remaining-times-rate shape as
-    `mart_milestone_risk`), never hardcoded
+    `mart_milestone_risk`), never hardcoded. `mart_cashflow_breakdown` also carries per-subcategory
+    EVM (EV = plan x `percent_complete`, the one new illustrative input; CV/SV/CPI/SPI follow directly)
+  - `mart_evm_rollup` -- program-level Earned Value Management over the same 22 subcategories:
+    BAC/AC/EV/CV/SV/CPI/SPI, 3 EAC methods (typical, CPI-based, composite), VAC, and TCPI-to-EAC.
+    Deliberately *not* anchored to the real disclosed program-cost figures elsewhere on this page
+    (the implied hardware-only bill and the whole-program cost cover different cost scope -- mixing
+    them as BAC/AC would compare apples to oranges). In this scenario AC already exceeds BAC, which
+    makes TCPI-to-BAC mathematically negative/degenerate -- surfaced as the finding itself, not
+    smoothed over; TCPI-to-EAC is the metric that's actually interpretable here
   - `mart_pnl_waterfall` -- illustrative Revenue - Direct COGS - Indirect OpEx = Margin bridge,
     derived from `mart_cashflow_breakdown`'s own totals, not a second disconnected model
   - `mart_program_risk_index` -- a **rule-based** Program Delivery Risk Index over 5 weighted
@@ -80,6 +88,16 @@ number.
     Deliberately does *not* score capacity-utilization-gap as a separate input, since it and launch
     reliability both derive from the same `realized_peak_per_day` number and would double-count
     one root cause
+  - `mart_operational_efficiency_trend` -- extends `mart_unlaunched_inventory`'s exact upper/lower
+    methodology across every real observed checkpoint (not just the latest), plus the REAL
+    interval-to-interval launch rate and utilization % between each pair of checkpoints (pure
+    arithmetic on real dates/counts, not modeled at all). Zero new seed data -- reuses the existing
+    checkpoint and rate seeds entirely. Only 3 real observed checkpoints exist, so this is a thin
+    trend (3 points), said explicitly rather than implied away
+  - `mart_launch_disruption_timeline` -- real, dated per-event disruption log (distinct from
+    `mart_launch_vehicle_reliability`'s aggregated-by-vehicle rollup), used to overlay actual
+    failures/delays onto the efficiency trend; 2 of 3 logged disruptions have no disclosed exact
+    date and are surfaced separately in narrative rather than assigned a fabricated interval
 - **tests**
   - data tests -- not_null/unique, `accepted_values` on every categorical/status column
   - singular tests -- variance drivers must reconcile exactly to the total (nothing lost or
@@ -107,7 +125,7 @@ dbt_leo_program_finance/
            raw_cashflow_breakdown.csv, raw_cashflow_trend.csv, raw_pnl_assumptions.csv
   models/
     staging/   18 typed staging models + staging.yml
-    marts/     19 marts + marts.yml
+    marts/     22 marts + marts.yml
   tests/   assert_variance_drivers_reconcile.sql, assert_illustrative_marts_are_flagged.sql,
            assert_unlaunched_inventory_range_ordered.sql
   scripts/ export_dashboard_data.py -- exports all marts to the site dashboard's JSON

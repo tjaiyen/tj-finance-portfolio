@@ -146,10 +146,17 @@ def main():
     cashflow_breakdown = rows_as_dicts(con.execute("""
         select period, cost_type, cost_type_order, category, category_order, subcategory,
                plan_amount_usd, actual_amount_usd, variance_usd, variance_pct,
+               percent_complete, ev_usd, cv_usd, sv_usd, cpi, spi,
                is_illustrative, notes
         from main.mart_cashflow_breakdown
         order by cost_type_order, category_order, subcategory
     """))
+
+    evm_rollup = rows_as_dicts(con.execute("""
+        select bac, ac, ev, cv, sv, cpi, spi, eac_typical, eac_cpi, eac_composite,
+               vac, ac_exceeds_bac, tcpi_to_bac, tcpi_to_eac, is_illustrative, notes
+        from main.mart_evm_rollup
+    """))[0]
 
     cashflow_trend = rows_as_dicts(con.execute("""
         select period, plan_amount_usd, actual_amount_usd, forecast_amount_usd,
@@ -171,6 +178,23 @@ def main():
                supplier_attribution_pct, safety_attribution_pct, is_illustrative, notes
         from main.mart_program_risk_index
     """))[0]
+
+    operational_efficiency_trend = rows_as_dicts(con.execute("""
+        select as_of_date, actual_cumulative_deployed, elapsed_days_since_start,
+               modeled_cumulative_built_upper, modeled_cumulative_built_lower,
+               modeled_backlog_upper, modeled_backlog_lower, interval_start_date,
+               interval_days, interval_satellites, interval_realized_rate_per_day,
+               interval_utilization_pct, capacity_ceiling_per_day, calculation_note
+        from main.mart_operational_efficiency_trend
+        order by as_of_date
+    """))
+
+    launch_disruption_timeline = rows_as_dicts(con.execute("""
+        select event_date, launch_vehicle, event_type, date_confidence, has_exact_date,
+               description, source, source_url
+        from main.mart_launch_disruption_timeline
+        order by event_date
+    """))
 
     payload = {
         "project": "dbt_leo_program_finance",
@@ -202,6 +226,9 @@ def main():
         "cashflow_trend": cashflow_trend,
         "pnl_waterfall": pnl_waterfall,
         "program_risk_index": program_risk_index,
+        "operational_efficiency_trend": operational_efficiency_trend,
+        "launch_disruption_timeline": launch_disruption_timeline,
+        "evm_rollup": evm_rollup,
     }
 
     def default(o):

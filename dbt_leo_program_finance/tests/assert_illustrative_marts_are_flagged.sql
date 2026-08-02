@@ -73,3 +73,10 @@ select 'mart_supplier_concentration_risk' as mart_name, count(*) as unflagged_ro
 from {{ ref('mart_supplier_concentration_risk') }}
 where is_illustrative is distinct from true
 having count(*) > 0
+
+union all
+
+select 'mart_evm_rollup' as mart_name, count(*) as unflagged_rows
+from {{ ref('mart_evm_rollup') }}
+where is_illustrative is distinct from true
+having count(*) > 0

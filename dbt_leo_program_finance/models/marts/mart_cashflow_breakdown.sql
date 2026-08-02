@@ -30,6 +30,15 @@ select
     actual_amount_usd,
     actual_amount_usd - plan_amount_usd as variance_usd,
     round((actual_amount_usd - plan_amount_usd) / plan_amount_usd::double * 100, 1) as variance_pct,
+    percent_complete,
+    -- EVM per subcategory: PV = plan_amount_usd, AC = actual_amount_usd (both already
+    -- above), EV = plan x percent_complete (the one new illustrative input). CV/SV/CPI/SPI
+    -- follow directly -- no hidden assumptions beyond percent_complete itself.
+    round(plan_amount_usd * percent_complete, 0) as ev_usd,
+    round(plan_amount_usd * percent_complete, 0) - actual_amount_usd as cv_usd,
+    round(plan_amount_usd * percent_complete, 0) - plan_amount_usd as sv_usd,
+    round((plan_amount_usd * percent_complete) / actual_amount_usd::double, 3) as cpi,
+    round(percent_complete, 3) as spi,
     is_illustrative,
     notes
 from base

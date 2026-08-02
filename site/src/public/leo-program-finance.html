@@ -300,7 +300,7 @@
 <div class="bar">
   <div class="bar-in">
     <a class="brand" href="./" style="text-decoration:none; color:inherit" title="Back to portfolio"><span class="dot"></span><div>Leo Program Finance<small>dbt + DuckDB · illustrative</small></div></a>
-    <span class="badge">192 tests passing</span>
+    <span class="badge">214 tests passing</span>
     <div class="right">
       <button class="icobtn" id="themeBtn" aria-pressed="false" title="Toggle theme">🌓 Theme</button>
     </div>
@@ -460,14 +460,24 @@
   <!-- 6b. Direct/indirect cash-flow tracker -->
   <div class="section">
     <h2>Direct &amp; Indirect Cash-Flow Tracker <span class="src-tag illustrative" style="margin-left:6px">illustrative</span></h2>
-    <p class="section-sub">Plan vs. Forecast vs. Actual cash burn, broken into direct and indirect cost pools across 7 categories and 22 subcategories — the multi-level cost breakdown a Finance Manager would actually walk a program with.
-    <button class="infoicon" data-tip="Forecast = actual-to-date + (remaining periods x the same run-rate observed so far) -- the identical checkpoint-plus-remaining-times-rate formula already used for the milestone projection above, just applied to cash.">i</button></p>
+    <p class="section-sub">Plan vs. Forecast vs. Actual cash burn, broken into direct and indirect cost pools across 7 categories and 22 subcategories — the multi-level cost breakdown a Finance Manager would actually walk a program with. The table below also carries Earned Value (EV), CPI, and SPI per subcategory — the same Plan/Actual columns, one more analytical lens, not a second dataset.
+    <button class="infoicon" data-tip="Forecast = actual-to-date + (remaining periods x the same run-rate observed so far) -- the identical checkpoint-plus-remaining-times-rate formula already used for the milestone projection above, just applied to cash. EV = Plan x percent_complete, the one new illustrative input feeding CPI/SPI.">i</button></p>
     <div class="card"><div class="chartbox" id="cashflowTrendChart"></div>
       <div class="chart-legend"><span><span class="sw" style="background:rgb(var(--c-text-secondary))"></span>Plan</span><span><span class="sw" style="background:rgb(var(--c-accent))"></span>Forecast</span><span><span class="sw" style="background:rgb(var(--c-success))"></span>Actual</span></div>
     </div>
     <div class="plain" id="plainCashflowTrend"></div>
     <div class="table-wrap card" style="margin-top:14px"><table id="cashflowBreakdownTable"></table></div>
     <div class="plain" id="plainCashflowBreakdown"></div>
+  </div>
+
+  <!-- 6b2. Earned Value Management roll-up -->
+  <div class="section">
+    <h2>Earned Value Management <span class="src-tag illustrative" style="margin-left:6px">illustrative</span></h2>
+    <p class="section-sub">BAC/AC/EV summed straight from the 22-subcategory breakdown above — same period, same cost scope, nothing re-derived from a different source.
+    <button class="infoicon" data-tip="Deliberately not anchored to the real disclosed program-cost figures elsewhere on this page: the implied hardware-only bill and the whole-program cost cover different cost scope, so mixing them as BAC/AC would compare apples to oranges dressed up as one metric.">i</button></p>
+    <div class="grid3" id="evmSummaryCards"></div>
+    <div class="card" style="margin-top:12px" id="evmEacCard"></div>
+    <div class="plain" id="plainEvm"></div>
   </div>
 
   <!-- 6c. Cost-driver Pareto -->
@@ -504,6 +514,25 @@
     <p class="section-sub">Two scenarios from the two production-adjacent rates already disclosed: an upper bound (production never throttled down) and a lower bound (production throttled to track the realized deployment pace) — a range, not a false-precision single number.</p>
     <div class="card" id="inventoryCard"></div>
     <div class="plain" id="plainInventory"></div>
+  </div>
+
+  <!-- 8b. Manufacturing-to-launch efficiency trend -->
+  <div class="section">
+    <h2>Manufacturing-to-Launch Efficiency Trend</h2>
+    <p class="section-sub">The two cards above, frozen at their latest values, told as a trend instead — the same real checkpoints and disclosed rates, computed at every observation instead of just the newest one.
+    <button class="infoicon" data-tip="Only 3 real observed checkpoints exist in public reporting, so this is a thin trend (3 points), not a rich monthly series -- said explicitly, not implied away.">i</button></p>
+    <div class="chart-grid2">
+      <div class="card">
+        <div class="kpi label">Real launch utilization by interval</div>
+        <div class="chartbox" id="utilizationChart"></div>
+      </div>
+      <div class="card">
+        <div class="kpi label">Modeled backlog range vs. actual deployed</div>
+        <div class="chartbox" id="backlogTrendChart"></div>
+        <div class="chart-legend"><span><span class="sw" style="background:rgb(var(--c-success))"></span>Actual deployed</span><span><span class="sw" style="background:rgb(var(--c-warning))"></span>Upper bound</span><span><span class="sw" style="background:rgb(var(--c-accent))"></span>Lower bound</span></div>
+      </div>
+    </div>
+    <div class="plain" id="plainEfficiencyTrend"></div>
   </div>
 
   <!-- 9. Supplier concentration -->
@@ -1297,22 +1326,31 @@
     // 6b (cont). Cash-flow breakdown -- 3-level table: cost type > category >
     // subcategory. domain-row/category-row group headers, matching the KPI
     // scorecard's grouping pattern one level deeper.
-    var cfHtml = '<thead><tr><th>Subcategory</th><th>Plan</th><th>Actual</th><th>Variance</th></tr></thead><tbody>';
+    // EV/CPI/SPI extend this same table (not a second table) -- PV is already the
+    // Plan column, AC is already Actual; EV = Plan x percent_complete is the one new
+    // illustrative input per subcategory. CPI/SPI shown as status pills (>=1 good,
+    // <1 behind) so the worst performers are scannable without reading raw numbers.
+    var cfHtml = '<thead><tr><th>Subcategory</th><th>Plan (PV)</th><th>Actual (AC)</th><th>Variance</th><th>Earned (EV)</th><th>CPI</th><th>SPI</th></tr></thead><tbody>';
     var lastCostType = null, lastCategory = null;
     data.cashflow_breakdown.forEach(function(r){
       if (r.cost_type !== lastCostType){
-        cfHtml += '<tr class="domain-row"><td colspan="4">' + esc(r.cost_type) + ' costs</td></tr>';
+        cfHtml += '<tr class="domain-row"><td colspan="7">' + esc(r.cost_type) + ' costs</td></tr>';
         lastCostType = r.cost_type; lastCategory = null;
       }
       if (r.category !== lastCategory){
-        cfHtml += '<tr class="category-row"><td colspan="4">' + esc(r.category) + '</td></tr>';
+        cfHtml += '<tr class="category-row"><td colspan="7">' + esc(r.category) + '</td></tr>';
         lastCategory = r.category;
       }
       var varClass = r.variance_usd > 0 ? 'risk' : (r.variance_usd < 0 ? 'ok' : 'muted');
+      var cpiClass = r.cpi >= 1 ? 'ok' : 'risk';
+      var spiClass = r.spi >= 1 ? 'ok' : 'risk';
       cfHtml += '<tr><td>' + esc(r.subcategory) + '</td>' +
         '<td class="num tabular">' + fmtUSD(r.plan_amount_usd) + '</td>' +
         '<td class="num tabular">' + fmtUSD(r.actual_amount_usd) + '</td>' +
-        '<td class="num tabular"><span class="status ' + varClass + '">' + (r.variance_usd>0?'+':'') + fmtUSD(r.variance_usd) + ' (' + (r.variance_pct>0?'+':'') + r.variance_pct + '%)</span></td></tr>';
+        '<td class="num tabular"><span class="status ' + varClass + '">' + (r.variance_usd>0?'+':'') + fmtUSD(r.variance_usd) + ' (' + (r.variance_pct>0?'+':'') + r.variance_pct + '%)</span></td>' +
+        '<td class="num tabular">' + fmtUSD(r.ev_usd) + '</td>' +
+        '<td class="num tabular"><span class="status ' + cpiClass + '">' + r.cpi.toFixed(2) + '</span></td>' +
+        '<td class="num tabular"><span class="status ' + spiClass + '">' + r.spi.toFixed(2) + '</span></td></tr>';
     });
     cfHtml += '</tbody>';
     document.getElementById("cashflowBreakdownTable").innerHTML = cfHtml;
@@ -1321,6 +1359,32 @@
     document.getElementById("plainCashflowBreakdown").innerHTML =
       '<span class="lp-tag">Applying: Dive Deep</span><br>' +
       '<span class="eyebrow">In plain terms</span>The single largest overrun this period is <b>' + esc(worstDriver.subcategory) + '</b> (' + esc(worstDriver.category) + ', ' + esc(worstDriver.cost_type) + ') at ' + fmtUSD(worstDriver.variance_usd) + ' over plan — see the ranked breakdown below.';
+
+    // 6b2. EVM roll-up -- BAC/AC/EV are literally the sums of the breakdown table's
+    // own Plan/Actual/EV columns, same period, same cost scope, nothing re-derived.
+    var evm = data.evm_rollup;
+    var cpiClass2 = evm.cpi >= 1 ? 'ok' : 'risk';
+    var spiClass2 = evm.spi >= 1 ? 'ok' : 'risk';
+    document.getElementById("evmSummaryCards").innerHTML =
+      '<div class="card"><div class="kpi label">Budget at Completion (BAC)</div><div class="kpi val">' + fmtUSD(evm.bac) + '</div><div class="kpi note">Planned, this period</div></div>' +
+      '<div class="card"><div class="kpi label">Actual Cost (AC)</div><div class="kpi val">' + fmtUSD(evm.ac) + '</div><div class="kpi note">Spent so far</div></div>' +
+      '<div class="card"><div class="kpi label">Earned Value (EV)</div><div class="kpi val">' + fmtUSD(evm.ev) + '</div><div class="kpi note"><span class="status ' + cpiClass2 + '">CPI ' + evm.cpi.toFixed(3) + '</span> <span class="status ' + spiClass2 + '" style="margin-left:6px">SPI ' + evm.spi.toFixed(3) + '</span></div></div>';
+
+    document.getElementById("evmEacCard").innerHTML =
+      '<div class="kpi label">Estimate at Completion (EAC) — 3 methods</div>' +
+      '<div class="table-wrap" style="margin-top:8px"><table><thead><tr><th>Method</th><th>EAC</th><th>Formula</th></tr></thead><tbody>' +
+      '<tr><td>Typical</td><td class="num tabular">' + fmtUSD(evm.eac_typical) + '</td><td style="white-space:normal;font-size:11.5px;color:rgb(var(--c-text-secondary))">AC + (BAC − EV) — assumes remaining work runs to plan</td></tr>' +
+      '<tr><td>CPI-based <b>(primary)</b></td><td class="num tabular">' + fmtUSD(evm.eac_cpi) + '</td><td style="white-space:normal;font-size:11.5px;color:rgb(var(--c-text-secondary))">AC + (BAC − EV) ÷ CPI</td></tr>' +
+      '<tr><td>Composite</td><td class="num tabular">' + fmtUSD(evm.eac_composite) + '</td><td style="white-space:normal;font-size:11.5px;color:rgb(var(--c-text-secondary))">AC + (BAC − EV) ÷ (CPI×SPI) — also charges the schedule slip</td></tr>' +
+      '</tbody></table></div>' +
+      '<div class="kpi note" style="margin-top:10px">VAC (vs. CPI-based EAC): <b style="color:rgb(var(--c-danger))">' + fmtUSD(evm.vac) + '</b></div>';
+
+    document.getElementById("plainEvm").innerHTML =
+      '<span class="lp-tag">Applying: Are Right, A Lot</span><br>' +
+      '<span class="eyebrow">In plain terms</span>' +
+      (evm.ac_exceeds_bac
+        ? 'Actual cost has already exceeded this period\'s entire planned budget (' + fmtUSD(evm.ac) + ' spent vs. ' + fmtUSD(evm.bac) + ' planned) before the work is even fully earned. That makes "recover to the original budget" not just unlikely — the math for it (TCPI-to-BAC) comes out negative, which is itself the finding, not an error. The forecast that actually means something from here is TCPI-to-EAC: <b>' + evm.tcpi_to_eac.toFixed(3) + '</b>, close to the current CPI by construction — remaining work would need to run about as efficiently as it has so far just to hit the already-revised forecast, not the original budget.'
+        : 'CPI ' + evm.cpi.toFixed(3) + ' and SPI ' + evm.spi.toFixed(3) + ' say how efficiently plan is converting into earned value; TCPI-to-BAC (' + evm.tcpi_to_bac.toFixed(3) + ') is what remaining work would need to average to still hit the original budget.');
 
     // 6c. Cost-driver Pareto -- derived from the breakdown above, not a new data
     // source. Ranked by overrun size; the 80%-cumulative count drives the narrative.
@@ -1414,6 +1478,45 @@
     document.getElementById("plainInventory").innerHTML =
       '<span class="lp-tag">Applying: Are Right, A Lot</span><br>' +
       '<span class="eyebrow">In plain terms</span>The range is wide — <b>' + Number(ui.modeled_unlaunched_inventory_lower).toLocaleString() + '–' + Number(ui.modeled_unlaunched_inventory_upper).toLocaleString() + ' satellites</b> — because exactly how far Amazon throttled production down isn\'t public. Treat this as an order-of-magnitude signal that a real backlog likely exists, not a precise inventory count.';
+
+    // 8b. Manufacturing-to-launch efficiency trend -- the capacity-gap and
+    // unlaunched-inventory cards above, computed at every real checkpoint instead
+    // of just the latest, so the range shows a trend rather than a snapshot.
+    var effTrend = data.operational_efficiency_trend;
+    document.getElementById("utilizationChart").innerHTML = svgVBars(
+      effTrend.map(function(r){ return r.as_of_date; }),
+      effTrend.map(function(r){ return r.interval_utilization_pct; }),
+      'rgb(var(--c-accent))',
+      function(v){ return v.toFixed(1) + '%'; }
+    );
+
+    var t0date = effTrend[0].as_of_date;
+    function xOfEff(d){ return daysBetween(t0date, d); }
+    var xMaxEff = xOfEff(effTrend[effTrend.length-1].as_of_date);
+    var actualPtsEff = effTrend.map(function(r){ return {x:xOfEff(r.as_of_date), y:r.actual_cumulative_deployed, label: r.as_of_date+' actual: '+Number(r.actual_cumulative_deployed).toLocaleString()}; });
+    var upperPtsEff = effTrend.map(function(r){ return {x:xOfEff(r.as_of_date), y:r.modeled_cumulative_built_upper, label: r.as_of_date+' modeled upper: '+Number(r.modeled_cumulative_built_upper).toLocaleString()}; });
+    var lowerPtsEff = effTrend.map(function(r){ return {x:xOfEff(r.as_of_date), y:r.modeled_cumulative_built_lower, label: r.as_of_date+' modeled lower: '+Number(r.modeled_cumulative_built_lower).toLocaleString()}; });
+    var yMaxEff = niceMax(Math.max.apply(null, effTrend.map(function(r){ return r.modeled_cumulative_built_upper; })) * 1.1);
+    document.getElementById("backlogTrendChart").innerHTML = svgLineChart({
+      width: 640, height: 220,
+      xDomain: [0, xMaxEff], yDomain: [0, yMaxEff],
+      yTickFmt: function(v){ return Math.round(v).toLocaleString(); },
+      series: [
+        {points: upperPtsEff, color: 'rgb(var(--c-warning))', dashed: true},
+        {points: lowerPtsEff, color: 'rgb(var(--c-accent))', dashed: true},
+        {points: actualPtsEff, color: 'rgb(var(--c-success))'}
+      ],
+      xTicks: effTrend.map(function(r){ return {x: xOfEff(r.as_of_date), label: r.as_of_date}; })
+    });
+    observeAndDrawIn(document.getElementById("backlogTrendChart"));
+
+    var firstEff = effTrend[0], latestEff = effTrend[effTrend.length-1];
+    var utilizationTrail = effTrend.map(function(r){ return r.interval_utilization_pct + '%'; }).join(' → ');
+    var undatedEvents = data.launch_disruption_timeline.filter(function(e){ return !e.has_exact_date; });
+    document.getElementById("plainEfficiencyTrend").innerHTML =
+      '<span class="lp-tag">Applying: Dive Deep</span><br>' +
+      '<span class="eyebrow">In plain terms</span>Real launch utilization moved <b>' + esc(utilizationTrail) + '</b> across the three checkpoint intervals — not a clean improving or worsening trend, an honest fact worth sitting with rather than smoothing over. The modeled backlog range widened from ' + Number(firstEff.modeled_backlog_lower).toLocaleString() + '–' + Number(firstEff.modeled_backlog_upper).toLocaleString() + ' to ' + Number(latestEff.modeled_backlog_lower).toLocaleString() + '–' + Number(latestEff.modeled_backlog_upper).toLocaleString() + ' satellites over the same window.' +
+      (undatedEvents.length > 0 ? ' ' + undatedEvents.length + ' real disruption(s) (' + esc(undatedEvents.map(function(e){ return e.launch_vehicle; }).join(', ')) + ') occurred somewhere in this window without a disclosed exact date, so they can\'t be pinned to a specific interval above — flagged, not guessed at.' : '');
 
     // 9. Supplier concentration
     var spHtml = '<thead><tr><th>Component</th><th>Real Bottleneck?</th><th>Illustrative Supplier Count</th><th>Risk Tier</th></tr></thead><tbody>';

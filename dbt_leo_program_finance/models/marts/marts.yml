@@ -185,7 +185,10 @@ models:
                 values: [true]
 
   - name: mart_cashflow_breakdown
-    description: "Fully synthetic latest-period (2026-Q3) direct/indirect cash-flow breakdown, 22 subcategories, with computed variance."
+    description: >
+      Fully synthetic latest-period (2026-Q3) direct/indirect cash-flow breakdown, 22
+      subcategories, with computed variance and per-row EVM (ev_usd/cv_usd/sv_usd/cpi/spi,
+      where ev_usd = plan_amount_usd x percent_complete -- the one new illustrative input).
     columns:
       - name: subcategory
         tests: [not_null, unique]
@@ -195,6 +198,32 @@ models:
           - accepted_values:
               arguments:
                 values: ['direct', 'indirect']
+      - name: ev_usd
+        tests: [not_null]
+      - name: cpi
+        tests: [not_null]
+      - name: spi
+        tests: [not_null]
+      - name: is_illustrative
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true]
+
+  - name: mart_evm_rollup
+    description: >
+      Program-level Earned Value Management roll-up (BAC/AC/EV/CV/SV/CPI/SPI, 3 EAC
+      methods, VAC, TCPI-to-EAC) over the same 22 subcategories as mart_cashflow_breakdown.
+      ac_exceeds_bac is true in this scenario, making tcpi_to_bac mathematically
+      negative/degenerate -- surfaced as the insight itself, not smoothed over.
+    columns:
+      - name: bac
+        tests: [not_null]
+      - name: eac_cpi
+        tests: [not_null]
+      - name: ac_exceeds_bac
+        tests: [not_null]
       - name: is_illustrative
         tests:
           - not_null
@@ -251,3 +280,36 @@ models:
           - accepted_values:
               arguments:
                 values: [true]
+
+  - name: mart_operational_efficiency_trend
+    description: >
+      Real observed checkpoints/rates throughout; the modeled_* backlog columns extend
+      mart_unlaunched_inventory's exact methodology to every checkpoint (not just the
+      latest) so the range shows a trend, not a snapshot. interval_realized_rate_per_day
+      and interval_utilization_pct are pure arithmetic on real dates/counts, not modeled.
+      Only 3 real observed checkpoints exist -- see calculation_note.
+    columns:
+      - name: as_of_date
+        tests: [not_null, unique]
+      - name: modeled_backlog_upper
+        tests: [not_null]
+      - name: modeled_backlog_lower
+        tests: [not_null]
+      - name: interval_utilization_pct
+        tests: [not_null]
+      - name: calculation_note
+        tests: [not_null]
+
+  - name: mart_launch_disruption_timeline
+    description: "Real, dated per-event disruption log (failure/delay/success_with_incident) for the efficiency trend's overlay. has_exact_date is false for 2 events with no disclosed exact date."
+    columns:
+      - name: launch_vehicle
+        tests: [not_null]
+      - name: event_type
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['failure', 'delay', 'success_with_incident']
+      - name: has_exact_date
+        tests: [not_null]
