@@ -83,6 +83,21 @@
 
   h1{font-size:26px; margin:28px 0 6px; letter-spacing:-.01em}
   .lede{color:rgb(var(--c-text-secondary)); font-size:14.5px; max-width:70ch; margin:0 0 8px}
+
+  /* ---- hero orbit ring: the one authored focal moment. Not decorative -- the arc
+     fraction is checkpoint_count / satellites_required from mart_milestone_risk, the
+     same real numbers the page states in prose two paragraphs later. Draws in once on
+     load; skipped (final state shown directly) under reduced-motion or narrow mobile. */
+  .hero-row{display:flex; align-items:flex-start; gap:28px; flex-wrap:wrap}
+  .hero-row .hero-text{flex:1 1 380px; min-width:0}
+  .orbit-wrap{flex:0 0 auto; display:flex; flex-direction:column; align-items:center; gap:4px; margin-top:20px}
+  .orbit-wrap svg{width:112px; height:112px}
+  .orbit-ring-track{fill:none; stroke:rgb(var(--c-text-secondary) / .16); stroke-width:10}
+  .orbit-ring-fill{fill:none; stroke:rgb(var(--c-accent)); stroke-width:10; stroke-linecap:round}
+  .orbit-label{font:800 17px/1 ui-monospace,Menlo,monospace; fill:rgb(var(--c-text-primary))}
+  .orbit-sub{font:600 8.5px/1 ui-monospace,Menlo,monospace; fill:rgb(var(--c-text-secondary)); text-transform:uppercase; letter-spacing:.04em}
+  .orbit-caption{font-size:11px; color:rgb(var(--c-text-secondary)); text-align:center; max-width:120px}
+  @media (max-width:640px){ .orbit-wrap{margin:16px auto 0} }
   h2{font-size:16px; margin:0 0 4px; letter-spacing:-.01em}
   .section{margin-top:40px}
   .section-sub{color:rgb(var(--c-text-secondary)); font-size:13px; margin:0 0 14px; max-width:76ch}
@@ -121,6 +136,33 @@
   tr.domain-row td{background:rgb(var(--c-accent) / .07); font:700 11px/1.4 ui-monospace,Menlo,monospace; text-transform:uppercase; letter-spacing:.04em; color:rgb(var(--c-accent)); padding-top:12px}
   td.kpi-def{white-space:normal; min-width:220px}
   td.kpi-def abbr{text-decoration:underline dotted; text-decoration-color:rgb(var(--c-text-secondary) / .5); cursor:help}
+  /* Every table on the page gets the same row feedback -- one rule, not bespoke per table. */
+  tbody tr{transition:background-color .12s, transform .12s}
+  tbody tr:hover{background:rgb(var(--c-accent) / .05)}
+
+  /* ---- chart line draw-in: stroke-dasharray/dashoffset "the line draws itself,"
+     applied once via IntersectionObserver, never re-triggered while scrolling past. */
+  .draw-in polyline{transition:stroke-dashoffset .7s cubic-bezier(.16,1,.3,1)}
+
+  /* ---- launch-event pulse: only the real disruption segments (danger/warning fill),
+     found post-render by color, never all segments -- see setupLaunchPulse(). */
+  @keyframes pulseOnce{ 0%,100%{ opacity:1 } 50%{ opacity:.45 } }
+  .pulse-once{ animation:pulseOnce 0.7s ease-in-out 2 }
+
+  /* ---- KPI scorecard reveal: one clean fade+rise on first view -- not a per-row
+     stagger (54 rows would blow any reasonable total-delay budget). */
+  @keyframes revealOnce{ from{ opacity:0; transform:translateY(10px) } to{ opacity:1; transform:translateY(0) } }
+  .reveal-pending{opacity:0}
+  .reveal-once{ animation:revealOnce .5s cubic-bezier(.16,1,.3,1) both }
+
+  @media (prefers-reduced-motion:reduce){
+    .chip-indicator{transition:none}
+    .scrollbar .fill{transition:none}
+    .draw-in polyline{transition:none !important}
+    .pulse-once{animation:none}
+    .reveal-once{animation:none}
+    .reveal-pending{opacity:1}
+  }
 
   .bar-row{display:flex; align-items:center; gap:10px; margin:10px 0; flex-wrap:wrap}
   .bar-row .track{flex:1; min-width:100px; height:22px; background:rgb(var(--c-text-secondary) / .12); border-radius:6px; overflow:hidden; position:relative}
@@ -152,19 +194,31 @@
     backdrop-filter:blur(8px); border-bottom:1px solid rgb(var(--c-accent) / .14);
     overflow-x:auto; -webkit-overflow-scrolling:touch;
   }
-  .chapternav-in{max-width:1100px; margin:0 auto; padding:10px 20px; display:flex; gap:8px; white-space:nowrap}
+  .chapternav-in{max-width:1100px; margin:0 auto; padding:10px 20px; display:flex; gap:8px; white-space:nowrap; position:relative}
   .chapchip{
     display:inline-flex; align-items:center; gap:6px; padding:6px 12px; border-radius:99px;
     font:600 12.5px/1.2 inherit; color:rgb(var(--c-text-secondary)); text-decoration:none;
-    border:1px solid transparent; transition:all .15s; flex-shrink:0;
+    border:1px solid transparent; transition:color .15s, border-color .15s; flex-shrink:0;
+    position:relative; z-index:1;
   }
   .chapchip:hover{color:rgb(var(--c-text-primary))}
-  .chapchip.active{color:rgb(var(--c-accent)); border-color:rgb(var(--c-accent) / .4); background:rgb(var(--c-accent) / .1)}
+  .chapchip.active{color:rgb(var(--c-accent)); border-color:rgb(var(--c-accent) / .4)}
   .chapchip .num{
     display:inline-flex; align-items:center; justify-content:center; width:16px; height:16px;
     border-radius:5px; background:rgb(var(--c-text-secondary) / .18); font-size:10.5px; font-weight:700;
   }
   .chapchip.active .num{background:rgb(var(--c-accent) / .3); color:rgb(var(--c-accent))}
+  /* Sliding pill: replaces the old instant background-color toggle with real spatial
+     continuity between chapters -- the fixed border-color above still works standalone
+     if JS never runs. Position/width set by JS from the active chip's own box. */
+  .chip-indicator{
+    position:absolute; top:6px; bottom:6px; left:0; width:0; border-radius:99px;
+    background:rgb(var(--c-accent) / .1); z-index:0; pointer-events:none;
+    transition:transform .3s cubic-bezier(.16,1,.3,1), width .3s cubic-bezier(.16,1,.3,1);
+  }
+  /* Scroll progress: how far through the 4 chapters, not a decorative loader. */
+  .scrollbar{height:2px; background:rgb(var(--c-accent) / .12)}
+  .scrollbar .fill{height:100%; width:0%; background:rgb(var(--c-accent)); transform-origin:left; transition:width .1s linear}
 
   /* ---- headline insight + per-section "in plain terms" narrator boxes -- computed
      from the same loaded JSON, never a hardcoded sentence, so they can't go stale. */
@@ -252,21 +306,36 @@
 
 <div class="chapternav">
   <div class="chapternav-in" id="chapterNav">
-    <a class="chapchip" href="#ch1" data-nav-target="ch1"><span class="num">1</span> Regulatory &amp; Capital</a>
+    <span class="chip-indicator" id="chipIndicator"></span>
+    <a class="chapchip active" href="#ch1" data-nav-target="ch1"><span class="num">1</span> Regulatory &amp; Capital</a>
     <a class="chapchip" href="#ch2" data-nav-target="ch2"><span class="num">2</span> Building the Plan</a>
     <a class="chapchip" href="#ch3" data-nav-target="ch3"><span class="num">3</span> Operations &amp; Outlook</a>
     <a class="chapchip" href="#ch4" data-nav-target="ch4"><span class="num">4</span> The Recommendation</a>
   </div>
+  <div class="scrollbar"><div class="fill" id="scrollFill"></div></div>
 </div>
 
 <div class="wrap">
 
-  <h1>A satellite constellation is a finance problem before it's a rocket problem</h1>
-  <p class="lede">Amazon Leo is producing hardware faster than it can launch it, against a regulatory deadline and an
-  escalating bill. This is what a Finance Manager would actually build to see that clearly, plan around it, and
-  recommend a way through it — the full FP&amp;A toolkit named in the role (milestone governance, multi-year
-  OpEx/CapEx/headcount planning, ROI frameworks, rolling variance, make-vs-buy/TCO) applied to Amazon's own public
-  reporting on its Leo satellite broadband program.</p>
+  <div class="hero-row">
+    <div class="hero-text">
+      <h1>A satellite constellation is a finance problem before it's a rocket problem</h1>
+      <p class="lede">Amazon Leo is producing hardware faster than it can launch it, against a regulatory deadline and an
+      escalating bill. This is what a Finance Manager would actually build to see that clearly, plan around it, and
+      recommend a way through it — the full FP&amp;A toolkit named in the role (milestone governance, multi-year
+      OpEx/CapEx/headcount planning, ROI frameworks, rolling variance, make-vs-buy/TCO) applied to Amazon's own public
+      reporting on its Leo satellite broadband program.</p>
+    </div>
+    <div class="orbit-wrap" id="orbitWrap" style="display:none">
+      <svg viewBox="0 0 120 120" role="img" aria-label="Deployed satellites toward the near-term FCC milestone">
+        <circle class="orbit-ring-track" cx="60" cy="60" r="50"></circle>
+        <circle class="orbit-ring-fill" id="orbitFill" cx="60" cy="60" r="50" transform="rotate(-90 60 60)"></circle>
+        <text x="60" y="57" text-anchor="middle" class="orbit-label" id="orbitLabel">0</text>
+        <text x="60" y="70" text-anchor="middle" class="orbit-sub">deployed</text>
+      </svg>
+      <div class="orbit-caption" id="orbitCaption"></div>
+    </div>
+  </div>
 
   <div class="disclaimer">
     <b>⚠ Not affiliated with, endorsed by, or built using any internal Amazon data.</b> Every figure describing
@@ -517,12 +586,26 @@
     return String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
   }
 
+  var prefersReducedMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
   // ---- chapter nav scroll-spy: IntersectionObserver, not a scroll listener --
   // wired immediately since #ch1/#ch2/#ch3 are static HTML, not gated on the JSON fetch.
   (function setupChapterNav(){
     var chips = document.querySelectorAll(".chapchip");
+    var indicator = document.getElementById("chipIndicator");
     var linkByTarget = {};
     chips.forEach(function(c){ linkByTarget[c.getAttribute("data-nav-target")] = c; });
+
+    function moveIndicatorTo(chip){
+      if (!indicator || !chip) return;
+      indicator.style.transform = "translateX(" + chip.offsetLeft + "px)";
+      indicator.style.width = chip.offsetWidth + "px";
+    }
+    moveIndicatorTo(document.querySelector(".chapchip.active"));
+    window.addEventListener("resize", function(){
+      moveIndicatorTo(document.querySelector(".chapchip.active"));
+    });
+
     var targets = ["ch1","ch2","ch3","ch4"].map(function(id){ return document.getElementById(id); }).filter(Boolean);
     if (!targets.length || !("IntersectionObserver" in window)) return;
     var obs = new IntersectionObserver(function(entries){
@@ -530,11 +613,32 @@
         if (en.isIntersecting){
           chips.forEach(function(c){ c.classList.remove("active"); });
           var link = linkByTarget[en.target.id];
-          if (link) link.classList.add("active");
+          if (link){ link.classList.add("active"); moveIndicatorTo(link); }
         }
       });
     }, { rootMargin: "-40% 0px -55% 0px" });
     targets.forEach(function(t){ obs.observe(t); });
+  })();
+
+  // ---- scroll progress: how far through ch1->ch4, not overall page length (the
+  // footer/legend after ch4 would otherwise leave the bar looking permanently short).
+  (function setupScrollProgress(){
+    var fill = document.getElementById("scrollFill");
+    var ch1 = document.getElementById("ch1"), ch4 = document.getElementById("ch4");
+    if (!fill || !ch1 || !ch4) return;
+    var ticking = false;
+    function update(){
+      ticking = false;
+      var top = ch1.getBoundingClientRect().top + window.scrollY;
+      var bottom = ch4.getBoundingClientRect().bottom + window.scrollY;
+      var span = Math.max(1, bottom - top);
+      var pct = Math.min(1, Math.max(0, (window.scrollY - top + window.innerHeight * 0.5) / span));
+      fill.style.width = (pct * 100).toFixed(1) + "%";
+    }
+    document.addEventListener("scroll", function(){
+      if (!ticking){ ticking = true; requestAnimationFrame(update); }
+    }, { passive: true });
+    update();
   })();
 
   // ---- shared floating tooltip (one DOM node, click/tap-to-toggle -- not hover-only,
@@ -693,6 +797,46 @@
     return svg;
   }
 
+  // ---- line draw-in: stroke-dasharray/dashoffset "the line draws itself." Call right
+  // after setting a chart container's innerHTML with a <polyline>-based chart.
+  function animateLineDrawIn(container){
+    if (!container || prefersReducedMotion) return;
+    var svgEl = container.querySelector("svg");
+    if (svgEl) svgEl.classList.add("draw-in");
+    container.querySelectorAll("polyline").forEach(function(p){
+      var len = p.getTotalLength();
+      p.style.strokeDasharray = len;
+      p.style.strokeDashoffset = len;
+      p.getBoundingClientRect(); // force reflow so the CSS transition actually animates
+      requestAnimationFrame(function(){ p.style.strokeDashoffset = "0"; });
+    });
+  }
+  // Fires the draw-in once when the container first scrolls into view, then stops
+  // watching -- never re-triggers on repeated scroll past the same chart.
+  function observeAndDrawIn(container){
+    if (!container) return;
+    if (prefersReducedMotion || !("IntersectionObserver" in window)) return;
+    var obs = new IntersectionObserver(function(entries, observer){
+      entries.forEach(function(en){
+        if (en.isIntersecting){ animateLineDrawIn(en.target); observer.unobserve(en.target); }
+      });
+    }, { threshold: 0.3 });
+    obs.observe(container);
+  }
+  // Fires a one-time class add (fade/rise or pulse) when the container scrolls into
+  // view. Generic over which class, so the KPI-table reveal and launch-event pulse
+  // share one observer implementation instead of two near-identical ones.
+  function observeAndAddClass(container, className){
+    if (!container || prefersReducedMotion) return;
+    if (!("IntersectionObserver" in window)){ container.classList.add(className); return; }
+    var obs = new IntersectionObserver(function(entries, observer){
+      entries.forEach(function(en){
+        if (en.isIntersecting){ en.target.classList.add(className); observer.unobserve(en.target); }
+      });
+    }, { threshold: 0.2 });
+    obs.observe(container);
+  }
+
   fetch("./leo_finance_dashboard_data.json")
     .then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
     .then(render)
@@ -749,6 +893,42 @@
     document.getElementById("headlineInsightText").innerHTML = headlineTxt;
     document.getElementById("headlineInsight").style.display = "block";
 
+    // Orbit ring -- the one authored focal moment. Arc fraction is real:
+    // checkpoint_count / satellites_required from the same near-term milestone row the
+    // page states in prose. Draws in once on load; final state shown directly (no tween)
+    // under reduced-motion or on narrow mobile, where a small ring has no room to read.
+    (function renderOrbitRing(){
+      var wrap = document.getElementById("orbitWrap");
+      var fillEl = document.getElementById("orbitFill");
+      var labelEl = document.getElementById("orbitLabel");
+      var captionEl = document.getElementById("orbitCaption");
+      if (!wrap || !fillEl) return;
+      var target = Math.max(0, Math.min(1, near.checkpoint_count / near.satellites_required));
+      var circumference = 2 * Math.PI * 50;
+      fillEl.style.strokeDasharray = circumference.toFixed(1);
+      captionEl.textContent = Number(near.satellites_required).toLocaleString() + " required by " + near.milestone_date;
+      wrap.style.display = "flex";
+
+      var skip = prefersReducedMotion || window.innerWidth < 640;
+      if (skip){
+        fillEl.style.strokeDashoffset = (circumference * (1 - target)).toFixed(1);
+        labelEl.textContent = Number(near.checkpoint_count).toLocaleString();
+        return;
+      }
+      fillEl.style.strokeDashoffset = circumference.toFixed(1);
+      var start = null, duration = 1200;
+      function easeOutCubic(t){ return 1 - Math.pow(1 - t, 3); }
+      function step(ts){
+        if (start === null) start = ts;
+        var t = Math.min(1, (ts - start) / duration);
+        var eased = easeOutCubic(t);
+        fillEl.style.strokeDashoffset = (circumference * (1 - target * eased)).toFixed(1);
+        labelEl.textContent = Math.round(near.checkpoint_count * eased).toLocaleString();
+        if (t < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    })();
+
     // Plain-terms: milestone risk
     document.getElementById("plainMilestone").innerHTML =
       '<span class="lp-tag">Applying: Dive Deep</span><br>' +
@@ -759,15 +939,22 @@
 
     // Deployment trajectory chart -- observed checkpoints + modeled projection line
     // (recomputed live with the slider) + Amazon's own single-point projection (static,
-    // never moves) + the required-count target line.
-    function renderTrajectoryChart(rate){
+    // never moves) + the required-count target line. fixedYMax lets the slider-driven
+    // tween below hold the axis steady mid-animation instead of rescaling every frame.
+    function computeProjectedAtMilestone(rate){
+      var obs = deploymentCheckpoints.filter(function(c){ return c.checkpoint_type === 'observed'; });
+      var t0 = obs[0].as_of_date, lastObs = obs[obs.length-1];
+      var xMax = daysBetween(t0, near.milestone_date);
+      return Math.round(lastObs.cumulative_satellites + (xMax - daysBetween(t0, lastObs.as_of_date)) * rate);
+    }
+    function renderTrajectoryChart(rate, fixedYMax){
       var obs = deploymentCheckpoints.filter(function(c){ return c.checkpoint_type === 'observed'; });
       var t0 = obs[0].as_of_date;
       function xOf(d){ return daysBetween(t0, d); }
       var xMax = xOf(near.milestone_date);
       var obsPts = obs.map(function(c){ return {x:xOf(c.as_of_date), y:c.cumulative_satellites, label: c.as_of_date+': '+Number(c.cumulative_satellites).toLocaleString()+' deployed'}; });
       var lastObs = obs[obs.length-1];
-      var projectedAtMilestone = Math.round(lastObs.cumulative_satellites + (xMax - xOf(lastObs.as_of_date)) * rate);
+      var projectedAtMilestone = computeProjectedAtMilestone(rate);
       var series = [
         {points: obsPts, color: 'rgb(var(--c-success))'},
         {points: [
@@ -778,7 +965,7 @@
       if (near.company_projected_count != null){
         series.push({points: [{x: xMax, y: near.company_projected_count, label: "Amazon's own projection: " + Number(near.company_projected_count).toLocaleString()}], color: 'rgb(var(--c-warning))'});
       }
-      var yMax = niceMax(Math.max(near.satellites_required, projectedAtMilestone, near.company_projected_count || 0) * 1.08);
+      var yMax = fixedYMax != null ? fixedYMax : niceMax(Math.max(near.satellites_required, projectedAtMilestone, near.company_projected_count || 0) * 1.08);
       var xTicks = obs.map(function(c){ return {x: xOf(c.as_of_date), label: c.as_of_date}; }).concat([{x: xMax, label: near.milestone_date}]);
       document.getElementById("trajectoryChart").innerHTML = svgLineChart({
         width: 640, height: 220,
@@ -789,6 +976,35 @@
         series: series,
         xTicks: xTicks
       });
+    }
+
+    // Slider-driven retargeting: the modeled-projection line/dot tweens from whatever
+    // is currently displayed to the new rate's value, instead of snapping -- makes a
+    // data update read as "deployment speeding up or slowing down" in front of you.
+    // Cancel-and-retarget on every tick so rapid dragging never queues overlapping
+    // animations; the axis (fixedYMax) is pinned to the FINAL target so the grid never
+    // jumps mid-tween. First-ever render (and reduced-motion) skips the tween entirely.
+    var lastDisplayedRate = null;
+    var trajectoryAnimFrame = null;
+    function updateTrajectoryChart(targetRate){
+      var targetYMax = niceMax(Math.max(near.satellites_required, computeProjectedAtMilestone(targetRate), near.company_projected_count || 0) * 1.08);
+      if (trajectoryAnimFrame != null) cancelAnimationFrame(trajectoryAnimFrame);
+      if (lastDisplayedRate == null || prefersReducedMotion){
+        renderTrajectoryChart(targetRate, targetYMax);
+        if (lastDisplayedRate == null) observeAndDrawIn(document.getElementById("trajectoryChart"));
+        lastDisplayedRate = targetRate;
+        return;
+      }
+      var fromRate = lastDisplayedRate, start = null, duration = 220;
+      function easeOutCubic(t){ return 1 - Math.pow(1 - t, 3); }
+      function step(ts){
+        if (start === null) start = ts;
+        var t = Math.min(1, (ts - start) / duration);
+        renderTrajectoryChart(fromRate + (targetRate - fromRate) * easeOutCubic(t), targetYMax);
+        if (t < 1) trajectoryAnimFrame = requestAnimationFrame(step);
+        else { trajectoryAnimFrame = null; lastDisplayedRate = targetRate; }
+      }
+      trajectoryAnimFrame = requestAnimationFrame(step);
     }
 
     // Interactive slider -- recomputes ONLY the modeled projection, live, client-side.
@@ -813,7 +1029,7 @@
           '</div>';
       });
       document.getElementById("sliderOutput").innerHTML = out;
-      renderTrajectoryChart(rate);
+      updateTrajectoryChart(rate);
     }
     rateSlider.addEventListener("input", recomputeSlider);
     document.getElementById("rateReset").addEventListener("click", function(){
@@ -869,6 +1085,7 @@
       });
       svg += '<div class="cite" style="margin-top:6px">Separately disclosed (not on this line, different metric): <b style="color:rgb(var(--c-warning))">' + fmtUSD(yoyRow.high_estimate_usd) + ' YoY headwind</b> (' + esc(yoyRow.as_of_date) + ' earnings call).</div>';
       document.getElementById("costChart").innerHTML = svg;
+      observeAndDrawIn(document.getElementById("costChart"));
     })();
 
     // 4. Implied scale cost
@@ -977,6 +1194,24 @@
       ['rgb(var(--c-success))','rgb(var(--c-warning))','rgb(var(--c-danger))'],
       ['success','delay','failure']
     );
+    // Highlight only the real disruption segments -- any rect rendered with the danger
+    // or warning fill IS a real failure/delay event (svgStackedBars only draws a rect
+    // when val>0), so no changes to the chart function itself are needed to find them.
+    (function setupLaunchPulse(){
+      var container = document.getElementById("launchChart");
+      if (!container || prefersReducedMotion || !("IntersectionObserver" in window)) return;
+      var obs = new IntersectionObserver(function(entries, observer){
+        entries.forEach(function(en){
+          if (en.isIntersecting){
+            en.target.querySelectorAll('rect[style*="c-danger"], rect[style*="c-warning"]').forEach(function(r){
+              r.classList.add("pulse-once");
+            });
+            observer.unobserve(en.target);
+          }
+        });
+      }, { threshold: 0.3 });
+      obs.observe(container);
+    })();
     var totalFail = 0, totalDelay = 0, totalEvents = 0, failVehicles = [], delayVehicles = [];
     data.launch_vehicle_reliability.forEach(function(v){
       totalFail += v.failure_events; totalDelay += v.delay_events; totalEvents += v.total_events;
@@ -1077,6 +1312,15 @@
     });
     kfHtml += '</tbody>';
     document.getElementById("kpiFrameworkTable").innerHTML = kfHtml;
+    // One clean fade+rise on first view -- not a per-row stagger (54 rows would blow
+    // any reasonable total-delay budget). reveal-pending is added here, not in the
+    // static HTML, so a fetch failure never leaves the box stuck invisible.
+    (function setupKpiReveal(){
+      var wrap = document.getElementById("kpiFrameworkTable").closest(".table-wrap");
+      if (!wrap || prefersReducedMotion) return;
+      wrap.classList.add("reveal-pending");
+      observeAndAddClass(wrap, "reveal-once");
+    })();
     var kirklandTarget = kpiRows.find(function(k){ return k.kpi_name === 'Daily Spacecraft Build Velocity'; });
     var fccTarget = kpiRows.find(function(k){ return k.kpi_name === 'FCC Milestone Compliance Margin'; });
     document.getElementById("plainKpiFramework").innerHTML =
