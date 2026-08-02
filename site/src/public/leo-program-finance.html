@@ -300,7 +300,7 @@
 <div class="bar">
   <div class="bar-in">
     <a class="brand" href="./" style="text-decoration:none; color:inherit" title="Back to portfolio"><span class="dot"></span><div>Leo Program Finance<small>dbt + DuckDB · illustrative</small></div></a>
-    <span class="badge">249 tests passing</span>
+    <span class="badge">267 tests passing</span>
     <span class="badge" id="dataAsOf" title="Timestamp of the last dbt build + export, not a live feed"></span>
     <div class="right">
       <a class="icobtn" href="./leo-dbt-docs/" target="_blank" rel="noopener" title="Full dbt lineage graph + column-level docs for all 24 marts">🔗 Data Lineage</a>
@@ -649,6 +649,11 @@
       </ol>
       <p style="margin-top:14px;color:rgb(var(--c-text-secondary));font-size:13px">This is <b>Ownership</b> and <b>Bias for Action</b> in practice — not waiting for perfect information, moving with the best available data, and being ready to say so out loud.</p>
     </div>
+
+    <h2 style="margin-top:32px">The 90-Day Plan <span class="src-tag illustrative" style="margin-left:6px">illustrative</span></h2>
+    <p class="section-sub" id="roadmapIntro"></p>
+    <div class="table-wrap card"><table id="roadmapTable"></table></div>
+    <div class="plain" id="plainRoadmap"></div>
   </div>
 
   <footer>
@@ -1807,6 +1812,32 @@
 
     document.getElementById("riskDriverBullet").innerHTML =
       '<b>Treat ' + esc(topDriver.label) + ' as the lead item, not one line among five.</b> It\'s ' + topDriver.value.toFixed(1) + '% of the Program Delivery Risk Index\'s composite score — the single largest driver — and the index reads ' + esc(tierLabel) + ' overall. Everything above is a component; this is the one number that tells you which conversation to have first.';
+
+    // The 90-Day Plan -- a proposed accountability plan, keyed to the risk register
+    // above, one row per risk (including the honest "no action needed" row). Generic
+    // role titles only, never a real named individual. Not an executed plan: every
+    // target is a stated goal, never a fabricated completion status.
+    var roadmap = data.roadmap_90day;
+    var rmFirst = roadmap[0];
+    document.getElementById("roadmapIntro").innerHTML =
+      'Anchored to the real ' + esc(String(rmFirst.phase_start_date).slice(0,10)) + ' checkpoint — 15 days before the near-term FCC deadline, so this plan can\'t change that outcome. It targets the response to what the near-term result reveals and the trajectory toward the 2029 milestone. One row per risk already on the register above; generic role titles only, never a real named individual.';
+    var exposurePillMap = {low: 'ok', medium: 'warn', high: 'risk', critical: 'risk', monitoring_only: 'muted'};
+    var rmHtml = '<thead><tr><th>Domain</th><th>Accountable Role</th><th>Action</th><th>Window</th><th>Target</th><th>Linked Risk</th></tr></thead><tbody>';
+    roadmap.forEach(function(r){
+      rmHtml += '<tr><td>' + esc(r.domain) + '</td><td>' + esc(r.accountable_role) + '</td>' +
+        '<td>' + esc(r.action) + '<div class="kpi note" style="margin-top:2px;font-size:11px">' + esc(r.target_description) + '</div></td>' +
+        '<td class="num tabular">Day ' + r.phase_start_day + '–' + r.phase_end_day + '</td>' +
+        '<td><span class="status ' + exposurePillMap[r.exposure_tier] + '">' + esc(r.exposure_tier.replace(/_/g,' ')) + '</span></td>' +
+        '<td>' + esc(r.risk_name.replace(/_/g,' ')) + '</td></tr>';
+    });
+    rmHtml += '</tbody>';
+    document.getElementById("roadmapTable").innerHTML = rmHtml;
+    var monitorOnlyRow = roadmap.filter(function(r){ return r.target_type === 'monitor_only'; })[0];
+    var domainCount = new Set(roadmap.map(function(r){ return r.domain; })).size;
+    document.getElementById("plainRoadmap").innerHTML =
+      '<span class="lp-tag">Applying: Ownership</span><br>' +
+      '<span class="eyebrow">In plain terms</span>' + roadmap.length + ' workstreams across ' + domainCount + ' functional domains, each owned by one accountable role and tied to a measurable target — not a status update, since none of this has actually been executed yet. ' +
+      (monitorOnlyRow ? 'One row (' + esc(monitorOnlyRow.domain) + ') is deliberately "no action needed" — ' + esc(monitorOnlyRow.rationale_note) + ' A plan that manufactures busywork everywhere isn\'t more thorough, it\'s less honest.' : '');
   }
 })();
 </script>

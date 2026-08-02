@@ -124,10 +124,25 @@ number.
     swing level -- eac_composite depends only on the product cpi x spi, not on which factor
     moved -- surfaced as one curve on the dashboard, not two overlapping ones. Base case
     (swing_pct = 0) reproduces mart_evm_rollup.eac_composite exactly by construction.
+  - `mart_90day_roadmap` -- a proposed 90-day accountability plan, keyed to
+    mart_risk_register's own risk_name (a real join, tested for referential integrity and
+    completeness below) -- one row per risk, including an honest "no action needed" row for
+    the capacity-utilization-gap signal, since capacity was never the actual bottleneck.
+    Generic role titles only ("VP, Launch Operations") -- never a real named individual,
+    since attributing a fabricated commitment to a real person who never agreed to it is a
+    materially different act than citing a real person's public statement (already done
+    correctly elsewhere on this page). Not an executed plan: every target is a stated goal,
+    never a fabricated completion status -- there is no real "actual progress" for something
+    that has not happened. Phase dates anchor to the real 2026-07-15 checkpoint, 15 days
+    before the near-term FCC deadline -- honestly framed as targeting the 2029 trajectory,
+    not a fix for an outcome that's already effectively decided.
 - **tests**
-  - data tests -- not_null/unique, `accepted_values` on every categorical/status column
+  - data tests -- not_null/unique, `accepted_values` on every categorical/status column,
+    a `relationships` test tying mart_90day_roadmap's risk_name back to mart_risk_register
   - singular tests -- variance drivers must reconcile exactly to the total (nothing lost or
-    double-counted); every illustrative mart's rows must be explicitly flagged `is_illustrative`
+    double-counted); every illustrative mart's rows must be explicitly flagged `is_illustrative`;
+    every risk in mart_risk_register must have a corresponding mart_90day_roadmap action
+    (catches a future risk-register addition nobody remembered to assign an owner)
 
 ## Run it (~60 seconds, local, no cloud)
 ```bash
@@ -153,12 +168,13 @@ dbt_leo_program_finance/
            raw_variance_demo.csv, raw_launch_vehicle_events.csv, raw_supplier_concentration.csv,
            raw_safety_incidents.csv, raw_d2d_regulatory_pipeline.csv, raw_workforce_signal.csv,
            raw_op1_op2_plan.csv, raw_roi_payback_scenarios.csv, raw_operational_kpi_framework.csv,
-           raw_cashflow_breakdown.csv, raw_cashflow_trend.csv, raw_pnl_assumptions.csv
+           raw_cashflow_breakdown.csv, raw_cashflow_trend.csv, raw_pnl_assumptions.csv,
+           raw_90day_roadmap.csv
   models/
-    staging/   18 typed staging models + staging.yml
-    marts/     26 marts + marts.yml
+    staging/   19 typed staging models + staging.yml
+    marts/     27 marts + marts.yml
   tests/   assert_variance_drivers_reconcile.sql, assert_illustrative_marts_are_flagged.sql,
-           assert_unlaunched_inventory_range_ordered.sql
+           assert_unlaunched_inventory_range_ordered.sql, assert_every_risk_has_a_roadmap_action.sql
   scripts/ export_dashboard_data.py -- exports all marts to the site dashboard's JSON
 ```
 

@@ -423,3 +423,34 @@ models:
           - accepted_values:
               arguments:
                 values: [true]
+
+  - name: mart_90day_roadmap
+    description: >
+      A proposed 90-day accountability plan, keyed to mart_risk_register's own risk_name --
+      generic role titles only, never a real named individual. Not an executed plan: every
+      target is a stated goal, never a fabricated completion status.
+    columns:
+      - name: roadmap_id
+        tests: [not_null, unique]
+      - name: risk_name
+        tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('mart_risk_register')
+                field: risk_name
+      - name: target_type
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['percent_improvement', 'qualify_count', 'threshold_zero_new', 'milestone_checkpoint', 'monitor_only']
+      - name: target_description
+        tests: [not_null]
+      - name: is_illustrative
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true]

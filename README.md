@@ -76,7 +76,7 @@ concentration risk, safety/coordination incidents, a second regulatory front, an
 built using any internal Amazon data** — every figure describing the real program is sourced to public
 reporting (Amazon's own 10-K/earnings disclosures and FCC filings, third-party market analysis, cited inline
 per row with an evidence-tier badge); every figure describing an internal decision (make-vs-buy, variance
-drivers, supplier counts) is fully synthetic and flagged `is_illustrative`. Twenty-six **dbt** marts — including a
+drivers, supplier counts) is fully synthetic and flagged `is_illustrative`. Twenty-seven **dbt** marts — including a
 multi-year OP1/OP2 OpEx/CapEx/headcount roadmap, an ROI/payback framework, a 54-KPI operational scorecard,
 a 3-level direct/indirect cash-flow tracker (Plan/Forecast/Actual, forecast computed from the elapsed-period
 run-rate) with per-subcategory **Earned Value Management** (EV/CPI/SPI) rolling up to a program-level
@@ -97,12 +97,14 @@ an artifact of the data, not evidence, and the dashboard says so rather than let
 plus a **capitalized-inventory roll-forward** (the built-but-unlaunched satellites, valued and rolled forward
 checkpoint to checkpoint) and an **EAC sensitivity** sweep on the EVM roll-up — CPI and SPI swung ±10%/20%
 independently, which turn out to produce numerically identical EAC at every level because the formula only
-sees their product, so the dashboard shows one curve rather than a misleading pair of overlapping ones.
-249 tests pass, enforced in CI on every push (not just run locally before committing), with a full column-level
-lineage graph published alongside the dashboard; a singular test enforces that every illustrative mart's rows
-are explicitly
-flagged, making the grounded-vs-illustrative separation a
-tested property of the project, not just a README claim.
+sees their product, so the dashboard shows one curve rather than a misleading pair of overlapping ones, plus a
+**90-day accountability roadmap** keyed to the risk register itself — one action per risk, generic role titles
+only (never a real named individual), every target a stated goal rather than a fabricated completion status,
+and an honest "no action needed" row for the one signal that was never actually a problem.
+267 tests pass, enforced in CI on every push (not just run locally before committing), with a full column-level
+lineage graph published alongside the dashboard; singular tests enforce that every illustrative mart's rows are
+explicitly flagged and that every risk in the register has an owner, making the grounded-vs-illustrative
+separation a tested property of the project, not just a README claim.
 🔗 Live: **https://tjaiyen.github.io/tj-finance-portfolio/leo-program-finance.html**
 
 ## [`agentic_ops_skeleton/`](./agentic_ops_skeleton) — guardrailed multi-agent orchestration

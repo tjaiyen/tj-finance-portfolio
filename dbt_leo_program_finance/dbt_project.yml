@@ -180,3 +180,16 @@ seeds:
         revenue_usd: bigint
         is_illustrative: boolean
         notes: varchar
+    raw_90day_roadmap:
+      +column_types:
+        risk_name: varchar
+        domain: varchar
+        accountable_role: varchar
+        action: varchar
+        phase_start_day: integer
+        phase_end_day: integer
+        target_type: varchar
+        target_improvement_pct: double
+        target_qualify_count: integer
+        target_qualitative: varchar
+        rationale_note: varchar

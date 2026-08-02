@@ -228,6 +228,14 @@ def main():
         order by driver, swing_pct
     """))
 
+    roadmap_90day = rows_as_dicts(con.execute("""
+        select roadmap_id, risk_name, category, exposure_tier, domain, accountable_role,
+               action, phase_start_date, phase_end_date, phase_start_day, phase_end_day,
+               target_type, target_description, rationale_note, is_illustrative, notes
+        from main.mart_90day_roadmap
+        order by roadmap_id
+    """))
+
     payload = {
         "project": "dbt_leo_program_finance",
         "disclaimer": (
@@ -265,6 +273,7 @@ def main():
         "launch_reliability_trend": launch_reliability_trend,
         "capitalized_inventory_rollforward": capitalized_inventory_rollforward,
         "eac_sensitivity": eac_sensitivity,
+        "roadmap_90day": roadmap_90day,
     }
 
     def default(o):
