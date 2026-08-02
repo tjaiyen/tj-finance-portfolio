@@ -300,7 +300,7 @@
 <div class="bar">
   <div class="bar-in">
     <a class="brand" href="./" style="text-decoration:none; color:inherit" title="Back to portfolio"><span class="dot"></span><div>Leo Program Finance<small>dbt + DuckDB · illustrative</small></div></a>
-    <span class="badge">267 tests passing</span>
+    <span class="badge">266 tests passing</span>
     <span class="badge" id="dataAsOf" title="Timestamp of the last dbt build + export, not a live feed"></span>
     <div class="right">
       <a class="icobtn" href="./leo-dbt-docs/" target="_blank" rel="noopener" title="Full dbt lineage graph + column-level docs for all 24 marts">🔗 Data Lineage</a>
@@ -378,8 +378,8 @@
     <div class="card slidercard">
       <div class="kpi label">Try a different assumed deployment rate <button class="resetbtn" id="rateReset">Reset to dbt default</button></div>
       <div class="row">
-        <input type="range" id="rateSlider" min="0.5" max="5" step="0.01" value="3.46" />
-        <span class="rateval tabular" id="rateVal">3.46/day</span>
+        <input type="range" id="rateSlider" min="0.5" max="5" step="0.01" value="3.6" />
+        <span class="rateval tabular" id="rateVal">3.60/day</span>
       </div>
       <div class="kpi note">Recomputes <em>our</em> modeled projection live in your browser only — Amazon's own stated projection above never changes with this slider. Factory capacity ceiling (5/day) shown as the upper bound of the slider's realistic range.</div>
       <div class="grid2" id="sliderOutput" style="margin-top:10px"></div>
@@ -1653,13 +1653,13 @@
     document.getElementById("d2dCard").innerHTML =
       '<div class="kpi label">' + esc(d2d.milestone_name) + '</div>' +
       '<div class="kpi val">' + Number(d2d.satellites_requested).toLocaleString() + ' satellites</div>' +
-      '<div class="kpi note">Filed ' + esc(d2d.filing_date) + ' under ' + esc(d2d.review_framework) + '. Expected decision window: ' + esc(String(d2d.earliest_expected_decision).slice(0,10)) + ' – ' + esc(String(d2d.latest_expected_decision).slice(0,10)) + ' (' + d2d.expected_review_months_low + '–' + d2d.expected_review_months_high + ' months).</div>' +
-      '<div class="kpi note" style="margin-top:6px">Related: ' + esc(d2d.related_transaction) + ', expected to close ' + d2d.related_transaction_close_year + '.</div>' +
+      '<div class="kpi note">Filed ' + esc(d2d.filing_date) + ' under ' + esc(d2d.review_framework) + '. No FCC review timeline has been publicly disclosed for this filing — its standard process is completeness review → public notice → comment period, with no fixed duration published.</div>' +
+      '<div class="kpi note" style="margin-top:6px">Related: <a href="' + escAttr(d2d.related_transaction_source_url) + '" target="_blank" rel="noopener">' + esc(d2d.related_transaction) + '</a>, expected to close ' + d2d.related_transaction_close_year + ' — that\'s the acquisition\'s own M&amp;A timeline, not the FCC\'s decision date on this satellite application.</div>' +
       '<div class="cite" style="margin-top:8px"><a href="' + escAttr(d2d.source_url) + '" target="_blank" rel="noopener">' + esc(d2d.source) + '</a></div>';
     var fullConstellation = milestoneRows[milestoneRows.length-1].satellites_required;
     document.getElementById("plainD2d").innerHTML =
       '<span class="lp-tag">Applying: Think Big</span><br>' +
-      '<span class="eyebrow">In plain terms</span>This one filing alone requests <b>' + Number(d2d.satellites_requested).toLocaleString() + '</b> satellites — more than the <b>' + Number(fullConstellation).toLocaleString() + '</b> required for the entire original constellation above. This is a materially larger regulatory bet than the core Leo build-out, with a decision not expected until ' + esc(String(d2d.earliest_expected_decision).slice(0,10)) + ' at the earliest.';
+      '<span class="eyebrow">In plain terms</span>This one filing alone requests <b>' + Number(d2d.satellites_requested).toLocaleString() + '</b> satellites — more than the <b>' + Number(fullConstellation).toLocaleString() + '</b> required for the entire original constellation above. This is a materially larger regulatory bet than the core Leo build-out — and unlike the core constellation, there\'s no disclosed FCC timeline to plan against yet.';
 
     // 12. Workforce scaling signal
     var wf = data.workforce_signal;
@@ -1772,24 +1772,35 @@
       monitoredOnly.length + ' risk(s) (' + esc(monitoredOnly.map(function(r){ return r.risk_name.replace(/_/g,' '); }).join(', ')) + ') are tracked here but deliberately left out of the composite score above, so they show a probability proxy with no invented impact judgment attached.';
 
     // 14c. Launch Reliability Trend -- pure real dates + arithmetic, no is_illustrative
-    // column (same precedent as the efficiency trend / disruption timeline).
+    // column (same precedent as the efficiency trend / disruption timeline). Only 1 of the
+    // 3 real logged launch-vehicle events has a disclosed exact date -- a single point isn't
+    // a trend, so this deliberately renders a plain statement instead of a line chart that
+    // would visually imply a multi-point trend that doesn't exist.
     var relTrend = data.launch_reliability_trend;
-    var t0rel = relTrend[0].event_date;
-    function xOfRel(d){ return daysBetween(t0rel, d); }
-    var xMaxRel = xOfRel(relTrend[relTrend.length-1].event_date);
-    var adverseRatePts = relTrend.map(function(r){ return {x:xOfRel(r.event_date), y:r.running_adverse_event_rate_pct, label: r.event_date+' '+esc(r.launch_vehicle)+' ('+esc(r.event_type)+'): '+r.running_adverse_event_rate_pct+'% cumulative adverse rate'}; });
-    document.getElementById("reliabilityTrendChart").innerHTML = svgLineChart({
-      width: 640, height: 200,
-      xDomain: [0, xMaxRel || 1], yDomain: [0, 100],
-      yTickFmt: function(v){ return v.toFixed(0) + '%'; },
-      series: [{points: adverseRatePts, color: 'rgb(var(--c-accent))'}],
-      xTicks: relTrend.map(function(r){ return {x: xOfRel(r.event_date), label: r.event_date}; })
-    });
-    observeAndDrawIn(document.getElementById("reliabilityTrendChart"));
     var undatedAdverse = data.launch_disruption_timeline.filter(function(e){ return !e.has_exact_date; });
-    document.getElementById("plainReliabilityTrend").innerHTML =
-      '<span class="lp-tag">Applying: Earn Trust</span><br>' +
-      '<span class="eyebrow">In plain terms</span>Every one of the 3 dated launch events was a success, so this line reads a flat 0% the whole way across — but don\'t read that as "launch risk is fine." The ' + undatedAdverse.length + ' real adverse events this program has actually had (' + esc(undatedAdverse.map(function(e){ return e.launch_vehicle + ' ' + e.event_type; }).join(', ')) + ') are exactly the ones without a disclosed exact date, so they can\'t appear on this timeline at all. A clean-looking chart here is an artifact of which events happen to have dates, not evidence launch risk improved.';
+    if (relTrend.length >= 2) {
+      var t0rel = relTrend[0].event_date;
+      function xOfRel(d){ return daysBetween(t0rel, d); }
+      var xMaxRel = xOfRel(relTrend[relTrend.length-1].event_date);
+      var adverseRatePts = relTrend.map(function(r){ return {x:xOfRel(r.event_date), y:r.running_adverse_event_rate_pct, label: r.event_date+' '+esc(r.launch_vehicle)+' ('+esc(r.event_type)+'): '+r.running_adverse_event_rate_pct+'% cumulative adverse rate'}; });
+      document.getElementById("reliabilityTrendChart").innerHTML = svgLineChart({
+        width: 640, height: 200,
+        xDomain: [0, xMaxRel || 1], yDomain: [0, 100],
+        yTickFmt: function(v){ return v.toFixed(0) + '%'; },
+        series: [{points: adverseRatePts, color: 'rgb(var(--c-accent))'}],
+        xTicks: relTrend.map(function(r){ return {x: xOfRel(r.event_date), label: r.event_date}; })
+      });
+      observeAndDrawIn(document.getElementById("reliabilityTrendChart"));
+      document.getElementById("plainReliabilityTrend").innerHTML =
+        '<span class="lp-tag">Applying: Earn Trust</span><br>' +
+        '<span class="eyebrow">In plain terms</span>The ' + undatedAdverse.length + ' real adverse events this program has actually had (' + esc(undatedAdverse.map(function(e){ return e.launch_vehicle + ' ' + e.event_type; }).join(', ')) + ') are exactly the ones without a disclosed exact date, so they can\'t appear on this timeline at all. A clean-looking chart here is an artifact of which events happen to have dates, not evidence launch risk improved.';
+    } else {
+      document.getElementById("reliabilityTrendChart").innerHTML =
+        '<div class="kpi note" style="padding:20px 4px">Only ' + relTrend.length + ' of the 3 real logged launch-vehicle events has a disclosed exact date — not enough points to draw a trend, so none is shown here rather than dressing up a single fact as one.</div>';
+      document.getElementById("plainReliabilityTrend").innerHTML =
+        '<span class="lp-tag">Applying: Earn Trust</span><br>' +
+        '<span class="eyebrow">In plain terms</span>The only dated event (' + esc(relTrend[0].event_date) + ', ' + esc(relTrend[0].launch_vehicle) + ') was a success — but the ' + undatedAdverse.length + ' real adverse events this program has actually had (' + esc(undatedAdverse.map(function(e){ return e.launch_vehicle + ' ' + e.event_type; }).join(', ')) + ') are exactly the ones without a disclosed exact date. One dated success isn\'t evidence launch risk is fine — it\'s an artifact of which events happen to have public dates.';
+    }
 
     // Executive summary -- the glance version of the closing recommendation below,
     // reusing the exact same already-computed variables (risk/near/lastCum/firstCum/
