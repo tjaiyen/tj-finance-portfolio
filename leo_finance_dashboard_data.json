@@ -1,7 +1,7 @@
 {
   "project": "dbt_leo_program_finance",
   "disclaimer": "Independent illustrative project. Not affiliated with, endorsed by, or built using any internal Amazon data. Figures describing the real program are sourced to public reporting (see source/source_url per row); figures describing an Amazon internal decision (make-vs-buy, variance drivers) are fully synthetic and flagged is_illustrative.",
-  "generated_at": "2026-08-02T07:10:44.244427+00:00",
+  "generated_at": "2026-08-02T08:35:31.825478+00:00",
   "deployment_checkpoints": [
     {
       "as_of_date": "2025-04-01",
@@ -182,6 +182,19 @@
   "variance_demo": [
     {
       "cost_center": "RF Payload NPI",
+      "period": "2026-Q1",
+      "budget_amount": 4800000.0,
+      "actual_amount": 4900000.0,
+      "total_variance": 100000.0,
+      "price_driver": 40000.0,
+      "volume_driver": 30000.0,
+      "scope_driver": 20000.0,
+      "timing_driver": 10000.0,
+      "sum_of_drivers": 100000.0,
+      "is_illustrative": true
+    },
+    {
+      "cost_center": "RF Payload NPI",
       "period": "2026-Q2",
       "budget_amount": 5000000.0,
       "actual_amount": 5650000.0,
@@ -191,6 +204,19 @@
       "scope_driver": 100000.0,
       "timing_driver": 50000.0,
       "sum_of_drivers": 650000.0,
+      "is_illustrative": true
+    },
+    {
+      "cost_center": "RF Payload NPI",
+      "period": "2026-Q3",
+      "budget_amount": 5200000.0,
+      "actual_amount": 5350000.0,
+      "total_variance": 150000.0,
+      "price_driver": 50000.0,
+      "volume_driver": 40000.0,
+      "scope_driver": 30000.0,
+      "timing_driver": 30000.0,
+      "sum_of_drivers": 150000.0,
       "is_illustrative": true
     }
   ],
@@ -302,5 +328,677 @@
     "signal": "scaling_signal_not_distress",
     "source": "Indeed",
     "source_url": "https://www.indeed.com/q-amazon-kuiper-manufacturing-l-redmond,-wa-jobs.html"
-  }
+  },
+  "op1_op2_plan": [
+    {
+      "fiscal_year": 2026,
+      "opex_usd": 45000000,
+      "capex_usd": 120000000,
+      "headcount": 38,
+      "capex_yoy_change_usd": null,
+      "is_illustrative": true,
+      "notes": "Illustrative multi-year FP&A roadmap for a generic hardware-program finance function -- not Amazon's real Leo P&L or headcount"
+    },
+    {
+      "fiscal_year": 2027,
+      "opex_usd": 52000000,
+      "capex_usd": 95000000,
+      "headcount": 44,
+      "capex_yoy_change_usd": -25000000,
+      "is_illustrative": true,
+      "notes": "Illustrative multi-year FP&A roadmap for a generic hardware-program finance function -- not Amazon's real Leo P&L or headcount"
+    },
+    {
+      "fiscal_year": 2028,
+      "opex_usd": 58000000,
+      "capex_usd": 60000000,
+      "headcount": 47,
+      "capex_yoy_change_usd": -35000000,
+      "is_illustrative": true,
+      "notes": "Illustrative multi-year FP&A roadmap for a generic hardware-program finance function -- not Amazon's real Leo P&L or headcount"
+    },
+    {
+      "fiscal_year": 2029,
+      "opex_usd": 61000000,
+      "capex_usd": 35000000,
+      "headcount": 49,
+      "capex_yoy_change_usd": -25000000,
+      "is_illustrative": true,
+      "notes": "Illustrative multi-year FP&A roadmap for a generic hardware-program finance function -- not Amazon's real Leo P&L or headcount"
+    },
+    {
+      "fiscal_year": 2030,
+      "opex_usd": 63000000,
+      "capex_usd": 20000000,
+      "headcount": 50,
+      "capex_yoy_change_usd": -15000000,
+      "is_illustrative": true,
+      "notes": "Illustrative multi-year FP&A roadmap for a generic hardware-program finance function -- not Amazon's real Leo P&L or headcount"
+    }
+  ],
+  "roi_payback_scenarios": [
+    {
+      "scenario_name": "Ground Terminal Assembly Automation",
+      "capex_usd": 8000000,
+      "annual_benefit_usd": 3200000,
+      "payback_years": 2.5,
+      "roi_pct": 40.0,
+      "is_illustrative": true,
+      "notes": "Illustrative generic capital-investment scenario -- not a real Amazon decision"
+    },
+    {
+      "scenario_name": "Additional OISL Production Line",
+      "capex_usd": 22000000,
+      "annual_benefit_usd": 6500000,
+      "payback_years": 3.38,
+      "roi_pct": 29.5,
+      "is_illustrative": true,
+      "notes": "Illustrative generic capital-investment scenario -- not a real Amazon decision"
+    },
+    {
+      "scenario_name": "Redundant Rad-Hard Chip Qualification (dual-source)",
+      "capex_usd": 4500000,
+      "annual_benefit_usd": 1100000,
+      "payback_years": 4.09,
+      "roi_pct": 24.4,
+      "is_illustrative": true,
+      "notes": "Illustrative generic capital-investment scenario -- not a real Amazon decision"
+    }
+  ],
+  "operational_kpi_framework": [
+    {
+      "domain_order": 1,
+      "domain": "Finance",
+      "kpi_name": "Adjusted EBITDA Margin",
+      "definition": "Net operating earnings before interest taxes depreciation and amortization divided by revenue.",
+      "target_benchmark": ">= 50% at full deployment",
+      "frequency": "Quarterly",
+      "strategic_objective": "Achieve structural operating leverage typical of space infrastructure.",
+      "is_illustrative": true,
+      "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
+    },
+    {
+      "domain_order": 1,
+      "domain": "Finance",
+      "kpi_name": "CapEx Contingency Reserve Buffer",
+      "definition": "Unallocated cash reserves dedicated to launch delay insurance and supply chain surge costs.",
+      "target_benchmark": ">= 15% of annual CapEx budget",
+      "frequency": "Monthly",
+      "strategic_objective": "Absorb financial shocks from rocket groundings or supplier disruptions.",
+      "is_illustrative": true,
+      "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
+    },
+    {
+      "domain_order": 1,
+      "domain": "Finance",
+      "kpi_name": "Capital Burn Rate Efficiency (CBRE)",
+      "definition": "Ratio of total monthly capital and operating spend to completed program milestones.",
+      "target_benchmark": "<= 1.0 budget variance ratio",
+      "frequency": "Monthly",
+      "strategic_objective": "Prevent cash burn overruns during high-rate deployment.",
+      "is_illustrative": true,
+      "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
+    },
+    {
+      "domain_order": 1,
+      "domain": "Finance",
+      "kpi_name": "Levelized Cost of Capacity (LCOC)",
+      "definition": "Total discounted life-cycle cost divided by total delivered gigabit bandwidth over asset life.",
+      "target_benchmark": "< $3.50 per Gbps/month",
+      "frequency": "Quarterly",
+      "strategic_objective": "Minimize capital cost per unit of delivered space capacity.",
+      "is_illustrative": true,
+      "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
+    },
+    {
+      "domain_order": 1,
+      "domain": "Finance",
+      "kpi_name": "Orbital Plane Payback Horizon",
+      "definition": "Months required for net revenue from a specific plane to equal initial manufacture and launch CapEx.",
+      "target_benchmark": "< 36 months",
+      "frequency": "Bi-Annually",
+      "strategic_objective": "Accelerate capital recovery across deployed orbital assets.",
+      "is_illustrative": true,
+      "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
+    },
+    {
+      "domain_order": 1,
+      "domain": "Finance",
+      "kpi_name": "Terminal Subsidization Recovery",
+      "definition": "Cumulative net ARPU margin contribution minus net hardware manufacturing subsidy.",
+      "target_benchmark": "Payback < 12 months",
+      "frequency": "Monthly",
+      "strategic_objective": "Ensure hardware subsidies are recouped through subscriber margins.",
+      "is_illustrative": true,
+      "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
+    },
+    {
+      "domain_order": 2,
+      "domain": "Accounting",
+      "kpi_name": "ASC 606 Revenue Recognition Variance",
+      "definition": "Error margin in deferred revenue accounting for multi-year enterprise and telecom backhaul agreements.",
+      "target_benchmark": "0.0% restatement rate",
+      "frequency": "Quarterly",
+      "strategic_objective": "Guarantee accurate financial reporting across enterprise B2B sales.",
+      "is_illustrative": true,
+      "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
+    },
+    {
+      "domain_order": 2,
+      "domain": "Accounting",
+      "kpi_name": "Capitalized Space Segment Asset Accuracy",
+      "definition": "Variance between audited WIP asset balances and verified in-orbit deployed space hardware costs.",
+      "target_benchmark": "0.0% audit discrepancy",
+      "frequency": "Monthly",
+      "strategic_objective": "Ensure accurate capitalization of space segment assets.",
+      "is_illustrative": true,
+      "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
+    },
+    {
+      "domain_order": 2,
+      "domain": "Accounting",
+      "kpi_name": "Decommissioning Reserve Accrual Ratio",
+      "definition": "Accrued end-of-life disposal liabilities divided by total required controlled de-orbit capital reserves.",
+      "target_benchmark": "100% fully funded ratio",
+      "frequency": "Quarterly",
+      "strategic_objective": "Maintain compliance with FCC disposal financial obligations.",
+      "is_illustrative": true,
+      "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
+    },
+    {
+      "domain_order": 2,
+      "domain": "Accounting",
+      "kpi_name": "On-Orbit Asset Impairment Ratio",
+      "definition": "Value of written-off failed spacecraft relative to total active capitalized constellation value.",
+      "target_benchmark": "< 1.5% of active fleet value",
+      "frequency": "Monthly",
+      "strategic_objective": "Accurately reflect hardware losses and operational depreciation.",
+      "is_illustrative": true,
+      "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
+    },
+    {
+      "domain_order": 2,
+      "domain": "Accounting",
+      "kpi_name": "Standard Terminal COGS Variance",
+      "definition": "Difference between actual manufacturing spending and target standard production costs (under $400 for Pro).",
+      "target_benchmark": "<= $0.00 adverse variance",
+      "frequency": "Weekly",
+      "strategic_objective": "Maintain cost discipline across customer terminal lines.",
+      "is_illustrative": true,
+      "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
+    },
+    {
+      "domain_order": 2,
+      "domain": "Accounting",
+      "kpi_name": "WIP-to-In-Service Capital Transfer Rate",
+      "definition": "Pace at which manufacturing WIP capital transforms into revenue-generating active orbital assets.",
+      "target_benchmark": "< 45 days post-launch",
+      "frequency": "Per Launch",
+      "strategic_objective": "Minimize idle capital tied up in unverified orbital inventory.",
+      "is_illustrative": true,
+      "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
+    },
+    {
+      "domain_order": 3,
+      "domain": "Spacecraft Production",
+      "kpi_name": "Accelerated Testing Cycle Time",
+      "definition": "Total hours required to execute thermal vacuum acoustic and RF calibration testing per satellite batch.",
+      "target_benchmark": "< 72 hours per batch",
+      "frequency": "Weekly",
+      "strategic_objective": "Maintain accelerated testing speedups (reducing months to days).",
+      "is_illustrative": true,
+      "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
+    },
+    {
+      "domain_order": 3,
+      "domain": "Spacecraft Production",
+      "kpi_name": "Cleanroom Environmental Compliance",
+      "definition": "Percentage of operational shifts maintaining strict ISO Class 8 particulate and ESD thresholds.",
+      "target_benchmark": "100% shift compliance",
+      "frequency": "Continuous",
+      "strategic_objective": "Eliminate particulate contamination risks in high-rate assembly lines.",
+      "is_illustrative": true,
+      "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
+    },
+    {
+      "domain_order": 3,
+      "domain": "Spacecraft Production",
+      "kpi_name": "Daily Spacecraft Build Velocity",
+      "definition": "Total fully integrated spacecraft manufactured per operational 24-hour cycle.",
+      "target_benchmark": "4 to 5 satellites/day",
+      "frequency": "Daily",
+      "strategic_objective": "Maintain production throughput to meet deployment schedules.",
+      "is_illustrative": true,
+      "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure. Cross-checked against this project's own real deployment-capacity mart below."
+    },
+    {
+      "domain_order": 3,
+      "domain": "Spacecraft Production",
+      "kpi_name": "First Pass Yield (FPY)",
+      "definition": "Percentage of spacecraft passing all environmental and payload tests without requiring rework.",
+      "target_benchmark": ">= 98.5%",
+      "frequency": "Daily",
+      "strategic_objective": "Eliminate costly cleanroom rework bottlenecks.",
+      "is_illustrative": true,
+      "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
+    },
+    {
+      "domain_order": 3,
+      "domain": "Spacecraft Production",
+      "kpi_name": "Kirkland Factory OEE",
+      "definition": "Combined availability performance rate and quality yield of automated cleanroom assembly robotics.",
+      "target_benchmark": ">= 88%",
+      "frequency": "Weekly",
+      "strategic_objective": "Maximize manufacturing efficiency within the 172k sq ft plant.",
+      "is_illustrative": true,
+      "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
+    },
+    {
+      "domain_order": 3,
+      "domain": "Spacecraft Production",
+      "kpi_name": "Prometheus SoC Integration Yield",
+      "definition": "Percentage of custom baseband processing boards successfully mated and calibrated without fault.",
+      "target_benchmark": ">= 99.9%",
+      "frequency": "Daily",
+      "strategic_objective": "Prevent assembly holds on high-value processing payloads.",
+      "is_illustrative": true,
+      "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
+    },
+    {
+      "domain_order": 4,
+      "domain": "Launch Operations",
+      "kpi_name": "Campaign Integration Cycle Time",
+      "definition": "Days elapsed from spacecraft arrival at KSC to final payload fairing encapsulation.",
+      "target_benchmark": "< 14 days per mission",
+      "frequency": "Per Launch",
+      "strategic_objective": "Maximize processing throughput across launch pads.",
+      "is_illustrative": true,
+      "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
+    },
+    {
+      "domain_order": 4,
+      "domain": "Launch Operations",
+      "kpi_name": "FCC Milestone Compliance Margin",
+      "definition": "Active orbiting spacecraft count minus regulatory milestone requirements.",
+      "target_benchmark": "Positive satellite buffer",
+      "frequency": "Monthly",
+      "strategic_objective": "Safeguard FCC spectrum operating license validity.",
+      "is_illustrative": true,
+      "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure. Cross-checked against this project's own real milestone-risk mart below."
+    },
+    {
+      "domain_order": 4,
+      "domain": "Launch Operations",
+      "kpi_name": "KSC Payload Processing Velocity",
+      "definition": "Spacecraft processed krypton-fueled and dispenser-integrated per calendar month.",
+      "target_benchmark": "> 100 satellites/month",
+      "frequency": "Monthly",
+      "strategic_objective": "Match Florida processing volume to launch manifest demand.",
+      "is_illustrative": true,
+      "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
+    },
+    {
+      "domain_order": 4,
+      "domain": "Launch Operations",
+      "kpi_name": "Krypton Fueling Safety Integrity",
+      "definition": "Zero-leakage compliance rate during high-pressure krypton propellant loading operations.",
+      "target_benchmark": "0.0% anomaly rate",
+      "frequency": "Per Launch",
+      "strategic_objective": "Maintain pad safety and ensure precise orbital insertion fuel.",
+      "is_illustrative": true,
+      "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
+    },
+    {
+      "domain_order": 4,
+      "domain": "Launch Operations",
+      "kpi_name": "Launch Provider Concentration Risk",
+      "definition": "Maximum percentage of launch manifest assigned to a single launch vehicle family.",
+      "target_benchmark": "<= 50% total manifest",
+      "frequency": "Quarterly",
+      "strategic_objective": "Mitigate fleet-wide groundings by diversifying launch vehicles.",
+      "is_illustrative": true,
+      "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
+    },
+    {
+      "domain_order": 4,
+      "domain": "Launch Operations",
+      "kpi_name": "Multi-Dispenser Mating Yield",
+      "definition": "Percentage of spacecraft successfully attached to multi-level launch dispensers without mechanical error.",
+      "target_benchmark": "100% flawless mating",
+      "frequency": "Per Launch",
+      "strategic_objective": "Prevent structural or interface mating aborts on dispensers.",
+      "is_illustrative": true,
+      "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
+    },
+    {
+      "domain_order": 5,
+      "domain": "Logistics & Supply Chain",
+      "kpi_name": "Cross-Country/Ocean Transit Integrity",
+      "definition": "Percentage of spacecraft shipments reaching launch sites without tripping shock vibration or humidity sensors.",
+      "target_benchmark": "100% transit compliance",
+      "frequency": "Per Shipment",
+      "strategic_objective": "Prevent transport-induced structural or electronic damage.",
+      "is_illustrative": true,
+      "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
+    },
+    {
+      "domain_order": 5,
+      "domain": "Logistics & Supply Chain",
+      "kpi_name": "Everett Hub Inventory Turnover",
+      "definition": "Annualized component consumption spend divided by average warehouse inventory value.",
+      "target_benchmark": "> 12 turns/year",
+      "frequency": "Monthly",
+      "strategic_objective": "Optimize inventory turnover while supporting production.",
+      "is_illustrative": true,
+      "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
+    },
+    {
+      "domain_order": 5,
+      "domain": "Logistics & Supply Chain",
+      "kpi_name": "Prometheus Buffer Stock Horizon",
+      "definition": "Days of on-hand inventory for custom Prometheus baseband chips based on factory burn rate.",
+      "target_benchmark": "45 to 60 days",
+      "frequency": "Weekly",
+      "strategic_objective": "Buffer against semiconductor supply chain disruptions.",
+      "is_illustrative": true,
+      "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
+    },
+    {
+      "domain_order": 5,
+      "domain": "Logistics & Supply Chain",
+      "kpi_name": "Single-Source Vendor Exposure Index",
+      "definition": "Percentage of direct procurement spend tied to single-source suppliers lacking qualified backups.",
+      "target_benchmark": "< 15% total spend",
+      "frequency": "Quarterly",
+      "strategic_objective": "Diversify supply chain sourcing for critical satellite components.",
+      "is_illustrative": true,
+      "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
+    },
+    {
+      "domain_order": 5,
+      "domain": "Logistics & Supply Chain",
+      "kpi_name": "Strategic Material Safety Buffer",
+      "definition": "Weeks of raw material (propellant-grade krypton solar cell substrate) held in reserve.",
+      "target_benchmark": ">= 12 weeks supply",
+      "frequency": "Monthly",
+      "strategic_objective": "Safeguard manufacturing against upstream material embargoes.",
+      "is_illustrative": true,
+      "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
+    },
+    {
+      "domain_order": 5,
+      "domain": "Logistics & Supply Chain",
+      "kpi_name": "Supplier OTIF Delivery Compliance",
+      "definition": "Percentage of vendor component deliveries arriving on schedule and fully meeting quality specs.",
+      "target_benchmark": ">= 96.0%",
+      "frequency": "Weekly",
+      "strategic_objective": "Protect high-rate satellite assembly lines from component starvation.",
+      "is_illustrative": true,
+      "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
+    },
+    {
+      "domain_order": 6,
+      "domain": "Systems Engineering",
+      "kpi_name": "Autonomous Collision Avoidance Yield",
+      "definition": "Percentage of orbital conjunction warnings resolved via automated thruster adjustments without ground operator intervention.",
+      "target_benchmark": ">= 99.5%",
+      "frequency": "Daily",
+      "strategic_objective": "Automate space traffic management and protect space assets.",
+      "is_illustrative": true,
+      "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
+    },
+    {
+      "domain_order": 6,
+      "domain": "Systems Engineering",
+      "kpi_name": "De-orbit Trajectory Execution Rate",
+      "definition": "Percentage of end-of-life spacecraft successfully executing controlled re-entry de-orbit burns.",
+      "target_benchmark": "100% success rate",
+      "frequency": "Per De-orbit",
+      "strategic_objective": "Prevent orbital debris accumulation in low Earth orbit.",
+      "is_illustrative": true,
+      "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
+    },
+    {
+      "domain_order": 6,
+      "domain": "Systems Engineering",
+      "kpi_name": "End-to-End Network Latency",
+      "definition": "Mean round-trip time for data packets routed between end-user terminals and internet pop points.",
+      "target_benchmark": "30 to 50 ms",
+      "frequency": "Continuous",
+      "strategic_objective": "Maintain low-latency performance competitive with terrestrial fiber.",
+      "is_illustrative": true,
+      "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
+    },
+    {
+      "domain_order": 6,
+      "domain": "Systems Engineering",
+      "kpi_name": "OISL Inter-Laser Link Throughput",
+      "definition": "Operational throughput maintained across active infrared inter-satellite optical links.",
+      "target_benchmark": ">= 100 Gbps/link",
+      "frequency": "Continuous",
+      "strategic_objective": "Maximize routing efficiency across the space mesh network.",
+      "is_illustrative": true,
+      "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
+    },
+    {
+      "domain_order": 6,
+      "domain": "Systems Engineering",
+      "kpi_name": "Prometheus SoC Onboard Data Yield",
+      "definition": "Total real-time data traffic processed on board each satellite baseband processing SoC.",
+      "target_benchmark": "Up to 1 Tbps",
+      "frequency": "Continuous",
+      "strategic_objective": "Prevent data processing bottlenecks on orbit.",
+      "is_illustrative": true,
+      "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
+    },
+    {
+      "domain_order": 6,
+      "domain": "Systems Engineering",
+      "kpi_name": "Station-Keeping Position Precision",
+      "definition": "Deviation of spacecraft position from assigned altitude and inclination parameters.",
+      "target_benchmark": "+/- 9 km altitude",
+      "frequency": "Continuous",
+      "strategic_objective": "Maintain constellation spacing and prevent orbital collisions.",
+      "is_illustrative": true,
+      "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
+    },
+    {
+      "domain_order": 7,
+      "domain": "Commercialization & Sales",
+      "kpi_name": "Customer Acquisition Cost (CAC)",
+      "definition": "Total acquisition costs including sales marketing and hardware subsidies divided by new activations.",
+      "target_benchmark": "Payback < 12 months",
+      "frequency": "Monthly",
+      "strategic_objective": "Maintain efficient subscriber growth economics.",
+      "is_illustrative": true,
+      "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
+    },
+    {
+      "domain_order": 7,
+      "domain": "Commercialization & Sales",
+      "kpi_name": "Enterprise Backhaul SLA Uptime",
+      "definition": "Percentage of operating hours meeting contracted bandwidth and latency SLAs for enterprise clients.",
+      "target_benchmark": ">= 99.9% uptime",
+      "frequency": "Monthly",
+      "strategic_objective": "Fulfill enterprise agreements with telecom and aviation partners.",
+      "is_illustrative": true,
+      "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
+    },
+    {
+      "domain_order": 7,
+      "domain": "Commercialization & Sales",
+      "kpi_name": "Gross Monthly Churn Rate",
+      "definition": "Percentage of active subscribers disconnecting service per 30-day operating window.",
+      "target_benchmark": "< 1.2% per month",
+      "frequency": "Monthly",
+      "strategic_objective": "Protect subscriber lifetime value against competitor alternatives.",
+      "is_illustrative": true,
+      "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
+    },
+    {
+      "domain_order": 7,
+      "domain": "Commercialization & Sales",
+      "kpi_name": "Landing Rights Clearance Velocity",
+      "definition": "Total national regulatory jurisdictions approving commercial spectrum landing rights per quarter.",
+      "target_benchmark": ">= 15 nations/quarter",
+      "frequency": "Quarterly",
+      "strategic_objective": "Expand global addressable market prior to full constellation launch.",
+      "is_illustrative": true,
+      "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
+    },
+    {
+      "domain_order": 7,
+      "domain": "Commercialization & Sales",
+      "kpi_name": "Residential Subscription ARPU",
+      "definition": "Monthly service revenue generated per active residential Pro/Nano terminal user.",
+      "target_benchmark": "$100 to $120/month",
+      "frequency": "Monthly",
+      "strategic_objective": "Drive cash flow from direct-to-consumer subscribers.",
+      "is_illustrative": true,
+      "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
+    },
+    {
+      "domain_order": 7,
+      "domain": "Commercialization & Sales",
+      "kpi_name": "Terminal Capacity Load Factor",
+      "definition": "Ratio of active data consumed through user terminals to peak engineered system throughput.",
+      "target_benchmark": "65% to 80% peak load",
+      "frequency": "Daily",
+      "strategic_objective": "Maximize cell utilization without inducing local congestion.",
+      "is_illustrative": true,
+      "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
+    },
+    {
+      "domain_order": 8,
+      "domain": "Vendor Management",
+      "kpi_name": "Cybersecurity/ITAR Compliance Audit",
+      "definition": "Percentage of active hardware vendors fully compliant with ITAR export controls and cybersecurity protocols.",
+      "target_benchmark": "100% audit score",
+      "frequency": "Bi-Annually",
+      "strategic_objective": "Ensure regulatory and security compliance across supply tiers.",
+      "is_illustrative": true,
+      "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
+    },
+    {
+      "domain_order": 8,
+      "domain": "Vendor Management",
+      "kpi_name": "Launch Provider Schedule Compliance",
+      "definition": "Percentage of contracted launch missions executed within approved launch windows.",
+      "target_benchmark": ">= 90% compliance",
+      "frequency": "Per Mission",
+      "strategic_objective": "Maintain launch schedule alignment across rocket providers.",
+      "is_illustrative": true,
+      "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
+    },
+    {
+      "domain_order": 8,
+      "domain": "Vendor Management",
+      "kpi_name": "Single-Source Vendor Recovery Time",
+      "definition": "Days required to transition component production to an alternate supplier upon vendor failure.",
+      "target_benchmark": "< 60 days",
+      "frequency": "Bi-Annually",
+      "strategic_objective": "Reduce single-source supplier dependencies.",
+      "is_illustrative": true,
+      "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
+    },
+    {
+      "domain_order": 8,
+      "domain": "Vendor Management",
+      "kpi_name": "Supplier Quality Rating (SQR)",
+      "definition": "Weighted score evaluating vendor defect rates on-time delivery and cost performance.",
+      "target_benchmark": ">= 92/100",
+      "frequency": "Quarterly",
+      "strategic_objective": "Audit Tier-1 and Tier-2 space hardware suppliers.",
+      "is_illustrative": true,
+      "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
+    },
+    {
+      "domain_order": 8,
+      "domain": "Vendor Management",
+      "kpi_name": "Vendor Component Defect Rate (PPM)",
+      "definition": "Defective components per million units delivered across space hardware vendors.",
+      "target_benchmark": "< 50 PPM",
+      "frequency": "Monthly",
+      "strategic_objective": "Protect spacecraft cleanroom lines from defective incoming hardware.",
+      "is_illustrative": true,
+      "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
+    },
+    {
+      "domain_order": 8,
+      "domain": "Vendor Management",
+      "kpi_name": "Vendor SLA Downtime Cost Recovery",
+      "definition": "Percentage of financial losses from supplier-caused line holds recovered via contract penalties.",
+      "target_benchmark": "100% penalty recovery",
+      "frequency": "Quarterly",
+      "strategic_objective": "Recoup financial impact from vendor quality non-conformance.",
+      "is_illustrative": true,
+      "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
+    },
+    {
+      "domain_order": 9,
+      "domain": "Inventory & Quality Control",
+      "kpi_name": "Flight Component Serial Traceability",
+      "definition": "Percentage of audited flight components with complete verified manufacturing provenance logs.",
+      "target_benchmark": "100% audit score",
+      "frequency": "Monthly",
+      "strategic_objective": "Guarantee part traceability for post-launch anomaly analysis.",
+      "is_illustrative": true,
+      "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
+    },
+    {
+      "domain_order": 9,
+      "domain": "Inventory & Quality Control",
+      "kpi_name": "Inventory Carrying Cost Ratio",
+      "definition": "Total holding storage and insurance costs divided by total value of on-hand spacecraft inventory.",
+      "target_benchmark": "< 8%",
+      "frequency": "Monthly",
+      "strategic_objective": "Optimize inventory holding costs across storage facilities.",
+      "is_illustrative": true,
+      "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
+    },
+    {
+      "domain_order": 9,
+      "domain": "Inventory & Quality Control",
+      "kpi_name": "NCR Resolution Cycle Time",
+      "definition": "Average business days required to investigate resolve and close cleanroom Non-Conformance Reports.",
+      "target_benchmark": "< 5 business days",
+      "frequency": "Weekly",
+      "strategic_objective": "Maintain factory flow by resolving quality defects quickly.",
+      "is_illustrative": true,
+      "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
+    },
+    {
+      "domain_order": 9,
+      "domain": "Inventory & Quality Control",
+      "kpi_name": "Non-Destructive Testing (NDT) Coverage",
+      "definition": "Percentage of critical structural and composite welds subjected to ultrasonic/X-ray inspection.",
+      "target_benchmark": "100% critical joint check",
+      "frequency": "Weekly",
+      "strategic_objective": "Eliminate structural defects prior to launch vibration stress.",
+      "is_illustrative": true,
+      "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
+    },
+    {
+      "domain_order": 9,
+      "domain": "Inventory & Quality Control",
+      "kpi_name": "Pre-Ship Acceptance Test Pass Rate",
+      "definition": "Percentage of completed spacecraft passing final testing before shipment to launch sites.",
+      "target_benchmark": ">= 99.0%",
+      "frequency": "Weekly",
+      "strategic_objective": "Ensure zero defective spacecraft are shipped to launch sites.",
+      "is_illustrative": true,
+      "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
+    },
+    {
+      "domain_order": 9,
+      "domain": "Inventory & Quality Control",
+      "kpi_name": "Terminal Field RMA Rate",
+      "definition": "Percentage of deployed customer terminals returned due to hardware defects within 12 months.",
+      "target_benchmark": "< 0.8% of active units",
+      "frequency": "Monthly",
+      "strategic_objective": "Protect customer satisfaction and lower warranty replacement costs.",
+      "is_illustrative": true,
+      "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
+    }
+  ]
 }
