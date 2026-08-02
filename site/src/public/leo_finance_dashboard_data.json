@@ -1,7 +1,7 @@
 {
   "project": "dbt_leo_program_finance",
   "disclaimer": "Independent illustrative project. Not affiliated with, endorsed by, or built using any internal Amazon data. Figures describing the real program are sourced to public reporting (see source/source_url per row); figures describing an Amazon internal decision (make-vs-buy, variance drivers) are fully synthetic and flagged is_illustrative.",
-  "generated_at": "2026-08-02T18:39:57.776424+00:00",
+  "generated_at": "2026-08-02T19:07:57.042760+00:00",
   "deployment_checkpoints": [
     {
       "as_of_date": "2025-04-01",
@@ -1712,5 +1712,156 @@
     "tcpi_to_eac": 0.8628,
     "is_illustrative": true,
     "notes": "BAC/AC/EV summed from mart_cashflow_breakdown's 22 subcategories -- same period, same cost scope. AC already exceeds BAC in this scenario, which makes tcpi_to_bac mathematically negative/degenerate: recovering the original budget is not just unlikely, it is undefined. tcpi_to_eac (using eac_cpi, the primary book number) is the metric that is actually interpretable here."
-  }
+  },
+  "risk_register": [
+    {
+      "risk_id": 1,
+      "risk_name": "safety_coordination_incidents",
+      "category": "safety",
+      "description": "Real, dated safety/coordination incident(s) logged against the program",
+      "probability_pct": 100.0,
+      "probability_tier": "high",
+      "impact_tier": "low",
+      "exposure_tier": "medium",
+      "in_composite_index": true,
+      "status": "scored_in_composite",
+      "source_mart": "mart_safety_coordination_incidents / mart_program_risk_index",
+      "is_illustrative": true,
+      "notes": "Probability tiers reuse each signal's own already-computed percentage; impact tiers for composite-scored risks reuse the Program Delivery Risk Index's own documented weights (>=25 -> high, 15-20 -> medium, 10 -> low). Exposure = standard probability x impact matrix. Monitored-only rows show a probability proxy but are not force-fit into the composite's impact weighting, since the index itself deliberately excludes them."
+    },
+    {
+      "risk_id": 2,
+      "risk_name": "cost_escalation",
+      "category": "cost",
+      "description": "Program cost growth vs. the prior public estimate",
+      "probability_pct": 100.0,
+      "probability_tier": "high",
+      "impact_tier": "medium",
+      "exposure_tier": "high",
+      "in_composite_index": true,
+      "status": "scored_in_composite",
+      "source_mart": "mart_cost_escalation / mart_program_risk_index",
+      "is_illustrative": true,
+      "notes": "Probability tiers reuse each signal's own already-computed percentage; impact tiers for composite-scored risks reuse the Program Delivery Risk Index's own documented weights (>=25 -> high, 15-20 -> medium, 10 -> low). Exposure = standard probability x impact matrix. Monitored-only rows show a probability proxy but are not force-fit into the composite's impact weighting, since the index itself deliberately excludes them."
+    },
+    {
+      "risk_id": 3,
+      "risk_name": "milestone_shortfall",
+      "category": "schedule",
+      "description": "FCC-mandated satellite-count deadline projected to be missed from the latest observed deployment checkpoint",
+      "probability_pct": 73.6,
+      "probability_tier": "high",
+      "impact_tier": "high",
+      "exposure_tier": "critical",
+      "in_composite_index": true,
+      "status": "scored_in_composite",
+      "source_mart": "mart_milestone_risk / mart_program_risk_index",
+      "is_illustrative": true,
+      "notes": "Probability tiers reuse each signal's own already-computed percentage; impact tiers for composite-scored risks reuse the Program Delivery Risk Index's own documented weights (>=25 -> high, 15-20 -> medium, 10 -> low). Exposure = standard probability x impact matrix. Monitored-only rows show a probability proxy but are not force-fit into the composite's impact weighting, since the index itself deliberately excludes them."
+    },
+    {
+      "risk_id": 4,
+      "risk_name": "launch_vehicle_reliability",
+      "category": "technical",
+      "description": "Failure/delay rate across the tracked launch-vehicle fleet",
+      "probability_pct": 40.0,
+      "probability_tier": "medium",
+      "impact_tier": "high",
+      "exposure_tier": "high",
+      "in_composite_index": true,
+      "status": "scored_in_composite",
+      "source_mart": "mart_launch_vehicle_reliability / mart_program_risk_index",
+      "is_illustrative": true,
+      "notes": "Probability tiers reuse each signal's own already-computed percentage; impact tiers for composite-scored risks reuse the Program Delivery Risk Index's own documented weights (>=25 -> high, 15-20 -> medium, 10 -> low). Exposure = standard probability x impact matrix. Monitored-only rows show a probability proxy but are not force-fit into the composite's impact weighting, since the index itself deliberately excludes them."
+    },
+    {
+      "risk_id": 5,
+      "risk_name": "supplier_concentration",
+      "category": "supply_chain",
+      "description": "Share of tracked bottleneck components in the high-concentration-risk tier",
+      "probability_pct": 33.3,
+      "probability_tier": "medium",
+      "impact_tier": "medium",
+      "exposure_tier": "medium",
+      "in_composite_index": true,
+      "status": "scored_in_composite",
+      "source_mart": "mart_supplier_concentration_risk / mart_program_risk_index",
+      "is_illustrative": true,
+      "notes": "Probability tiers reuse each signal's own already-computed percentage; impact tiers for composite-scored risks reuse the Program Delivery Risk Index's own documented weights (>=25 -> high, 15-20 -> medium, 10 -> low). Exposure = standard probability x impact matrix. Monitored-only rows show a probability proxy but are not force-fit into the composite's impact weighting, since the index itself deliberately excludes them."
+    },
+    {
+      "risk_id": 6,
+      "risk_name": "d2d_regulatory_decision_timing",
+      "category": "regulatory",
+      "description": "Uncertainty span in the FCC's disclosed review-timeline estimate for the 5,105-satellite direct-to-device filing",
+      "probability_pct": 33.3,
+      "probability_tier": "medium",
+      "impact_tier": "not_assessed",
+      "exposure_tier": "monitoring_only",
+      "in_composite_index": false,
+      "status": "monitored_not_scored",
+      "source_mart": "mart_d2d_regulatory_pipeline",
+      "is_illustrative": true,
+      "notes": "Probability tiers reuse each signal's own already-computed percentage; impact tiers for composite-scored risks reuse the Program Delivery Risk Index's own documented weights (>=25 -> high, 15-20 -> medium, 10 -> low). Exposure = standard probability x impact matrix. Monitored-only rows show a probability proxy but are not force-fit into the composite's impact weighting, since the index itself deliberately excludes them."
+    },
+    {
+      "risk_id": 7,
+      "risk_name": "deployment_capacity_utilization_gap",
+      "category": "technical",
+      "description": "Kirkland factory capacity ceiling vs. the highest realized deployment rate -- deliberately excluded from the composite index above (same root cause as launch reliability, would double-count)",
+      "probability_pct": 30.8,
+      "probability_tier": "low",
+      "impact_tier": "not_assessed",
+      "exposure_tier": "monitoring_only",
+      "in_composite_index": false,
+      "status": "monitored_not_scored",
+      "source_mart": "mart_deployment_capacity_gap",
+      "is_illustrative": true,
+      "notes": "Probability tiers reuse each signal's own already-computed percentage; impact tiers for composite-scored risks reuse the Program Delivery Risk Index's own documented weights (>=25 -> high, 15-20 -> medium, 10 -> low). Exposure = standard probability x impact matrix. Monitored-only rows show a probability proxy but are not force-fit into the composite's impact weighting, since the index itself deliberately excludes them."
+    }
+  ],
+  "launch_reliability_trend": [
+    {
+      "event_date": "2026-02-12",
+      "launch_vehicle": "Ariane 6",
+      "event_type": "success_with_incident",
+      "description": "LE-01: 32 satellites deployed; SpaceX publicly disputed the deployment altitude as creating unmitigable collision risk with dozens of operational spacecraft near the 480km insertion altitude",
+      "source": "SpaceNews",
+      "source_url": "https://spacenews.com/spacex-and-amazon-spar-over-satellite-deployments/",
+      "running_failure_events": 0,
+      "running_delay_events": 0,
+      "running_success_events": 1,
+      "running_total_events": 1,
+      "running_adverse_event_rate_pct": 0.0,
+      "calculation_note": "Running cumulative counts across 3 dated launch events, ordered chronologically. 2 additional real event(s) lack a disclosed exact date and are excluded from this chronological trend (see mart_launch_disruption_timeline)."
+    },
+    {
+      "event_date": "2026-04-04",
+      "launch_vehicle": "Atlas V",
+      "event_type": "success",
+      "description": "LA-05: 29 satellites deployed",
+      "source": "GeekWire",
+      "source_url": "https://www.geekwire.com/2026/amazon-leo-double-pace-roll-out-satellite-broadband/",
+      "running_failure_events": 0,
+      "running_delay_events": 0,
+      "running_success_events": 2,
+      "running_total_events": 2,
+      "running_adverse_event_rate_pct": 0.0,
+      "calculation_note": "Running cumulative counts across 3 dated launch events, ordered chronologically. 2 additional real event(s) lack a disclosed exact date and are excluded from this chronological trend (see mart_launch_disruption_timeline)."
+    },
+    {
+      "event_date": "2026-04-28",
+      "launch_vehicle": "Atlas V",
+      "event_type": "success",
+      "description": "LA-06: 29 satellites deployed",
+      "source": "GeekWire",
+      "source_url": "https://www.geekwire.com/2026/amazon-leo-double-pace-roll-out-satellite-broadband/",
+      "running_failure_events": 0,
+      "running_delay_events": 0,
+      "running_success_events": 3,
+      "running_total_events": 3,
+      "running_adverse_event_rate_pct": 0.0,
+      "calculation_note": "Running cumulative counts across 3 dated launch events, ordered chronologically. 2 additional real event(s) lack a disclosed exact date and are excluded from this chronological trend (see mart_launch_disruption_timeline)."
+    }
+  ]
 }

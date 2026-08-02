@@ -300,7 +300,7 @@
 <div class="bar">
   <div class="bar-in">
     <a class="brand" href="./" style="text-decoration:none; color:inherit" title="Back to portfolio"><span class="dot"></span><div>Leo Program Finance<small>dbt + DuckDB · illustrative</small></div></a>
-    <span class="badge">214 tests passing</span>
+    <span class="badge">236 tests passing</span>
     <div class="right">
       <button class="icobtn" id="themeBtn" aria-pressed="false" title="Toggle theme">🌓 Theme</button>
     </div>
@@ -583,6 +583,23 @@
     <div class="card" id="riskIndexCard"></div>
     <div class="card" style="margin-top:12px"><div class="chartbox" id="riskDriverChart"></div></div>
     <div class="plain" id="plainRiskIndex"></div>
+  </div>
+
+  <!-- 14b. Risk Register -->
+  <div class="section">
+    <h2>Risk Register <span class="src-tag illustrative" style="margin-left:6px">illustrative</span></h2>
+    <p class="section-sub">The 5 signals scored into the composite above, plus 2 real risk factors this project tracks but deliberately does not fold into that score, consolidated into one register: probability tier x impact tier &rarr; exposure tier. Probability reuses each signal's own already-computed percentage; impact reuses the composite's own 30/25/20/15/10 weights.
+    <button class="infoicon" data-tip="Monitored-only rows (capacity gap, D2D regulatory timing) show a real probability proxy but are deliberately not assigned an impact tier -- the composite index that would justify one never scored them, so forcing a comparative judgment here would be inventing one.">i</button></p>
+    <div class="table-wrap card"><table id="riskRegisterTable"></table></div>
+    <div class="plain" id="plainRiskRegister"></div>
+  </div>
+
+  <!-- 14c. Launch Reliability Trend -->
+  <div class="section">
+    <h2>Launch Reliability Trend <span class="src-tag official" style="margin-left:6px">real</span></h2>
+    <p class="section-sub">Cumulative adverse-event rate recomputed after each real, dated launch-vehicle event -- pure arithmetic on real dates and event types, nothing modeled.</p>
+    <div class="card"><div class="chartbox" id="reliabilityTrendChart"></div></div>
+    <div class="plain" id="plainReliabilityTrend"></div>
   </div>
 
   <!-- Chapter 4: Recommendation -->
@@ -1643,6 +1660,51 @@
     document.getElementById("plainRiskIndex").innerHTML =
       '<span class="lp-tag">Applying: Are Right, A Lot</span><br>' +
       '<span class="eyebrow">In plain terms</span>The composite reads <b>' + esc(tierLabel) + '</b> (' + risk.composite_score_pct + '%) — driven mostly by <b>' + esc(topDriver.label) + '</b> (' + topDriver.value.toFixed(1) + '% of the score). This is a rule-based index over signals already on this page, not a statistical prediction of program failure.';
+
+    // 14b. Risk Register -- 5 rows reused from the composite index above (zero new
+    // data) + 2 real risk factors deliberately monitored, not scored (see mart
+    // comments). Exposure = a standard probability x impact matrix.
+    var tierPillMap = {low: 'ok', medium: 'warn', high: 'risk', not_assessed: 'muted', monitoring_only: 'muted', critical: 'risk'};
+    var register = data.risk_register;
+    var rrHtml = '<thead><tr><th>Risk</th><th>Category</th><th>Probability</th><th>Impact</th><th>Exposure</th><th>Status</th></tr></thead><tbody>';
+    register.forEach(function(r){
+      rrHtml += '<tr><td>' + esc(r.risk_name.replace(/_/g,' ')) + '<div class="kpi note" style="margin-top:2px;font-size:11px">' + esc(r.description) + '</div></td>' +
+        '<td>' + esc(r.category.replace(/_/g,' ')) + '</td>' +
+        '<td><span class="status ' + tierPillMap[r.probability_tier] + '">' + esc(r.probability_tier) + '</span></td>' +
+        '<td><span class="status ' + tierPillMap[r.impact_tier] + '">' + esc(r.impact_tier.replace(/_/g,' ')) + '</span></td>' +
+        '<td><span class="status ' + tierPillMap[r.exposure_tier] + '">' + esc(r.exposure_tier.replace(/_/g,' ')) + '</span></td>' +
+        '<td>' + (r.in_composite_index ? 'Scored in composite' : 'Monitored, not scored') + '</td></tr>';
+    });
+    rrHtml += '</tbody>';
+    document.getElementById("riskRegisterTable").innerHTML = rrHtml;
+    var criticalRisk = register.filter(function(r){ return r.exposure_tier === 'critical'; })[0];
+    var monitoredOnly = register.filter(function(r){ return !r.in_composite_index; });
+    document.getElementById("plainRiskRegister").innerHTML =
+      '<span class="lp-tag">Applying: Dive Deep</span><br>' +
+      '<span class="eyebrow">In plain terms</span>' +
+      (criticalRisk ? '<b>' + esc(criticalRisk.risk_name.replace(/_/g,' ')) + '</b> is the only risk sitting in the critical exposure cell (high probability x high impact) — that\'s the one item on this register that should be read first. ' : '') +
+      'The safety-incident row reads "high" probability only because that signal is a binary present/absent flag from a single logged incident, not a rate — read it as "an incident has occurred," not "incidents are likely." ' +
+      monitoredOnly.length + ' risk(s) (' + esc(monitoredOnly.map(function(r){ return r.risk_name.replace(/_/g,' '); }).join(', ')) + ') are tracked here but deliberately left out of the composite score above, so they show a probability proxy with no invented impact judgment attached.';
+
+    // 14c. Launch Reliability Trend -- pure real dates + arithmetic, no is_illustrative
+    // column (same precedent as the efficiency trend / disruption timeline).
+    var relTrend = data.launch_reliability_trend;
+    var t0rel = relTrend[0].event_date;
+    function xOfRel(d){ return daysBetween(t0rel, d); }
+    var xMaxRel = xOfRel(relTrend[relTrend.length-1].event_date);
+    var adverseRatePts = relTrend.map(function(r){ return {x:xOfRel(r.event_date), y:r.running_adverse_event_rate_pct, label: r.event_date+' '+esc(r.launch_vehicle)+' ('+esc(r.event_type)+'): '+r.running_adverse_event_rate_pct+'% cumulative adverse rate'}; });
+    document.getElementById("reliabilityTrendChart").innerHTML = svgLineChart({
+      width: 640, height: 200,
+      xDomain: [0, xMaxRel || 1], yDomain: [0, 100],
+      yTickFmt: function(v){ return v.toFixed(0) + '%'; },
+      series: [{points: adverseRatePts, color: 'rgb(var(--c-accent))'}],
+      xTicks: relTrend.map(function(r){ return {x: xOfRel(r.event_date), label: r.event_date}; })
+    });
+    observeAndDrawIn(document.getElementById("reliabilityTrendChart"));
+    var undatedAdverse = data.launch_disruption_timeline.filter(function(e){ return !e.has_exact_date; });
+    document.getElementById("plainReliabilityTrend").innerHTML =
+      '<span class="lp-tag">Applying: Earn Trust</span><br>' +
+      '<span class="eyebrow">In plain terms</span>Every one of the 3 dated launch events was a success, so this line reads a flat 0% the whole way across — but don\'t read that as "launch risk is fine." The ' + undatedAdverse.length + ' real adverse events this program has actually had (' + esc(undatedAdverse.map(function(e){ return e.launch_vehicle + ' ' + e.event_type; }).join(', ')) + ') are exactly the ones without a disclosed exact date, so they can\'t appear on this timeline at all. A clean-looking chart here is an artifact of which events happen to have dates, not evidence launch risk improved.';
 
     // Closing recommendation summary -- synthesized from the same data, never hardcoded.
     document.getElementById("recommendationSummary").innerHTML =

@@ -196,6 +196,22 @@ def main():
         order by event_date
     """))
 
+    risk_register = rows_as_dicts(con.execute("""
+        select risk_id, risk_name, category, description, probability_pct, probability_tier,
+               impact_tier, exposure_tier, in_composite_index, status, source_mart,
+               is_illustrative, notes
+        from main.mart_risk_register
+        order by risk_id
+    """))
+
+    launch_reliability_trend = rows_as_dicts(con.execute("""
+        select event_date, launch_vehicle, event_type, description, source, source_url,
+               running_failure_events, running_delay_events, running_success_events,
+               running_total_events, running_adverse_event_rate_pct, calculation_note
+        from main.mart_launch_reliability_trend
+        order by event_date
+    """))
+
     payload = {
         "project": "dbt_leo_program_finance",
         "disclaimer": (
@@ -229,6 +245,8 @@ def main():
         "operational_efficiency_trend": operational_efficiency_trend,
         "launch_disruption_timeline": launch_disruption_timeline,
         "evm_rollup": evm_rollup,
+        "risk_register": risk_register,
+        "launch_reliability_trend": launch_reliability_trend,
     }
 
     def default(o):

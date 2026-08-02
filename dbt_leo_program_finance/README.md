@@ -98,6 +98,21 @@ number.
     `mart_launch_vehicle_reliability`'s aggregated-by-vehicle rollup), used to overlay actual
     failures/delays onto the efficiency trend; 2 of 3 logged disruptions have no disclosed exact
     date and are surfaced separately in narrative rather than assigned a fabricated interval
+  - `mart_risk_register` -- a PMO-style risk register consolidating 7 risk factors into
+    probability x impact -> exposure tiers: the 5 signals already scored in
+    `mart_program_risk_index` (reused directly -- zero new data, impact tiers reuse that mart's
+    own 30/25/20/15/10 weights) plus 2 real risk factors this project tracks but deliberately
+    does not fold into the composite (capacity utilization gap, D2D regulatory decision-timing
+    uncertainty) -- surfaced as monitored-only rather than force-fit into an impact judgment
+    the index itself never made
+  - `mart_launch_reliability_trend` -- cumulative failure/delay/success counts and adverse-event
+    rate recomputed after each of the 3 real, dated launch events (sourced from
+    `stg_launch_vehicle_events` directly, not `mart_launch_disruption_timeline`, since that mart
+    deliberately excludes plain `success` events). All 3 dated events happen to be successes --
+    the 2 real adverse events (New Glenn failure, Vulcan Centaur delay) are exactly the ones
+    without a disclosed date, so the trend reads a flat 0% while the real problems stay
+    invisible to it -- surfaced explicitly in the dashboard narrative rather than left for the
+    chart to imply something the data doesn't support
 - **tests**
   - data tests -- not_null/unique, `accepted_values` on every categorical/status column
   - singular tests -- variance drivers must reconcile exactly to the total (nothing lost or
@@ -125,7 +140,7 @@ dbt_leo_program_finance/
            raw_cashflow_breakdown.csv, raw_cashflow_trend.csv, raw_pnl_assumptions.csv
   models/
     staging/   18 typed staging models + staging.yml
-    marts/     22 marts + marts.yml
+    marts/     24 marts + marts.yml
   tests/   assert_variance_drivers_reconcile.sql, assert_illustrative_marts_are_flagged.sql,
            assert_unlaunched_inventory_range_ordered.sql
   scripts/ export_dashboard_data.py -- exports all marts to the site dashboard's JSON

@@ -313,3 +313,73 @@ models:
                 values: ['failure', 'delay', 'success_with_incident']
       - name: has_exact_date
         tests: [not_null]
+
+  - name: mart_risk_register
+    description: >
+      PMO-style risk register consolidating the risk signals scattered across
+      other marts: 5 rows reused from mart_program_risk_index's own composite
+      signals + 2 real risk factors this project tracks but deliberately does
+      not fold into that composite (capacity utilization gap, D2D regulatory
+      decision timing). Probability x impact -> a standard exposure-tier matrix.
+    columns:
+      - name: risk_name
+        tests: [not_null, unique]
+      - name: category
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['schedule', 'technical', 'cost', 'supply_chain', 'safety', 'regulatory']
+      - name: probability_tier
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['low', 'medium', 'high']
+      - name: impact_tier
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['low', 'medium', 'high', 'not_assessed']
+      - name: exposure_tier
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['low', 'medium', 'high', 'critical', 'monitoring_only']
+      - name: status
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['scored_in_composite', 'monitored_not_scored']
+      - name: is_illustrative
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true]
+
+  - name: mart_launch_reliability_trend
+    description: >
+      Running cumulative failure/delay/success counts and adverse-event rate
+      recomputed after each real dated launch event (sourced from
+      stg_launch_vehicle_events directly, not mart_launch_disruption_timeline,
+      because that mart deliberately excludes plain 'success' events). Shows
+      whether launch risk is worsening or easing over the observed period.
+    columns:
+      - name: event_date
+        tests: [not_null]
+      - name: event_type
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['failure', 'delay', 'success', 'success_with_incident']
+      - name: running_total_events
+        tests: [not_null]
+      - name: running_adverse_event_rate_pct
+        tests: [not_null]
+      - name: calculation_note
+        tests: [not_null]
