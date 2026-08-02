@@ -1,5 +1,5 @@
 -- Extends mart_unlaunched_inventory's exact upper/lower methodology (same disclosed
--- sustained_consistent and realized_peak rates) across every real observed checkpoint
+-- capacity_ceiling and realized_peak rates) across every real observed checkpoint
 -- instead of collapsing it into a single latest-snapshot number -- so the backlog range
 -- shows whether it's widening or narrowing, not just how big it is today. Also computes
 -- the REAL interval-to-interval launch rate and utilization % between each pair of
@@ -18,10 +18,6 @@ start_marker as (
     from dated_points
     where checkpoint_type = 'deployment_start_marker'
     limit 1
-),
-
-sustained_rate as (
-    select satellites_per_day from {{ ref('stg_deployment_rate') }} where metric_type = 'sustained_consistent' limit 1
 ),
 
 realized_rate as (
@@ -46,9 +42,9 @@ select
     w.as_of_date,
     w.cumulative_satellites as actual_cumulative_deployed,
     date_diff('day', sm.production_start_date, w.as_of_date) as elapsed_days_since_start,
-    round(date_diff('day', sm.production_start_date, w.as_of_date) * sr.satellites_per_day, 0) as modeled_cumulative_built_upper,
+    round(date_diff('day', sm.production_start_date, w.as_of_date) * cr.satellites_per_day, 0) as modeled_cumulative_built_upper,
     round(date_diff('day', sm.production_start_date, w.as_of_date) * rr.satellites_per_day, 0) as modeled_cumulative_built_lower,
-    round(date_diff('day', sm.production_start_date, w.as_of_date) * sr.satellites_per_day, 0) - w.cumulative_satellites as modeled_backlog_upper,
+    round(date_diff('day', sm.production_start_date, w.as_of_date) * cr.satellites_per_day, 0) - w.cumulative_satellites as modeled_backlog_upper,
     round(date_diff('day', sm.production_start_date, w.as_of_date) * rr.satellites_per_day, 0) - w.cumulative_satellites as modeled_backlog_lower,
     w.prev_date as interval_start_date,
     date_diff('day', w.prev_date, w.as_of_date) as interval_days,
@@ -56,10 +52,9 @@ select
     round((w.cumulative_satellites - w.prev_cumulative_satellites) / date_diff('day', w.prev_date, w.as_of_date)::double, 3) as interval_realized_rate_per_day,
     round((w.cumulative_satellites - w.prev_cumulative_satellites) / date_diff('day', w.prev_date, w.as_of_date)::double / cr.satellites_per_day * 100, 1) as interval_utilization_pct,
     cr.satellites_per_day as capacity_ceiling_per_day,
-    'Real observed checkpoints and real disclosed rates throughout. The modeled_* backlog columns extend mart_unlaunched_inventory''s exact upper/lower methodology (same sustained_consistent and realized_peak rates) to every checkpoint instead of just the latest -- neither is a disclosed production figure. interval_realized_rate_per_day and interval_utilization_pct are not modeled at all: real cumulative counts, real dates, simple arithmetic. Only 3 real observed checkpoints exist -- a thin trend, not a rich monthly series.' as calculation_note
+    'Real observed checkpoints and real disclosed rates throughout. The modeled_* backlog columns extend mart_unlaunched_inventory''s exact upper/lower methodology (capacity_ceiling and realized_peak rates) to every checkpoint instead of just the latest -- neither is a disclosed production figure. interval_realized_rate_per_day and interval_utilization_pct are not modeled at all: real cumulative counts, real dates, simple arithmetic. Only 3 real observed checkpoints exist -- a thin trend, not a rich monthly series.' as calculation_note
 from with_prev w
 cross join start_marker sm
-cross join sustained_rate sr
 cross join realized_rate rr
 cross join capacity_rate cr
 where w.checkpoint_type = 'observed'

@@ -53,7 +53,7 @@ safety as (
 ),
 
 regulatory as (
-    select expected_review_months_low, expected_review_months_high
+    select satellites_requested, filing_date
     from {{ ref('mart_d2d_regulatory_pipeline') }}
 )
 
@@ -87,7 +87,7 @@ select
             (case when sp.high_risk_count = 1 then 'the' else sp.high_risk_count::varchar || ' of the' end) ||
             ' high-concentration-risk component(s)'
         when 'd2d_regulatory_decision_timing' then
-            r.target_qualitative || ' (FCC decision window: ' || rg.expected_review_months_low || '-' || rg.expected_review_months_high || ' months)'
+            r.target_qualitative || ' (' || rg.satellites_requested || '-satellite filing, ' || rg.filing_date || ')'
         when 'deployment_capacity_utilization_gap' then
             r.target_qualitative || ' (' || lc.utilization_pct_display || '% utilization already -- launch-constrained, not capacity-constrained)'
     end as target_description,

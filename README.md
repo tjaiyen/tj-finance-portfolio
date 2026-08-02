@@ -101,7 +101,7 @@ sees their product, so the dashboard shows one curve rather than a misleading pa
 **90-day accountability roadmap** keyed to the risk register itself — one action per risk, generic role titles
 only (never a real named individual), every target a stated goal rather than a fabricated completion status,
 and an honest "no action needed" row for the one signal that was never actually a problem.
-267 tests pass, enforced in CI on every push (not just run locally before committing), with a full column-level
+266 tests pass, enforced in CI on every push (not just run locally before committing), with a full column-level
 lineage graph published alongside the dashboard; singular tests enforce that every illustrative mart's rows are
 explicitly flagged and that every risk in the register has an owner, making the grounded-vs-illustrative
 separation a tested property of the project, not just a README claim.

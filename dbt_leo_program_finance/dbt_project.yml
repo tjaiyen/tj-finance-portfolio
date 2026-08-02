@@ -117,10 +117,10 @@ seeds:
         filing_date: date
         satellites_requested: bigint
         review_framework: varchar
-        expected_review_months_low: integer
-        expected_review_months_high: integer
         related_transaction: varchar
         related_transaction_close_year: integer
+        related_transaction_source: varchar
+        related_transaction_source_url: varchar
         source: varchar
         source_url: varchar
     raw_workforce_signal:

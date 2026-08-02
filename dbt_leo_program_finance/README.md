@@ -23,7 +23,7 @@ number.
 - **staging** -- typed, 1:1 cleaned rows
 - **marts**
   - `mart_milestone_risk` -- projects whether Amazon's FCC-mandated satellite-count deadlines
-    (1,618 by 2026-07-30; 3,236 by 2029-07-30) are reachable from the latest known **observed**
+    (1,616 by 2026-07-30; 3,232 by 2029-07-30, per FCC DA 26-553) are reachable from the latest known **observed**
     deployment checkpoint, using the best realized deployment rate as the projection basis --
     shown alongside Amazon's **own** 700-satellite projection for the same date (a separate,
     explicitly labeled company estimate, never conflated with an observation), plus the actual
@@ -38,7 +38,7 @@ number.
   - `mart_implied_scale_cost` -- a fully transparent derived calculation (published per-unit cost x
     Amazon's own stated constellation target), formula shown alongside the output
   - `mart_launch_vehicle_reliability` -- failure/delay/success event counts by rocket family (Atlas V,
-    Ariane 6, Vulcan Centaur, New Glenn) -- the real bottleneck behind the milestone shortfall is
+    Ariane 6, New Glenn) -- the real bottleneck behind the milestone shortfall is
     launch supply, not manufacturing, per Amazon's own FCC filing language
   - `mart_unlaunched_inventory` -- a **modeled range** of the built-vs-deployed gap: an upper-bound
     scenario (constant production at the disclosed sustained rate) and a lower-bound scenario
@@ -50,7 +50,9 @@ number.
   - `mart_safety_coordination_incidents` -- a real, dated, sourced incident log (the Feb 2026 SpaceX
     collision-risk dispute over an Amazon Leo deployment)
   - `mart_d2d_regulatory_pipeline` -- the 5,105-satellite direct-to-device FCC filing and its
-    computed 12-18-month expected decision window
+    related Globalstar acquisition (~$11.6B, expected to close 2027 -- an M&A timeline, not the
+    FCC's own decision date, which is not publicly disclosed for this filing and is not fabricated
+    here)
   - `mart_workforce_scaling_signal` -- a single open-positions snapshot, deliberately reported as one
     data point rather than a trend the data can't support
   - `mart_makevsbuy_scenario` / `mart_variance_methodology_demo` -- fully synthetic methodology
@@ -106,13 +108,12 @@ number.
     uncertainty) -- surfaced as monitored-only rather than force-fit into an impact judgment
     the index itself never made
   - `mart_launch_reliability_trend` -- cumulative failure/delay/success counts and adverse-event
-    rate recomputed after each of the 3 real, dated launch events (sourced from
+    rate recomputed after each real, dated launch event (sourced from
     `stg_launch_vehicle_events` directly, not `mart_launch_disruption_timeline`, since that mart
-    deliberately excludes plain `success` events). All 3 dated events happen to be successes --
-    the 2 real adverse events (New Glenn failure, Vulcan Centaur delay) are exactly the ones
-    without a disclosed date, so the trend reads a flat 0% while the real problems stay
-    invisible to it -- surfaced explicitly in the dashboard narrative rather than left for the
-    chart to imply something the data doesn't support
+    deliberately excludes plain `success` events). Only 1 of the 3 real logged events has a
+    disclosed exact date -- the 2 real adverse events (New Glenn failure, Atlas V delay) are
+    exactly the ones without one -- so the dashboard deliberately shows a plain statement
+    instead of a single-point "trend" chart, rather than dressing up one fact as a line
   - `mart_capitalized_inventory_rollforward` -- translates mart_operational_efficiency_trend's
     backlog range into a modeled dollar value at each real checkpoint (x
     mart_implied_scale_cost's unit-cost range) and rolls it forward beginning -> net change
@@ -186,12 +187,14 @@ dbt_leo_program_finance/
   Amazon-disclosed forecast -- shown with the projection method visible, and alongside Amazon's own
   stated projection where one exists, not as a black-box status.
 - `mart_unlaunched_inventory` gives a **range**, not a point estimate: the upper bound assumes
-  constant production at the sustained rate for the entire elapsed period; the lower bound assumes
-  production throttled down to track the realized deployment pace instead (`realized_peak` is a
-  deployment rate, used here only as a proxy for "production kept pace with what could ship" -- not
-  a claim about manufacturing capability). A singular test (`assert_unlaunched_inventory_range_ordered`)
-  proves the lower bound never exceeds the upper bound.
-- Two launch-vehicle events (the New Glenn failure, the Vulcan Centaur delay) don't have a disclosed
+  constant production at the disclosed target/design capacity (5/day at Kirkland) for the entire
+  elapsed period; the lower bound assumes production throttled down to track the best real
+  deployment interval instead (`realized_peak` is a deployment rate -- the fastest real 15-day
+  interval between two well-sourced checkpoints -- used here only as a proxy for "production kept
+  pace with the best real shipping stretch," not a claim about manufacturing capability). A
+  singular test (`assert_unlaunched_inventory_range_ordered`) proves the lower bound never exceeds
+  the upper bound.
+- Two launch-vehicle events (the New Glenn failure, the Atlas V delay) don't have a disclosed
   exact date in public reporting -- `date_confidence = 'approximate'` flags this rather than inventing
   a precise date.
 - Make-vs-buy, variance-driver, and supplier-count figures are **fully synthetic**, generic-category

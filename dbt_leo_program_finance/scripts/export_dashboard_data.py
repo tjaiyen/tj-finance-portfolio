@@ -73,9 +73,9 @@ def main():
 
     d2d_pipeline = rows_as_dicts(con.execute("""
         select milestone_name, filing_date, satellites_requested, review_framework,
-               expected_review_months_low, expected_review_months_high,
-               earliest_expected_decision, latest_expected_decision, related_transaction,
-               related_transaction_close_year, source, source_url
+               related_transaction, related_transaction_close_year,
+               related_transaction_source, related_transaction_source_url,
+               source, source_url
         from main.mart_d2d_regulatory_pipeline
     """))[0]
 

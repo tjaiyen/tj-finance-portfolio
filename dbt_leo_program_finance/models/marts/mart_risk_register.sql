@@ -71,8 +71,8 @@ monitored as (
 
     select
         'd2d_regulatory_decision_timing', 'regulatory',
-        'Uncertainty span in the FCC''s disclosed review-timeline estimate for the 5,105-satellite direct-to-device filing',
-        round((expected_review_months_high - expected_review_months_low) / expected_review_months_high::double * 100, 1),
+        'No FCC review timeline is publicly disclosed for the 5,105-satellite direct-to-device filing -- a prior illustrative timeline-uncertainty proxy was found to be unsourced and removed, not replaced with another invented number',
+        cast(null as double),
         'not_assessed',
         false,
         'mart_d2d_regulatory_pipeline'
@@ -92,6 +92,7 @@ combined as (
 
     select *,
         case
+            when probability_pct is null then 'not_assessed'
             when probability_pct >= 66.7 then 'high'
             when probability_pct >= 33.3 then 'medium'
             else 'low'
@@ -104,7 +105,7 @@ select
     -- safety_coordination_incidents both land at probability_pct = 100.0, and without
     -- a third sort column DuckDB's row order (and therefore risk_id) was observed to
     -- flip between rebuilds -- verified nondeterministic across 3 successive builds.
-    row_number() over (order by in_composite_index desc, probability_pct desc, risk_name asc) as risk_id,
+    row_number() over (order by in_composite_index desc, probability_pct desc nulls last, risk_name asc) as risk_id,
     risk_name, category, description,
     probability_pct, probability_tier, impact_tier,
     case

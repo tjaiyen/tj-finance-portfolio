@@ -110,13 +110,11 @@ models:
         tests: [not_null]
 
   - name: mart_d2d_regulatory_pipeline
-    description: "The direct-to-device FCC filing and its expected decision window."
+    description: "The direct-to-device FCC filing. No expected-decision-window columns -- no public source discloses an FCC review timeline for this filing, so none is fabricated here."
     columns:
       - name: milestone_name
         tests: [not_null, unique]
-      - name: earliest_expected_decision
-        tests: [not_null]
-      - name: latest_expected_decision
+      - name: related_transaction_source
         tests: [not_null]
 
   - name: mart_workforce_scaling_signal
@@ -335,7 +333,7 @@ models:
           - not_null
           - accepted_values:
               arguments:
-                values: ['low', 'medium', 'high']
+                values: ['low', 'medium', 'high', 'not_assessed']
       - name: impact_tier
         tests:
           - not_null
