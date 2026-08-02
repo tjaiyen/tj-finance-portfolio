@@ -100,7 +100,11 @@ combined as (
 )
 
 select
-    row_number() over (order by in_composite_index desc, probability_pct desc) as risk_id,
+    -- risk_name asc is a tiebreaker, not a meaningful sort key: cost_escalation and
+    -- safety_coordination_incidents both land at probability_pct = 100.0, and without
+    -- a third sort column DuckDB's row order (and therefore risk_id) was observed to
+    -- flip between rebuilds -- verified nondeterministic across 3 successive builds.
+    row_number() over (order by in_composite_index desc, probability_pct desc, risk_name asc) as risk_id,
     risk_name, category, description,
     probability_pct, probability_tier, impact_tier,
     case

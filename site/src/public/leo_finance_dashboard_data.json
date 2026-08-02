@@ -1,7 +1,7 @@
 {
   "project": "dbt_leo_program_finance",
   "disclaimer": "Independent illustrative project. Not affiliated with, endorsed by, or built using any internal Amazon data. Figures describing the real program are sourced to public reporting (see source/source_url per row); figures describing an Amazon internal decision (make-vs-buy, variance drivers) are fully synthetic and flagged is_illustrative.",
-  "generated_at": "2026-08-02T19:51:44.503017+00:00",
+  "generated_at": "2026-08-02T21:29:22.966339+00:00",
   "deployment_checkpoints": [
     {
       "as_of_date": "2025-04-01",
@@ -1716,21 +1716,6 @@
   "risk_register": [
     {
       "risk_id": 1,
-      "risk_name": "safety_coordination_incidents",
-      "category": "safety",
-      "description": "Real, dated safety/coordination incident(s) logged against the program",
-      "probability_pct": 100.0,
-      "probability_tier": "high",
-      "impact_tier": "low",
-      "exposure_tier": "medium",
-      "in_composite_index": true,
-      "status": "scored_in_composite",
-      "source_mart": "mart_safety_coordination_incidents / mart_program_risk_index",
-      "is_illustrative": true,
-      "notes": "Probability tiers reuse each signal's own already-computed percentage; impact tiers for composite-scored risks reuse the Program Delivery Risk Index's own documented weights (>=25 -> high, 15-20 -> medium, 10 -> low). Exposure = standard probability x impact matrix. Monitored-only rows show a probability proxy but are not force-fit into the composite's impact weighting, since the index itself deliberately excludes them."
-    },
-    {
-      "risk_id": 2,
       "risk_name": "cost_escalation",
       "category": "cost",
       "description": "Program cost growth vs. the prior public estimate",
@@ -1741,6 +1726,21 @@
       "in_composite_index": true,
       "status": "scored_in_composite",
       "source_mart": "mart_cost_escalation / mart_program_risk_index",
+      "is_illustrative": true,
+      "notes": "Probability tiers reuse each signal's own already-computed percentage; impact tiers for composite-scored risks reuse the Program Delivery Risk Index's own documented weights (>=25 -> high, 15-20 -> medium, 10 -> low). Exposure = standard probability x impact matrix. Monitored-only rows show a probability proxy but are not force-fit into the composite's impact weighting, since the index itself deliberately excludes them."
+    },
+    {
+      "risk_id": 2,
+      "risk_name": "safety_coordination_incidents",
+      "category": "safety",
+      "description": "Real, dated safety/coordination incident(s) logged against the program",
+      "probability_pct": 100.0,
+      "probability_tier": "high",
+      "impact_tier": "low",
+      "exposure_tier": "medium",
+      "in_composite_index": true,
+      "status": "scored_in_composite",
+      "source_mart": "mart_safety_coordination_incidents / mart_program_risk_index",
       "is_illustrative": true,
       "notes": "Probability tiers reuse each signal's own already-computed percentage; impact tiers for composite-scored risks reuse the Program Delivery Risk Index's own documented weights (>=25 -> high, 15-20 -> medium, 10 -> low). Exposure = standard probability x impact matrix. Monitored-only rows show a probability proxy but are not force-fit into the composite's impact weighting, since the index itself deliberately excludes them."
     },
