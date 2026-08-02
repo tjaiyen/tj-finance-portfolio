@@ -98,6 +98,7 @@
   .status.ok{background:rgb(var(--c-success) / .12); color:rgb(var(--c-success)); border:1px solid rgb(var(--c-success) / .35)}
   .status.risk{background:rgb(var(--c-danger) / .12); color:rgb(var(--c-danger)); border:1px solid rgb(var(--c-danger) / .35)}
   .status.warn{background:rgb(var(--c-warning) / .12); color:rgb(var(--c-warning)); border:1px solid rgb(var(--c-warning) / .35)}
+  .status.muted{background:rgb(var(--c-text-secondary) / .10); color:rgb(var(--c-text-secondary)); border:1px solid rgb(var(--c-text-secondary) / .3)}
 
   .src-tag{display:inline-flex; align-items:center; gap:6px; font:600 11px/1 ui-monospace,Menlo,monospace; padding:4px 9px; border-radius:99px; white-space:nowrap}
   .src-tag.official{background:rgb(var(--c-success) / .12); color:rgb(var(--c-success)); border:1px solid rgb(var(--c-success) / .35)}
@@ -241,7 +242,7 @@
 <div class="bar">
   <div class="bar-in">
     <div class="brand"><span class="dot"></span><div>Leo Program Finance<small>dbt + DuckDB · illustrative</small></div></div>
-    <span class="badge">147 tests passing</span>
+    <span class="badge">149 tests passing</span>
     <div class="right">
       <button class="icobtn" id="themeBtn" aria-pressed="false" title="Toggle theme">🌓 Theme</button>
     </div>
@@ -437,7 +438,7 @@
   <!-- 13. Operational KPI framework (all 9 domains) -->
   <div class="section">
     <h2>The Full Operational KPI Framework <span class="badge" style="font-size:10px">illustrative</span></h2>
-    <p class="section-sub">54 KPIs across the 9 functional domains a program at this scale actually runs on — finance, accounting, production, launch, supply chain, systems engineering, commercial, vendor, and quality. Target benchmarks are a generic, industry-typical framework applied to this case, not figures Amazon has disclosed.</p>
+    <p class="section-sub">54 KPIs across the 9 functional domains a program at this scale actually runs on — finance, accounting, production, launch, supply chain, systems engineering, commercial, vendor, and quality. Target benchmarks are a generic, industry-typical framework applied to this case, not figures Amazon has disclosed. Every row is checked against this project's own real, sourced marts where a comparable number exists; the rest are honestly marked <b>no public data</b> rather than a fabricated actual.</p>
     <div class="table-wrap card"><table id="kpiFrameworkTable"></table></div>
     <div class="plain" id="plainKpiFramework"></div>
   </div>
@@ -1054,16 +1055,24 @@
     // header row per group. kpi_name carries its full definition + strategic objective as
     // a native <abbr title> so the compact table stays scannable without new tooltip wiring.
     var kpiRows = data.operational_kpi_framework;
-    var kfHtml = '<thead><tr><th>KPI</th><th>Target Benchmark</th><th>Frequency</th></tr></thead><tbody>';
+    var kfHtml = '<thead><tr><th>KPI</th><th>Target Benchmark</th><th>Frequency</th><th>Actual Signal</th></tr></thead><tbody>';
     var lastDomain = null;
+    var statusMeta = {
+      meets: {cls: 'ok', label: '✓ Meets'},
+      below: {cls: 'risk', label: '⚠ Below'},
+      no_data: {cls: 'muted', label: 'No public data'}
+    };
     kpiRows.forEach(function(k){
       if (k.domain !== lastDomain){
-        kfHtml += '<tr class="domain-row"><td colspan="3">' + esc(k.domain) + '</td></tr>';
+        kfHtml += '<tr class="domain-row"><td colspan="4">' + esc(k.domain) + '</td></tr>';
         lastDomain = k.domain;
       }
       var abbrTitle = k.definition + ' — Objective: ' + k.strategic_objective;
+      var sm = statusMeta[k.status] || statusMeta.no_data;
+      var signalCell = '<span class="status ' + sm.cls + '">' + sm.label + '</span>' +
+        (k.actual_signal ? '<div style="margin-top:4px;font-size:11.5px;color:rgb(var(--c-text-secondary))">' + esc(k.actual_signal) + '</div>' : '');
       kfHtml += '<tr><td class="kpi-def"><abbr title="' + escAttr(abbrTitle) + '">' + esc(k.kpi_name) + '</abbr></td>' +
-        '<td>' + esc(k.target_benchmark) + '</td><td>' + esc(k.frequency) + '</td></tr>';
+        '<td>' + esc(k.target_benchmark) + '</td><td>' + esc(k.frequency) + '</td><td class="kpi-def">' + signalCell + '</td></tr>';
     });
     kfHtml += '</tbody>';
     document.getElementById("kpiFrameworkTable").innerHTML = kfHtml;
