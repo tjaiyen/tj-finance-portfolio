@@ -212,6 +212,22 @@ def main():
         order by event_date
     """))
 
+    capitalized_inventory_rollforward = rows_as_dicts(con.execute("""
+        select as_of_date, modeled_backlog_lower, modeled_backlog_upper,
+               modeled_capitalized_value_low_usd, modeled_capitalized_value_high_usd,
+               modeled_beginning_value_low_usd, modeled_beginning_value_high_usd,
+               modeled_net_change_low_usd, modeled_net_change_high_usd, calculation_note
+        from main.mart_capitalized_inventory_rollforward
+        order by as_of_date
+    """))
+
+    eac_sensitivity = rows_as_dicts(con.execute("""
+        select driver, swing_pct, swung_value, eac_composite_usd, eac_composite_base_usd,
+               delta_from_base_usd, is_illustrative, notes
+        from main.mart_eac_sensitivity
+        order by driver, swing_pct
+    """))
+
     payload = {
         "project": "dbt_leo_program_finance",
         "disclaimer": (
@@ -247,6 +263,8 @@ def main():
         "evm_rollup": evm_rollup,
         "risk_register": risk_register,
         "launch_reliability_trend": launch_reliability_trend,
+        "capitalized_inventory_rollforward": capitalized_inventory_rollforward,
+        "eac_sensitivity": eac_sensitivity,
     }
 
     def default(o):

@@ -113,6 +113,17 @@ number.
     without a disclosed date, so the trend reads a flat 0% while the real problems stay
     invisible to it -- surfaced explicitly in the dashboard narrative rather than left for the
     chart to imply something the data doesn't support
+  - `mart_capitalized_inventory_rollforward` -- translates mart_operational_efficiency_trend's
+    backlog range into a modeled dollar value at each real checkpoint (x
+    mart_implied_scale_cost's unit-cost range) and rolls it forward beginning -> net change
+    -> ending, the capitalization/obsolescence angle this dashboard's own closing
+    recommendation already flags as open. Zero new seed data.
+  - `mart_eac_sensitivity` -- single-variable sensitivity on mart_evm_rollup's
+    eac_composite: CPI and SPI each swept +/-10%/20% independently, the other held at its
+    actual value. CPI-swing and SPI-swing produce numerically identical results at every
+    swing level -- eac_composite depends only on the product cpi x spi, not on which factor
+    moved -- surfaced as one curve on the dashboard, not two overlapping ones. Base case
+    (swing_pct = 0) reproduces mart_evm_rollup.eac_composite exactly by construction.
 - **tests**
   - data tests -- not_null/unique, `accepted_values` on every categorical/status column
   - singular tests -- variance drivers must reconcile exactly to the total (nothing lost or
@@ -127,6 +138,11 @@ dbt build
 If you're rebuilding after changing seed column shapes, delete the local `.duckdb` file first --
 it's a rebuildable cache, and dbt won't reconcile a changed seed schema against an existing table on its own.
 
+This project runs in CI on every push (`.github/workflows/dbt-ci.yml`, `dbt-build-leo` job) --
+the 249-test claim above is an enforced gate, not just a number run locally before committing.
+A full column-level lineage graph (`dbt docs generate --static`) is published alongside the
+dashboard: [leo-dbt-docs/](../site/src/public/leo-dbt-docs/index.html).
+
 ## Structure
 ```
 dbt_leo_program_finance/
@@ -140,7 +156,7 @@ dbt_leo_program_finance/
            raw_cashflow_breakdown.csv, raw_cashflow_trend.csv, raw_pnl_assumptions.csv
   models/
     staging/   18 typed staging models + staging.yml
-    marts/     24 marts + marts.yml
+    marts/     26 marts + marts.yml
   tests/   assert_variance_drivers_reconcile.sql, assert_illustrative_marts_are_flagged.sql,
            assert_unlaunched_inventory_range_ordered.sql
   scripts/ export_dashboard_data.py -- exports all marts to the site dashboard's JSON

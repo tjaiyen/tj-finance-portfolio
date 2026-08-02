@@ -87,3 +87,10 @@ select 'mart_risk_register' as mart_name, count(*) as unflagged_rows
 from {{ ref('mart_risk_register') }}
 where is_illustrative is distinct from true
 having count(*) > 0
+
+union all
+
+select 'mart_eac_sensitivity' as mart_name, count(*) as unflagged_rows
+from {{ ref('mart_eac_sensitivity') }}
+where is_illustrative is distinct from true
+having count(*) > 0

@@ -383,3 +383,43 @@ models:
         tests: [not_null]
       - name: calculation_note
         tests: [not_null]
+
+  - name: mart_capitalized_inventory_rollforward
+    description: >
+      Modeled dollar value of unlaunched satellite inventory at each real checkpoint
+      (mart_operational_efficiency_trend's backlog range x mart_implied_scale_cost's
+      unit-cost range), rolled forward beginning -> net change -> ending. The first
+      checkpoint's beginning/net-change columns are null by construction (no prior
+      period), not missing data.
+    columns:
+      - name: as_of_date
+        tests: [not_null, unique]
+      - name: modeled_capitalized_value_low_usd
+        tests: [not_null]
+      - name: modeled_capitalized_value_high_usd
+        tests: [not_null]
+      - name: calculation_note
+        tests: [not_null]
+
+  - name: mart_eac_sensitivity
+    description: >
+      Single-variable sensitivity on eac_composite (from mart_evm_rollup): CPI and
+      SPI each swept +/-10%/20% independently, the other held at its actual value.
+      Pure formula recomputation, no new inputs.
+    columns:
+      - name: driver
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['CPI', 'SPI']
+      - name: swing_pct
+        tests: [not_null]
+      - name: eac_composite_usd
+        tests: [not_null]
+      - name: is_illustrative
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true]

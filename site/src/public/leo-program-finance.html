@@ -300,8 +300,10 @@
 <div class="bar">
   <div class="bar-in">
     <a class="brand" href="./" style="text-decoration:none; color:inherit" title="Back to portfolio"><span class="dot"></span><div>Leo Program Finance<small>dbt + DuckDB · illustrative</small></div></a>
-    <span class="badge">236 tests passing</span>
+    <span class="badge">249 tests passing</span>
+    <span class="badge" id="dataAsOf" title="Timestamp of the last dbt build + export, not a live feed"></span>
     <div class="right">
+      <a class="icobtn" href="./leo-dbt-docs/" target="_blank" rel="noopener" title="Full dbt lineage graph + column-level docs for all 24 marts">🔗 Data Lineage</a>
       <button class="icobtn" id="themeBtn" aria-pressed="false" title="Toggle theme">🌓 Theme</button>
     </div>
   </div>
@@ -480,6 +482,15 @@
     <div class="plain" id="plainEvm"></div>
   </div>
 
+  <!-- 6b3. EAC sensitivity -->
+  <div class="section">
+    <h2>EAC Sensitivity <span class="src-tag illustrative" style="margin-left:6px">illustrative</span></h2>
+    <p class="section-sub">One driver swung &plusmn;10%/20% at a time, the other held at its actual value — pure formula recomputation on the EVM roll-up above, no new inputs.
+    <button class="infoicon" data-tip="CPI and SPI produce the exact same EAC at every matching swing level, because eac_composite's formula only depends on their product (cpi x spi), not on which one moved -- one curve, not two, because the math genuinely collapses them, not because a driver was left out.">i</button></p>
+    <div class="card"><div class="chartbox" id="eacSensitivityChart"></div></div>
+    <div class="plain" id="plainEacSensitivity"></div>
+  </div>
+
   <!-- 6c. Cost-driver Pareto -->
   <div class="section">
     <h2>Cost-Driver Pareto <span class="src-tag illustrative" style="margin-left:6px">illustrative</span></h2>
@@ -514,6 +525,14 @@
     <p class="section-sub">Two scenarios from the two production-adjacent rates already disclosed: an upper bound (production never throttled down) and a lower bound (production throttled to track the realized deployment pace) — a range, not a false-precision single number.</p>
     <div class="card" id="inventoryCard"></div>
     <div class="plain" id="plainInventory"></div>
+  </div>
+
+  <!-- 8a. Capitalized inventory roll-forward -->
+  <div class="section">
+    <h2>Capitalized Inventory Roll-Forward <span class="src-tag illustrative" style="margin-left:6px">modeled</span></h2>
+    <p class="section-sub">The backlog range above, translated into a modeled dollar value at each real checkpoint and rolled forward — the capitalization angle this dashboard's own closing recommendation already flags as open.</p>
+    <div class="table-wrap card"><table id="rollforwardTable"></table></div>
+    <div class="plain" id="plainRollforward"></div>
   </div>
 
   <!-- 8b. Manufacturing-to-launch efficiency trend -->
@@ -982,6 +1001,14 @@
     });
 
   function render(data){
+    // Data-as-of stamp -- this is a static export timestamp (when dbt build +
+    // the Python export script last ran), never a live feed. Said explicitly
+    // in the title tooltip so it isn't mistaken for one.
+    var genAt = data.generated_at ? new Date(data.generated_at) : null;
+    document.getElementById("dataAsOf").textContent = genAt
+      ? "Data as of " + genAt.toISOString().slice(0,10)
+      : "";
+
     // 1. Milestone risk cards
     var mHtml = "";
     data.milestone_risk.forEach(function(m){
@@ -1403,6 +1430,29 @@
         ? 'Actual cost has already exceeded this period\'s entire planned budget (' + fmtUSD(evm.ac) + ' spent vs. ' + fmtUSD(evm.bac) + ' planned) before the work is even fully earned. That makes "recover to the original budget" not just unlikely — the math for it (TCPI-to-BAC) comes out negative, which is itself the finding, not an error. The forecast that actually means something from here is TCPI-to-EAC: <b>' + evm.tcpi_to_eac.toFixed(3) + '</b>, close to the current CPI by construction — remaining work would need to run about as efficiently as it has so far just to hit the already-revised forecast, not the original budget.'
         : 'CPI ' + evm.cpi.toFixed(3) + ' and SPI ' + evm.spi.toFixed(3) + ' say how efficiently plan is converting into earned value; TCPI-to-BAC (' + evm.tcpi_to_bac.toFixed(3) + ') is what remaining work would need to average to still hit the original budget.');
 
+    // 6b3. EAC sensitivity -- CPI-swing and SPI-swing rows are numerically
+    // identical at every matching swing_pct (eac_composite depends only on the
+    // product cpi x spi), so one curve is plotted, not two overlapping ones.
+    var sens = data.eac_sensitivity;
+    var sensCpiRows = sens.filter(function(r){ return r.driver === 'CPI'; }).sort(function(a,b){ return a.swing_pct - b.swing_pct; });
+    var sensBase = sensCpiRows.filter(function(r){ return Number(r.swing_pct) === 0; })[0];
+    var sensPts = sensCpiRows.map(function(r){ return {x: Number(r.swing_pct)*100, y: r.eac_composite_usd, label: (Number(r.swing_pct)*100).toFixed(0)+'% swing: '+fmtUSD(r.eac_composite_usd)}; });
+    var sensVals = sensCpiRows.map(function(r){ return r.eac_composite_usd; });
+    var sensMin = Math.min.apply(null, sensVals), sensMax = Math.max.apply(null, sensVals);
+    var sensYMin = Math.floor(sensMin/1e6 - 1) * 1e6, sensYMax = Math.ceil(sensMax/1e6 + 1) * 1e6;
+    document.getElementById("eacSensitivityChart").innerHTML = svgLineChart({
+      width: 640, height: 220,
+      xDomain: [-20, 20], yDomain: [sensYMin, sensYMax],
+      yTickFmt: function(v){ return '$'+(v/1e6).toFixed(0)+'M'; },
+      series: [{points: sensPts, color: 'rgb(var(--c-accent))'}],
+      xTicks: sensPts.map(function(p){ return {x: p.x, label: (p.x>0?'+':'')+p.x+'%'}; })
+    });
+    observeAndDrawIn(document.getElementById("eacSensitivityChart"));
+    var sensWorst = sensCpiRows[0], sensBest = sensCpiRows[sensCpiRows.length-1];
+    document.getElementById("plainEacSensitivity").innerHTML =
+      '<span class="lp-tag">Applying: Dive Deep</span><br>' +
+      '<span class="eyebrow">In plain terms</span>A 20-point swing in cost or schedule performance moves the composite EAC from <b>' + fmtUSD(sensWorst.eac_composite_usd) + '</b> (worse case) to <b>' + fmtUSD(sensBest.eac_composite_usd) + '</b> (better case) around the base of ' + fmtUSD(sensBase.eac_composite_usd) + ' — a ' + fmtUSD(Math.abs(sensWorst.delta_from_base_usd)) + ' downside vs. ' + fmtUSD(Math.abs(sensBest.delta_from_base_usd)) + ' upside, not symmetric because EAC is a ratio, not a straight line. CPI and SPI aren\'t shown as two separate curves because they genuinely produce the same number at every swing level here — the formula only sees their product.';
+
     // 6c. Cost-driver Pareto -- derived from the breakdown above, not a new data
     // source. Ranked by overrun size; the 80%-cumulative count drives the narrative.
     var sortedDrivers = data.cashflow_breakdown.slice().sort(function(a,b){ return b.variance_usd - a.variance_usd; });
@@ -1495,6 +1545,25 @@
     document.getElementById("plainInventory").innerHTML =
       '<span class="lp-tag">Applying: Are Right, A Lot</span><br>' +
       '<span class="eyebrow">In plain terms</span>The range is wide — <b>' + Number(ui.modeled_unlaunched_inventory_lower).toLocaleString() + '–' + Number(ui.modeled_unlaunched_inventory_upper).toLocaleString() + ' satellites</b> — because exactly how far Amazon throttled production down isn\'t public. Treat this as an order-of-magnitude signal that a real backlog likely exists, not a precise inventory count.';
+
+    // 8a. Capitalized inventory roll-forward -- the backlog range above,
+    // translated to a modeled dollar value and rolled forward checkpoint to
+    // checkpoint. First row has no prior period, so beginning/net-change are
+    // null by construction -- rendered as an em-dash, not zero.
+    var rf = data.capitalized_inventory_rollforward;
+    var rfHtml = '<thead><tr><th>As of</th><th>Beginning value</th><th>Net change</th><th>Ending value</th></tr></thead><tbody>';
+    rf.forEach(function(r){
+      var beginStr = r.modeled_beginning_value_low_usd == null ? '—' : fmtUSD(r.modeled_beginning_value_low_usd) + '–' + fmtUSD(r.modeled_beginning_value_high_usd);
+      var netStr = r.modeled_net_change_low_usd == null ? '—' : fmtUSD(r.modeled_net_change_low_usd) + '–' + fmtUSD(r.modeled_net_change_high_usd);
+      rfHtml += '<tr><td>' + esc(r.as_of_date) + '</td><td class="num tabular">' + beginStr + '</td><td class="num tabular">' + netStr + '</td>' +
+        '<td class="num tabular">' + fmtUSD(r.modeled_capitalized_value_low_usd) + '–' + fmtUSD(r.modeled_capitalized_value_high_usd) + '</td></tr>';
+    });
+    rfHtml += '</tbody>';
+    document.getElementById("rollforwardTable").innerHTML = rfHtml;
+    var rfFirst = rf[0], rfLast = rf[rf.length-1];
+    document.getElementById("plainRollforward").innerHTML =
+      '<span class="lp-tag">Applying: Ownership</span><br>' +
+      '<span class="eyebrow">In plain terms</span>The modeled value of built-but-unlaunched satellites moved from <b>' + fmtUSD(rfFirst.modeled_capitalized_value_low_usd) + '–' + fmtUSD(rfFirst.modeled_capitalized_value_high_usd) + '</b> to <b>' + fmtUSD(rfLast.modeled_capitalized_value_low_usd) + '–' + fmtUSD(rfLast.modeled_capitalized_value_high_usd) + '</b> across the observed checkpoints — a real balance-sheet-sized number sitting in inventory/WIP, not yet revenue-generating, and the obsolescence-risk conversation this dashboard\'s own recommendation already flags as worth having early.';
 
     // 8b. Manufacturing-to-launch efficiency trend -- the capacity-gap and
     // unlaunched-inventory cards above, computed at every real checkpoint instead

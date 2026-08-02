@@ -76,7 +76,7 @@ concentration risk, safety/coordination incidents, a second regulatory front, an
 built using any internal Amazon data** — every figure describing the real program is sourced to public
 reporting (Amazon's own 10-K/earnings disclosures and FCC filings, third-party market analysis, cited inline
 per row with an evidence-tier badge); every figure describing an internal decision (make-vs-buy, variance
-drivers, supplier counts) is fully synthetic and flagged `is_illustrative`. Twenty-four **dbt** marts — including a
+drivers, supplier counts) is fully synthetic and flagged `is_illustrative`. Twenty-six **dbt** marts — including a
 multi-year OP1/OP2 OpEx/CapEx/headcount roadmap, an ROI/payback framework, a 54-KPI operational scorecard,
 a 3-level direct/indirect cash-flow tracker (Plan/Forecast/Actual, forecast computed from the elapsed-period
 run-rate) with per-subcategory **Earned Value Management** (EV/CPI/SPI) rolling up to a program-level
@@ -93,8 +93,14 @@ real, dated safety incident (the Feb 2026 SpaceX collision-risk dispute), plus a
 those same 5 scored signals with 2 more real factors deliberately left out of the composite score (probability x
 impact → an exposure tier, zero new data) and a **launch reliability trend** whose flat, all-success line is itself
 the finding — the 2 real adverse events are exactly the ones missing a disclosed date, so a clean-looking chart is
-an artifact of the data, not evidence, and the dashboard says so rather than letting the chart imply otherwise.
-236 tests pass; a singular test enforces that every illustrative mart's rows are explicitly
+an artifact of the data, not evidence, and the dashboard says so rather than letting the chart imply otherwise,
+plus a **capitalized-inventory roll-forward** (the built-but-unlaunched satellites, valued and rolled forward
+checkpoint to checkpoint) and an **EAC sensitivity** sweep on the EVM roll-up — CPI and SPI swung ±10%/20%
+independently, which turn out to produce numerically identical EAC at every level because the formula only
+sees their product, so the dashboard shows one curve rather than a misleading pair of overlapping ones.
+249 tests pass, enforced in CI on every push (not just run locally before committing), with a full column-level
+lineage graph published alongside the dashboard; a singular test enforces that every illustrative mart's rows
+are explicitly
 flagged, making the grounded-vs-illustrative separation a
 tested property of the project, not just a README claim.
 🔗 Live: **https://tjaiyen.github.io/tj-finance-portfolio/leo-program-finance.html**
