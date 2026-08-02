@@ -34,3 +34,42 @@ select 'mart_operational_kpi_framework' as mart_name, count(*) as unflagged_rows
 from {{ ref('mart_operational_kpi_framework') }}
 where is_illustrative is distinct from true
 having count(*) > 0
+
+union all
+
+select 'mart_cashflow_breakdown' as mart_name, count(*) as unflagged_rows
+from {{ ref('mart_cashflow_breakdown') }}
+where is_illustrative is distinct from true
+having count(*) > 0
+
+union all
+
+select 'mart_cashflow_trend' as mart_name, count(*) as unflagged_rows
+from {{ ref('mart_cashflow_trend') }}
+where is_illustrative is distinct from true
+having count(*) > 0
+
+union all
+
+select 'mart_pnl_waterfall' as mart_name, count(*) as unflagged_rows
+from {{ ref('mart_pnl_waterfall') }}
+where is_illustrative is distinct from true
+having count(*) > 0
+
+union all
+
+select 'mart_program_risk_index' as mart_name, count(*) as unflagged_rows
+from {{ ref('mart_program_risk_index') }}
+where is_illustrative is distinct from true
+having count(*) > 0
+
+union all
+
+-- Found via a proactive coverage check (grep every mart_*.sql with an
+-- is_illustrative column against this test's list) rather than by luck this
+-- time -- this mart had the per-column test in marts.yml but was never added
+-- to this cross-mart governance test.
+select 'mart_supplier_concentration_risk' as mart_name, count(*) as unflagged_rows
+from {{ ref('mart_supplier_concentration_risk') }}
+where is_illustrative is distinct from true
+having count(*) > 0

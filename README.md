@@ -76,14 +76,17 @@ concentration risk, safety/coordination incidents, a second regulatory front, an
 built using any internal Amazon data** — every figure describing the real program is sourced to public
 reporting (Amazon's own 10-K/earnings disclosures and FCC filings, third-party market analysis, cited inline
 per row with an evidence-tier badge); every figure describing an internal decision (make-vs-buy, variance
-drivers, supplier counts) is fully synthetic and flagged `is_illustrative`. Fifteen **dbt** marts — including a
-multi-year OP1/OP2 OpEx/CapEx/headcount roadmap, an ROI/payback framework, and a 54-KPI operational scorecard
-spanning finance, production, launch, supply chain, and quality, closing the JD's own "financial models...across
-multi-year program roadmaps" and "ROI frameworks" lines — plus a milestone-risk projection shown alongside
-Amazon's *own* stated projection for the same date, the actual disclosed waiver mechanics (priority-status loss,
-not license revocation), and a real, dated safety incident (the Feb 2026 SpaceX collision-risk dispute). 149 tests
-pass; a singular test enforces that every illustrative mart's rows are explicitly flagged, making the
-grounded-vs-illustrative separation a tested property of the project, not just a README claim.
+drivers, supplier counts) is fully synthetic and flagged `is_illustrative`. Nineteen **dbt** marts — including a
+multi-year OP1/OP2 OpEx/CapEx/headcount roadmap, an ROI/payback framework, a 54-KPI operational scorecard,
+a 3-level direct/indirect cash-flow tracker (Plan/Forecast/Actual, forecast computed from the elapsed-period
+run-rate) with a derived P&L bridge and cost-driver Pareto, and a rule-based **Program Delivery Risk Index**
+weighting 5 signals — most drawn from this project's own real marts — into a tier, never a fabricated
+failure-probability. Closes the JD's own "financial models...across multi-year program roadmaps" and "ROI
+frameworks" lines — plus a milestone-risk projection shown alongside Amazon's *own* stated projection for the
+same date, the actual disclosed waiver mechanics (priority-status loss, not license revocation), and a real,
+dated safety incident (the Feb 2026 SpaceX collision-risk dispute). 192 tests pass; a singular test enforces
+that every illustrative mart's rows are explicitly flagged, making the grounded-vs-illustrative separation a
+tested property of the project, not just a README claim.
 🔗 Live: **https://tjaiyen.github.io/tj-finance-portfolio/leo-program-finance.html**
 
 ## [`agentic_ops_skeleton/`](./agentic_ops_skeleton) — guardrailed multi-agent orchestration

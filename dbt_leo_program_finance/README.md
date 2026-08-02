@@ -66,6 +66,20 @@ number.
     Inventory & Quality Control) applied to this case; target benchmarks are illustrative, not
     Amazon-disclosed figures -- two of them are cross-checked live on the dashboard against this
     project's own real deployment-rate and milestone-risk marts
+  - `mart_cashflow_breakdown` / `mart_cashflow_trend` -- fully synthetic direct/indirect cash-flow
+    tracker: a 3-level breakdown (cost type -> 7 categories -> 22 subcategories) for the latest
+    period, plus a Plan/Forecast/Actual trend where the forecast for future periods is *computed*
+    from the elapsed-period run-rate (the same checkpoint-plus-remaining-times-rate shape as
+    `mart_milestone_risk`), never hardcoded
+  - `mart_pnl_waterfall` -- illustrative Revenue - Direct COGS - Indirect OpEx = Margin bridge,
+    derived from `mart_cashflow_breakdown`'s own totals, not a second disconnected model
+  - `mart_program_risk_index` -- a **rule-based** Program Delivery Risk Index over 5 weighted
+    signals (milestone shortfall, launch reliability, cost escalation, supplier concentration,
+    safety incidents) -- most computed from this project's own real marts above, output as a tier
+    (low/watch/elevated/critical), never a bare decimal or a fabricated failure-probability.
+    Deliberately does *not* score capacity-utilization-gap as a separate input, since it and launch
+    reliability both derive from the same `realized_peak_per_day` number and would double-count
+    one root cause
 - **tests**
   - data tests -- not_null/unique, `accepted_values` on every categorical/status column
   - singular tests -- variance drivers must reconcile exactly to the total (nothing lost or
@@ -89,10 +103,11 @@ dbt_leo_program_finance/
            raw_program_cost_estimates.csv, raw_unit_cost.csv, raw_makevsbuy_scenario.csv,
            raw_variance_demo.csv, raw_launch_vehicle_events.csv, raw_supplier_concentration.csv,
            raw_safety_incidents.csv, raw_d2d_regulatory_pipeline.csv, raw_workforce_signal.csv,
-           raw_op1_op2_plan.csv, raw_roi_payback_scenarios.csv, raw_operational_kpi_framework.csv
+           raw_op1_op2_plan.csv, raw_roi_payback_scenarios.csv, raw_operational_kpi_framework.csv,
+           raw_cashflow_breakdown.csv, raw_cashflow_trend.csv, raw_pnl_assumptions.csv
   models/
-    staging/   15 typed staging models + staging.yml
-    marts/     15 marts + marts.yml
+    staging/   18 typed staging models + staging.yml
+    marts/     19 marts + marts.yml
   tests/   assert_variance_drivers_reconcile.sql, assert_illustrative_marts_are_flagged.sql,
            assert_unlaunched_inventory_range_ordered.sql
   scripts/ export_dashboard_data.py -- exports all marts to the site dashboard's JSON
@@ -116,3 +131,7 @@ dbt_leo_program_finance/
   a precise date.
 - Make-vs-buy, variance-driver, and supplier-count figures are **fully synthetic**, generic-category
   illustrations of the analytical method -- not claims about any real Amazon decision or supplier.
+- `mart_program_risk_index` is a **rule-based composite, not a statistical failure-probability
+  model** -- there's no real training data for "did a program like this fail," so a fabricated
+  probability would be dishonest. The weighted formula (30/25/20/15/10) and every signal's
+  real-vs-illustrative provenance are shown directly on the dashboard, not hidden behind a score.

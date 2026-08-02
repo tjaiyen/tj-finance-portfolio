@@ -143,6 +143,35 @@ def main():
         order by domain_order, kpi_name
     """))
 
+    cashflow_breakdown = rows_as_dicts(con.execute("""
+        select period, cost_type, cost_type_order, category, category_order, subcategory,
+               plan_amount_usd, actual_amount_usd, variance_usd, variance_pct,
+               is_illustrative, notes
+        from main.mart_cashflow_breakdown
+        order by cost_type_order, category_order, subcategory
+    """))
+
+    cashflow_trend = rows_as_dicts(con.execute("""
+        select period, plan_amount_usd, actual_amount_usd, forecast_amount_usd,
+               is_forecast, is_illustrative, notes
+        from main.mart_cashflow_trend
+        order by period
+    """))
+
+    pnl_waterfall = rows_as_dicts(con.execute("""
+        select period, revenue_usd, direct_cogs_usd, indirect_opex_usd,
+               gross_margin_usd, operating_margin_usd, is_illustrative, notes
+        from main.mart_pnl_waterfall
+    """))[0]
+
+    program_risk_index = rows_as_dicts(con.execute("""
+        select composite_score_pct, risk_tier, milestone_signal_pct, launch_signal_pct,
+               cost_signal_pct, supplier_signal_pct, safety_signal_pct,
+               milestone_attribution_pct, launch_attribution_pct, cost_attribution_pct,
+               supplier_attribution_pct, safety_attribution_pct, is_illustrative, notes
+        from main.mart_program_risk_index
+    """))[0]
+
     payload = {
         "project": "dbt_leo_program_finance",
         "disclaimer": (
@@ -169,6 +198,10 @@ def main():
         "op1_op2_plan": op1_op2_plan,
         "roi_payback_scenarios": roi_payback_scenarios,
         "operational_kpi_framework": operational_kpi_framework,
+        "cashflow_breakdown": cashflow_breakdown,
+        "cashflow_trend": cashflow_trend,
+        "pnl_waterfall": pnl_waterfall,
+        "program_risk_index": program_risk_index,
     }
 
     def default(o):

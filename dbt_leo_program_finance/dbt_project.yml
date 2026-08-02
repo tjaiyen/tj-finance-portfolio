@@ -156,3 +156,26 @@ seeds:
         strategic_objective: varchar
         is_illustrative: boolean
         notes: varchar
+    raw_cashflow_breakdown:
+      +column_types:
+        period: varchar
+        cost_type: varchar
+        category: varchar
+        subcategory: varchar
+        plan_amount_usd: bigint
+        actual_amount_usd: bigint
+        is_illustrative: boolean
+        notes: varchar
+    raw_cashflow_trend:
+      +column_types:
+        period: varchar
+        plan_amount_usd: bigint
+        actual_amount_usd: bigint
+        is_illustrative: boolean
+        notes: varchar
+    raw_pnl_assumptions:
+      +column_types:
+        period: varchar
+        revenue_usd: bigint
+        is_illustrative: boolean
+        notes: varchar

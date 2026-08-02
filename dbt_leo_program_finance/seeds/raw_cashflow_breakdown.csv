@@ -1,0 +1,22 @@
+period,cost_type,category,subcategory,plan_amount_usd,actual_amount_usd,is_illustrative,notes
+2026-Q3,direct,Spacecraft Manufacturing,RF Payload & Phased-Array Antennas,6000000,6450000,true,Illustrative generic hardware-program cash-flow scenario -- not Amazon's real Leo spend.
+2026-Q3,direct,Spacecraft Manufacturing,Prometheus SoC & Baseband Electronics,5200000,5100000,true,Illustrative generic hardware-program cash-flow scenario -- not Amazon's real Leo spend.
+2026-Q3,direct,Spacecraft Manufacturing,Bus Structure & Deployment Mechanisms,3100000,3300000,true,Illustrative generic hardware-program cash-flow scenario -- not Amazon's real Leo spend.
+2026-Q3,direct,Spacecraft Manufacturing,Propulsion (Hall-effect thrusters and krypton),2400000,2350000,true,Illustrative generic hardware-program cash-flow scenario -- not Amazon's real Leo spend.
+2026-Q3,direct,Ground Segment,Customer Terminal Production (Nano/Pro/Ultra),4800000,5600000,true,Illustrative generic hardware-program cash-flow scenario -- not Amazon's real Leo spend.
+2026-Q3,direct,Ground Segment,Gateway & Ground Station Infrastructure,1900000,1850000,true,Illustrative generic hardware-program cash-flow scenario -- not Amazon's real Leo spend.
+2026-Q3,direct,Ground Segment,OISL Optical Terminal Hardware,2600000,2900000,true,Illustrative generic hardware-program cash-flow scenario -- not Amazon's real Leo spend.
+2026-Q3,direct,Launch & Integration,Launch Vehicle Fees,5500000,6200000,true,Illustrative generic hardware-program cash-flow scenario -- not Amazon's real Leo spend.
+2026-Q3,direct,Launch & Integration,KSC Payload Processing & Fueling,900000,950000,true,Illustrative generic hardware-program cash-flow scenario -- not Amazon's real Leo spend.
+2026-Q3,direct,Launch & Integration,Dispenser Integration & Fairing,700000,680000,true,Illustrative generic hardware-program cash-flow scenario -- not Amazon's real Leo spend.
+2026-Q3,direct,Test & Qualification,Thermal Vacuum/Vibration/RF Test Campaigns,1400000,1500000,true,Illustrative generic hardware-program cash-flow scenario -- not Amazon's real Leo spend.
+2026-Q3,direct,Test & Qualification,Pre-Ship Acceptance Testing,600000,580000,true,Illustrative generic hardware-program cash-flow scenario -- not Amazon's real Leo spend.
+2026-Q3,indirect,Engineering & Program Overhead,Systems Engineering & Mission Ops,2200000,2300000,true,Illustrative generic hardware-program cash-flow scenario -- not Amazon's real Leo spend.
+2026-Q3,indirect,Engineering & Program Overhead,Software & Digital-Twin Simulation,1100000,1050000,true,Illustrative generic hardware-program cash-flow scenario -- not Amazon's real Leo spend.
+2026-Q3,indirect,Engineering & Program Overhead,Program Management Office,900000,950000,true,Illustrative generic hardware-program cash-flow scenario -- not Amazon's real Leo spend.
+2026-Q3,indirect,Facilities & Supply Chain,Kirkland/Redmond Facility Operations,1800000,1850000,true,Illustrative generic hardware-program cash-flow scenario -- not Amazon's real Leo spend.
+2026-Q3,indirect,Facilities & Supply Chain,Everett Logistics Hub & Warehousing,700000,720000,true,Illustrative generic hardware-program cash-flow scenario -- not Amazon's real Leo spend.
+2026-Q3,indirect,Facilities & Supply Chain,Quality/Cleanroom Compliance Overhead,600000,650000,true,Illustrative generic hardware-program cash-flow scenario -- not Amazon's real Leo spend.
+2026-Q3,indirect,G&A & Corporate Allocation,Regulatory & Legal (FCC filings and spectrum coordination),1200000,1450000,true,Illustrative generic hardware-program cash-flow scenario -- not Amazon's real Leo spend.
+2026-Q3,indirect,G&A & Corporate Allocation,Finance/Accounting Corporate Allocation,800000,800000,true,Illustrative generic hardware-program cash-flow scenario -- not Amazon's real Leo spend.
+2026-Q3,indirect,G&A & Corporate Allocation,IT & Cybersecurity/ITAR Compliance,500000,520000,true,Illustrative generic hardware-program cash-flow scenario -- not Amazon's real Leo spend.

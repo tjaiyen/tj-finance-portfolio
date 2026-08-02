@@ -183,3 +183,71 @@ models:
           - accepted_values:
               arguments:
                 values: [true]
+
+  - name: mart_cashflow_breakdown
+    description: "Fully synthetic latest-period (2026-Q3) direct/indirect cash-flow breakdown, 22 subcategories, with computed variance."
+    columns:
+      - name: subcategory
+        tests: [not_null, unique]
+      - name: cost_type
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['direct', 'indirect']
+      - name: is_illustrative
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true]
+
+  - name: mart_cashflow_trend
+    description: "Fully synthetic Plan/Forecast/Actual cash-flow trend; forecast for future periods is computed from the elapsed-period run-rate, never hardcoded."
+    columns:
+      - name: period
+        tests: [not_null, unique]
+      - name: forecast_amount_usd
+        tests: [not_null]
+      - name: is_illustrative
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true]
+
+  - name: mart_pnl_waterfall
+    description: "Illustrative Revenue - Direct COGS - Indirect OpEx = Margin bridge for the same latest period as mart_cashflow_breakdown."
+    columns:
+      - name: period
+        tests: [not_null, unique]
+      - name: operating_margin_usd
+        tests: [not_null]
+      - name: is_illustrative
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true]
+
+  - name: mart_program_risk_index
+    description: >
+      Rule-based Program Delivery Risk Index over 5 weighted signals (milestone
+      shortfall, launch reliability, cost escalation, supplier concentration,
+      safety incidents) -- most computed from this project's own real marts. A
+      tier (low/watch/elevated/critical), not a fabricated failure-probability.
+    columns:
+      - name: risk_tier
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['low', 'watch', 'elevated', 'critical']
+      - name: composite_score_pct
+        tests: [not_null]
+      - name: is_illustrative
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true]
