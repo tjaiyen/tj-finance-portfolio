@@ -1,7 +1,7 @@
 {
   "project": "dbt_leo_program_finance",
   "disclaimer": "Independent illustrative project. Not affiliated with, endorsed by, or built using any internal Amazon data. Figures describing the real program are sourced to public reporting (see source/source_url per row); figures describing an Amazon internal decision (make-vs-buy, variance drivers) are fully synthetic and flagged is_illustrative.",
-  "generated_at": "2026-08-02T08:35:31.825478+00:00",
+  "generated_at": "2026-08-02T08:54:33.630078+00:00",
   "deployment_checkpoints": [
     {
       "as_of_date": "2025-04-01",
@@ -414,6 +414,8 @@
       "target_benchmark": ">= 50% at full deployment",
       "frequency": "Quarterly",
       "strategic_objective": "Achieve structural operating leverage typical of space infrastructure.",
+      "actual_signal": null,
+      "status": "no_data",
       "is_illustrative": true,
       "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
     },
@@ -425,6 +427,8 @@
       "target_benchmark": ">= 15% of annual CapEx budget",
       "frequency": "Monthly",
       "strategic_objective": "Absorb financial shocks from rocket groundings or supplier disruptions.",
+      "actual_signal": null,
+      "status": "no_data",
       "is_illustrative": true,
       "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
     },
@@ -436,6 +440,8 @@
       "target_benchmark": "<= 1.0 budget variance ratio",
       "frequency": "Monthly",
       "strategic_objective": "Prevent cash burn overruns during high-rate deployment.",
+      "actual_signal": null,
+      "status": "no_data",
       "is_illustrative": true,
       "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
     },
@@ -447,6 +453,8 @@
       "target_benchmark": "< $3.50 per Gbps/month",
       "frequency": "Quarterly",
       "strategic_objective": "Minimize capital cost per unit of delivered space capacity.",
+      "actual_signal": null,
+      "status": "no_data",
       "is_illustrative": true,
       "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
     },
@@ -458,6 +466,8 @@
       "target_benchmark": "< 36 months",
       "frequency": "Bi-Annually",
       "strategic_objective": "Accelerate capital recovery across deployed orbital assets.",
+      "actual_signal": null,
+      "status": "no_data",
       "is_illustrative": true,
       "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
     },
@@ -469,6 +479,8 @@
       "target_benchmark": "Payback < 12 months",
       "frequency": "Monthly",
       "strategic_objective": "Ensure hardware subsidies are recouped through subscriber margins.",
+      "actual_signal": null,
+      "status": "no_data",
       "is_illustrative": true,
       "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
     },
@@ -480,6 +492,8 @@
       "target_benchmark": "0.0% restatement rate",
       "frequency": "Quarterly",
       "strategic_objective": "Guarantee accurate financial reporting across enterprise B2B sales.",
+      "actual_signal": null,
+      "status": "no_data",
       "is_illustrative": true,
       "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
     },
@@ -491,6 +505,8 @@
       "target_benchmark": "0.0% audit discrepancy",
       "frequency": "Monthly",
       "strategic_objective": "Ensure accurate capitalization of space segment assets.",
+      "actual_signal": null,
+      "status": "no_data",
       "is_illustrative": true,
       "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
     },
@@ -502,6 +518,8 @@
       "target_benchmark": "100% fully funded ratio",
       "frequency": "Quarterly",
       "strategic_objective": "Maintain compliance with FCC disposal financial obligations.",
+      "actual_signal": null,
+      "status": "no_data",
       "is_illustrative": true,
       "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
     },
@@ -513,6 +531,8 @@
       "target_benchmark": "< 1.5% of active fleet value",
       "frequency": "Monthly",
       "strategic_objective": "Accurately reflect hardware losses and operational depreciation.",
+      "actual_signal": null,
+      "status": "no_data",
       "is_illustrative": true,
       "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
     },
@@ -524,6 +544,8 @@
       "target_benchmark": "<= $0.00 adverse variance",
       "frequency": "Weekly",
       "strategic_objective": "Maintain cost discipline across customer terminal lines.",
+      "actual_signal": null,
+      "status": "no_data",
       "is_illustrative": true,
       "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
     },
@@ -535,6 +557,8 @@
       "target_benchmark": "< 45 days post-launch",
       "frequency": "Per Launch",
       "strategic_objective": "Minimize idle capital tied up in unverified orbital inventory.",
+      "actual_signal": null,
+      "status": "no_data",
       "is_illustrative": true,
       "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
     },
@@ -546,6 +570,8 @@
       "target_benchmark": "< 72 hours per batch",
       "frequency": "Weekly",
       "strategic_objective": "Maintain accelerated testing speedups (reducing months to days).",
+      "actual_signal": null,
+      "status": "no_data",
       "is_illustrative": true,
       "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
     },
@@ -557,6 +583,8 @@
       "target_benchmark": "100% shift compliance",
       "frequency": "Continuous",
       "strategic_objective": "Eliminate particulate contamination risks in high-rate assembly lines.",
+      "actual_signal": null,
+      "status": "no_data",
       "is_illustrative": true,
       "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
     },
@@ -568,6 +596,8 @@
       "target_benchmark": "4 to 5 satellites/day",
       "frequency": "Daily",
       "strategic_objective": "Maintain production throughput to meet deployment schedules.",
+      "actual_signal": "3.46/day realized peak (best month on record)",
+      "status": "below",
       "is_illustrative": true,
       "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure. Cross-checked against this project's own real deployment-capacity mart below."
     },
@@ -579,6 +609,8 @@
       "target_benchmark": ">= 98.5%",
       "frequency": "Daily",
       "strategic_objective": "Eliminate costly cleanroom rework bottlenecks.",
+      "actual_signal": null,
+      "status": "no_data",
       "is_illustrative": true,
       "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
     },
@@ -590,6 +622,8 @@
       "target_benchmark": ">= 88%",
       "frequency": "Weekly",
       "strategic_objective": "Maximize manufacturing efficiency within the 172k sq ft plant.",
+      "actual_signal": null,
+      "status": "no_data",
       "is_illustrative": true,
       "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
     },
@@ -601,6 +635,8 @@
       "target_benchmark": ">= 99.9%",
       "frequency": "Daily",
       "strategic_objective": "Prevent assembly holds on high-value processing payloads.",
+      "actual_signal": null,
+      "status": "no_data",
       "is_illustrative": true,
       "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
     },
@@ -612,6 +648,8 @@
       "target_benchmark": "< 14 days per mission",
       "frequency": "Per Launch",
       "strategic_objective": "Maximize processing throughput across launch pads.",
+      "actual_signal": null,
+      "status": "no_data",
       "is_illustrative": true,
       "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
     },
@@ -623,6 +661,8 @@
       "target_benchmark": "Positive satellite buffer",
       "frequency": "Monthly",
       "strategic_objective": "Safeguard FCC spectrum operating license validity.",
+      "actual_signal": "-1191 satellites (near-term milestone shortfall)",
+      "status": "below",
       "is_illustrative": true,
       "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure. Cross-checked against this project's own real milestone-risk mart below."
     },
@@ -634,6 +674,8 @@
       "target_benchmark": "> 100 satellites/month",
       "frequency": "Monthly",
       "strategic_objective": "Match Florida processing volume to launch manifest demand.",
+      "actual_signal": null,
+      "status": "no_data",
       "is_illustrative": true,
       "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
     },
@@ -645,6 +687,8 @@
       "target_benchmark": "0.0% anomaly rate",
       "frequency": "Per Launch",
       "strategic_objective": "Maintain pad safety and ensure precise orbital insertion fuel.",
+      "actual_signal": null,
+      "status": "no_data",
       "is_illustrative": true,
       "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
     },
@@ -656,6 +700,8 @@
       "target_benchmark": "<= 50% total manifest",
       "frequency": "Quarterly",
       "strategic_objective": "Mitigate fleet-wide groundings by diversifying launch vehicles.",
+      "actual_signal": null,
+      "status": "no_data",
       "is_illustrative": true,
       "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
     },
@@ -667,6 +713,8 @@
       "target_benchmark": "100% flawless mating",
       "frequency": "Per Launch",
       "strategic_objective": "Prevent structural or interface mating aborts on dispensers.",
+      "actual_signal": null,
+      "status": "no_data",
       "is_illustrative": true,
       "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
     },
@@ -678,6 +726,8 @@
       "target_benchmark": "100% transit compliance",
       "frequency": "Per Shipment",
       "strategic_objective": "Prevent transport-induced structural or electronic damage.",
+      "actual_signal": null,
+      "status": "no_data",
       "is_illustrative": true,
       "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
     },
@@ -689,6 +739,8 @@
       "target_benchmark": "> 12 turns/year",
       "frequency": "Monthly",
       "strategic_objective": "Optimize inventory turnover while supporting production.",
+      "actual_signal": null,
+      "status": "no_data",
       "is_illustrative": true,
       "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
     },
@@ -700,6 +752,8 @@
       "target_benchmark": "45 to 60 days",
       "frequency": "Weekly",
       "strategic_objective": "Buffer against semiconductor supply chain disruptions.",
+      "actual_signal": null,
+      "status": "no_data",
       "is_illustrative": true,
       "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
     },
@@ -711,6 +765,8 @@
       "target_benchmark": "< 15% total spend",
       "frequency": "Quarterly",
       "strategic_objective": "Diversify supply chain sourcing for critical satellite components.",
+      "actual_signal": null,
+      "status": "no_data",
       "is_illustrative": true,
       "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
     },
@@ -722,6 +778,8 @@
       "target_benchmark": ">= 12 weeks supply",
       "frequency": "Monthly",
       "strategic_objective": "Safeguard manufacturing against upstream material embargoes.",
+      "actual_signal": null,
+      "status": "no_data",
       "is_illustrative": true,
       "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
     },
@@ -733,6 +791,8 @@
       "target_benchmark": ">= 96.0%",
       "frequency": "Weekly",
       "strategic_objective": "Protect high-rate satellite assembly lines from component starvation.",
+      "actual_signal": null,
+      "status": "no_data",
       "is_illustrative": true,
       "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
     },
@@ -744,6 +804,8 @@
       "target_benchmark": ">= 99.5%",
       "frequency": "Daily",
       "strategic_objective": "Automate space traffic management and protect space assets.",
+      "actual_signal": null,
+      "status": "no_data",
       "is_illustrative": true,
       "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
     },
@@ -755,6 +817,8 @@
       "target_benchmark": "100% success rate",
       "frequency": "Per De-orbit",
       "strategic_objective": "Prevent orbital debris accumulation in low Earth orbit.",
+      "actual_signal": null,
+      "status": "no_data",
       "is_illustrative": true,
       "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
     },
@@ -766,6 +830,8 @@
       "target_benchmark": "30 to 50 ms",
       "frequency": "Continuous",
       "strategic_objective": "Maintain low-latency performance competitive with terrestrial fiber.",
+      "actual_signal": null,
+      "status": "no_data",
       "is_illustrative": true,
       "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
     },
@@ -777,6 +843,8 @@
       "target_benchmark": ">= 100 Gbps/link",
       "frequency": "Continuous",
       "strategic_objective": "Maximize routing efficiency across the space mesh network.",
+      "actual_signal": null,
+      "status": "no_data",
       "is_illustrative": true,
       "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
     },
@@ -788,6 +856,8 @@
       "target_benchmark": "Up to 1 Tbps",
       "frequency": "Continuous",
       "strategic_objective": "Prevent data processing bottlenecks on orbit.",
+      "actual_signal": null,
+      "status": "no_data",
       "is_illustrative": true,
       "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
     },
@@ -799,6 +869,8 @@
       "target_benchmark": "+/- 9 km altitude",
       "frequency": "Continuous",
       "strategic_objective": "Maintain constellation spacing and prevent orbital collisions.",
+      "actual_signal": null,
+      "status": "no_data",
       "is_illustrative": true,
       "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
     },
@@ -810,6 +882,8 @@
       "target_benchmark": "Payback < 12 months",
       "frequency": "Monthly",
       "strategic_objective": "Maintain efficient subscriber growth economics.",
+      "actual_signal": null,
+      "status": "no_data",
       "is_illustrative": true,
       "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
     },
@@ -821,6 +895,8 @@
       "target_benchmark": ">= 99.9% uptime",
       "frequency": "Monthly",
       "strategic_objective": "Fulfill enterprise agreements with telecom and aviation partners.",
+      "actual_signal": null,
+      "status": "no_data",
       "is_illustrative": true,
       "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
     },
@@ -832,6 +908,8 @@
       "target_benchmark": "< 1.2% per month",
       "frequency": "Monthly",
       "strategic_objective": "Protect subscriber lifetime value against competitor alternatives.",
+      "actual_signal": null,
+      "status": "no_data",
       "is_illustrative": true,
       "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
     },
@@ -843,6 +921,8 @@
       "target_benchmark": ">= 15 nations/quarter",
       "frequency": "Quarterly",
       "strategic_objective": "Expand global addressable market prior to full constellation launch.",
+      "actual_signal": null,
+      "status": "no_data",
       "is_illustrative": true,
       "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
     },
@@ -854,6 +934,8 @@
       "target_benchmark": "$100 to $120/month",
       "frequency": "Monthly",
       "strategic_objective": "Drive cash flow from direct-to-consumer subscribers.",
+      "actual_signal": null,
+      "status": "no_data",
       "is_illustrative": true,
       "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
     },
@@ -865,6 +947,8 @@
       "target_benchmark": "65% to 80% peak load",
       "frequency": "Daily",
       "strategic_objective": "Maximize cell utilization without inducing local congestion.",
+      "actual_signal": null,
+      "status": "no_data",
       "is_illustrative": true,
       "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
     },
@@ -876,6 +960,8 @@
       "target_benchmark": "100% audit score",
       "frequency": "Bi-Annually",
       "strategic_objective": "Ensure regulatory and security compliance across supply tiers.",
+      "actual_signal": null,
+      "status": "no_data",
       "is_illustrative": true,
       "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
     },
@@ -887,6 +973,8 @@
       "target_benchmark": ">= 90% compliance",
       "frequency": "Per Mission",
       "strategic_objective": "Maintain launch schedule alignment across rocket providers.",
+      "actual_signal": null,
+      "status": "no_data",
       "is_illustrative": true,
       "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
     },
@@ -898,6 +986,8 @@
       "target_benchmark": "< 60 days",
       "frequency": "Bi-Annually",
       "strategic_objective": "Reduce single-source supplier dependencies.",
+      "actual_signal": null,
+      "status": "no_data",
       "is_illustrative": true,
       "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
     },
@@ -909,6 +999,8 @@
       "target_benchmark": ">= 92/100",
       "frequency": "Quarterly",
       "strategic_objective": "Audit Tier-1 and Tier-2 space hardware suppliers.",
+      "actual_signal": null,
+      "status": "no_data",
       "is_illustrative": true,
       "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
     },
@@ -920,6 +1012,8 @@
       "target_benchmark": "< 50 PPM",
       "frequency": "Monthly",
       "strategic_objective": "Protect spacecraft cleanroom lines from defective incoming hardware.",
+      "actual_signal": null,
+      "status": "no_data",
       "is_illustrative": true,
       "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
     },
@@ -931,6 +1025,8 @@
       "target_benchmark": "100% penalty recovery",
       "frequency": "Quarterly",
       "strategic_objective": "Recoup financial impact from vendor quality non-conformance.",
+      "actual_signal": null,
+      "status": "no_data",
       "is_illustrative": true,
       "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
     },
@@ -942,6 +1038,8 @@
       "target_benchmark": "100% audit score",
       "frequency": "Monthly",
       "strategic_objective": "Guarantee part traceability for post-launch anomaly analysis.",
+      "actual_signal": null,
+      "status": "no_data",
       "is_illustrative": true,
       "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
     },
@@ -953,6 +1051,8 @@
       "target_benchmark": "< 8%",
       "frequency": "Monthly",
       "strategic_objective": "Optimize inventory holding costs across storage facilities.",
+      "actual_signal": null,
+      "status": "no_data",
       "is_illustrative": true,
       "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
     },
@@ -964,6 +1064,8 @@
       "target_benchmark": "< 5 business days",
       "frequency": "Weekly",
       "strategic_objective": "Maintain factory flow by resolving quality defects quickly.",
+      "actual_signal": null,
+      "status": "no_data",
       "is_illustrative": true,
       "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
     },
@@ -975,6 +1077,8 @@
       "target_benchmark": "100% critical joint check",
       "frequency": "Weekly",
       "strategic_objective": "Eliminate structural defects prior to launch vibration stress.",
+      "actual_signal": null,
+      "status": "no_data",
       "is_illustrative": true,
       "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
     },
@@ -986,6 +1090,8 @@
       "target_benchmark": ">= 99.0%",
       "frequency": "Weekly",
       "strategic_objective": "Ensure zero defective spacecraft are shipped to launch sites.",
+      "actual_signal": null,
+      "status": "no_data",
       "is_illustrative": true,
       "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
     },
@@ -997,6 +1103,8 @@
       "target_benchmark": "< 0.8% of active units",
       "frequency": "Monthly",
       "strategic_objective": "Protect customer satisfaction and lower warranty replacement costs.",
+      "actual_signal": null,
+      "status": "no_data",
       "is_illustrative": true,
       "notes": "Illustrative operational-KPI framework applied to this case -- target benchmark is not sourced to any Amazon disclosure."
     }

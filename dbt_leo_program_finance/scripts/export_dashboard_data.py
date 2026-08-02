@@ -138,7 +138,7 @@ def main():
 
     operational_kpi_framework = rows_as_dicts(con.execute("""
         select domain_order, domain, kpi_name, definition, target_benchmark, frequency,
-               strategic_objective, is_illustrative, notes
+               strategic_objective, actual_signal, status, is_illustrative, notes
         from main.mart_operational_kpi_framework
         order by domain_order, kpi_name
     """))

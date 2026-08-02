@@ -163,11 +163,20 @@ models:
       Finance, Accounting, Spacecraft Production, Launch Operations, Logistics & Supply Chain,
       Systems Engineering, Commercialization & Sales, Vendor Management, Inventory & Quality
       Control) applied to this case. Target benchmarks are illustrative, not Amazon-disclosed.
+      Each row is checked against this project's own real marts where a comparable number
+      exists (status = meets/below); the rest honestly resolve to no_data rather than a
+      fabricated actual.
     columns:
       - name: kpi_name
         tests: [not_null, unique]
       - name: domain
         tests: [not_null]
+      - name: status
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['meets', 'below', 'no_data']
       - name: is_illustrative
         tests:
           - not_null
