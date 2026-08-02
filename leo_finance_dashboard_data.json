@@ -1,0 +1,306 @@
+{
+  "project": "dbt_leo_program_finance",
+  "disclaimer": "Independent illustrative project. Not affiliated with, endorsed by, or built using any internal Amazon data. Figures describing the real program are sourced to public reporting (see source/source_url per row); figures describing an Amazon internal decision (make-vs-buy, variance drivers) are fully synthetic and flagged is_illustrative.",
+  "generated_at": "2026-08-02T07:10:44.244427+00:00",
+  "deployment_checkpoints": [
+    {
+      "as_of_date": "2025-04-01",
+      "cumulative_satellites": 0,
+      "checkpoint_type": "deployment_start_marker",
+      "note": "Full-scale deployment began April 2025 (used only as the elapsed-time reference point for the unlaunched-inventory model, not an observed count)",
+      "source": "GeekWire",
+      "source_url": "https://www.geekwire.com/2026/amazon-leo-double-pace-roll-out-satellite-broadband/"
+    },
+    {
+      "as_of_date": "2025-12-31",
+      "cumulative_satellites": 180,
+      "checkpoint_type": "observed",
+      "note": "Late-2025 cumulative count (period-end aggregate, approximate)",
+      "source": "GeekWire",
+      "source_url": "https://www.geekwire.com/2026/amazon-leo-double-pace-roll-out-satellite-broadband/"
+    },
+    {
+      "as_of_date": "2026-04-29",
+      "cumulative_satellites": 250,
+      "checkpoint_type": "observed",
+      "note": "Per CFO Brian Olsavsky on Amazon's Q1 2026 earnings call",
+      "source": "Motley Fool Q1 2026 Earnings Call Transcript",
+      "source_url": "https://www.fool.com/earnings/call-transcripts/2026/04/29/amazon-amzn-q1-2026-earnings-call-transcript/"
+    },
+    {
+      "as_of_date": "2026-07-15",
+      "cumulative_satellites": 375,
+      "checkpoint_type": "observed",
+      "note": "Per Amazon's own progress update (date approximate -- see source)",
+      "source": "About Amazon",
+      "source_url": "https://www.aboutamazon.com/news/innovation-at-amazon/project-kuiper-satellite-rocket-launch-progress-updates"
+    },
+    {
+      "as_of_date": "2026-07-30",
+      "cumulative_satellites": 700,
+      "checkpoint_type": "company_projected",
+      "note": "Amazon's own stated expectation in its Jan 2026 FCC extension-request filing -- a company projection, not an observed count",
+      "source": "GeekWire",
+      "source_url": "https://www.geekwire.com/2026/amazon-leo-fcc-extension-request/"
+    }
+  ],
+  "milestone_risk": [
+    {
+      "milestone_date": "2026-07-30",
+      "satellites_required": 1618,
+      "regulatory_basis": "FCC license condition -- 50% of authorized constellation deployed",
+      "regulatory_consequence": "Per a granted conditional waiver (as reported): loss of priority status for satellites not deployed/operational by this date -- NOT outright license revocation",
+      "waiver_requested": true,
+      "waiver_requested_date": "2026-01-15",
+      "waiver_requested_extension_months": 24,
+      "checkpoint_date": "2026-07-15",
+      "checkpoint_count": 375,
+      "days_remaining_at_checkpoint": 15,
+      "modeled_projected_count": 427.0,
+      "modeled_projected_shortfall": 1191.0,
+      "company_projected_count": 700,
+      "company_projected_shortfall": 918,
+      "status": "at_risk"
+    },
+    {
+      "milestone_date": "2029-07-30",
+      "satellites_required": 3236,
+      "regulatory_basis": "FCC license condition -- full constellation deployed",
+      "regulatory_consequence": "Full-constellation license condition; no waiver action reported as of this analysis",
+      "waiver_requested": false,
+      "waiver_requested_date": null,
+      "waiver_requested_extension_months": null,
+      "checkpoint_date": "2026-07-15",
+      "checkpoint_count": 375,
+      "days_remaining_at_checkpoint": 1111,
+      "modeled_projected_count": 4219.0,
+      "modeled_projected_shortfall": -983.0,
+      "company_projected_count": null,
+      "company_projected_shortfall": null,
+      "status": "on_track"
+    }
+  ],
+  "capacity_gap": {
+    "capacity_ceiling_per_day": 5.0,
+    "realized_peak_per_day": 3.46,
+    "capacity_gap_per_day": 1.54,
+    "utilization_pct": 0.692,
+    "constraint_root_cause": "launch_vehicle_availability",
+    "realized_peak_note": "Highest-cadence month to date: 3 missions (LE-01, LA-05, LA-06) deployed 90 satellites in 26 days",
+    "source": "GeekWire / mission manifest",
+    "source_url": "https://www.geekwire.com/2026/amazon-leo-double-pace-roll-out-satellite-broadband/"
+  },
+  "cost_escalation": [
+    {
+      "as_of_date": "2019-01-01",
+      "metric_type": "cumulative_total_program",
+      "low_estimate_usd": 10000000000,
+      "high_estimate_usd": 10000000000,
+      "source_type": "company_stated",
+      "source": "Amazon (reported circa 2019, cited retrospectively)",
+      "source_url": "https://www.datacenterdynamics.com/en/news/amazon-promises-invest-more-10bn-project-kuiper-satellite-internet-business/",
+      "pct_change_from_prior": null
+    },
+    {
+      "as_of_date": "2024-12-01",
+      "metric_type": "cumulative_total_program",
+      "low_estimate_usd": 16500000000,
+      "high_estimate_usd": 20000000000,
+      "source_type": "third_party_estimate",
+      "source": "Quilty Space market analysis (via GeekWire)",
+      "source_url": "https://www.geekwire.com/2024/market-study-amazon-cost-project-kuiper-satellite-quilty/",
+      "pct_change_from_prior": 1.0
+    },
+    {
+      "as_of_date": "2026-04-29",
+      "metric_type": "yoy_incremental",
+      "low_estimate_usd": 1000000000,
+      "high_estimate_usd": 1000000000,
+      "source_type": "official_disclosure",
+      "source": "CFO Brian Olsavsky, Amazon Q1 2026 earnings call",
+      "source_url": "https://www.fool.com/earnings/call-transcripts/2026/04/29/amazon-amzn-q1-2026-earnings-call-transcript/",
+      "pct_change_from_prior": null
+    }
+  ],
+  "implied_scale_cost": {
+    "as_of_date": "2024-12-01",
+    "unit_cost_low_usd": 1500000,
+    "unit_cost_high_usd": 2000000,
+    "constellation_target": 3232,
+    "implied_scale_cost_low_usd": 4848000000,
+    "implied_scale_cost_high_usd": 6464000000,
+    "calculation_note": "unit_cost_estimate x constellation_target (derived here, not a published Amazon figure)",
+    "source": "Quilty Space market analysis (via GeekWire)",
+    "source_url": "https://www.geekwire.com/2024/market-study-amazon-cost-project-kuiper-satellite-quilty/"
+  },
+  "makevsbuy": [
+    {
+      "scenario_id": 1,
+      "category_label": "RF Payload Manufacturing",
+      "option_label": "In-house production",
+      "unit_cost_usd": 145000.0,
+      "annual_volume": 1200,
+      "annual_tco_usd": 174000000.0,
+      "tco_delta_vs_cheaper_option_usd": 0.0,
+      "is_illustrative": true,
+      "notes": "Illustrative generic hardware-program scenario -- not based on real Amazon figures"
+    },
+    {
+      "scenario_id": 1,
+      "category_label": "RF Payload Manufacturing",
+      "option_label": "Outsourced foundry",
+      "unit_cost_usd": 168000.0,
+      "annual_volume": 1200,
+      "annual_tco_usd": 201600000.0,
+      "tco_delta_vs_cheaper_option_usd": 27600000.0,
+      "is_illustrative": true,
+      "notes": "Illustrative generic hardware-program scenario -- not based on real Amazon figures"
+    },
+    {
+      "scenario_id": 2,
+      "category_label": "Ground Terminal Assembly",
+      "option_label": "Outsourced contract manufacturer",
+      "unit_cost_usd": 540.0,
+      "annual_volume": 50000,
+      "annual_tco_usd": 27000000.0,
+      "tco_delta_vs_cheaper_option_usd": 0.0,
+      "is_illustrative": true,
+      "notes": "Illustrative generic hardware-program scenario -- not based on real Amazon figures"
+    },
+    {
+      "scenario_id": 2,
+      "category_label": "Ground Terminal Assembly",
+      "option_label": "In-house production",
+      "unit_cost_usd": 620.0,
+      "annual_volume": 50000,
+      "annual_tco_usd": 31000000.0,
+      "tco_delta_vs_cheaper_option_usd": 4000000.0,
+      "is_illustrative": true,
+      "notes": "Illustrative generic hardware-program scenario -- not based on real Amazon figures"
+    }
+  ],
+  "variance_demo": [
+    {
+      "cost_center": "RF Payload NPI",
+      "period": "2026-Q2",
+      "budget_amount": 5000000.0,
+      "actual_amount": 5650000.0,
+      "total_variance": 650000.0,
+      "price_driver": 180000.0,
+      "volume_driver": 320000.0,
+      "scope_driver": 100000.0,
+      "timing_driver": 50000.0,
+      "sum_of_drivers": 650000.0,
+      "is_illustrative": true
+    }
+  ],
+  "launch_vehicle_reliability": [
+    {
+      "launch_vehicle": "Ariane 6",
+      "total_events": 1,
+      "failure_events": 0,
+      "delay_events": 0,
+      "success_events": 1,
+      "success_with_incident_events": 1
+    },
+    {
+      "launch_vehicle": "Atlas V",
+      "total_events": 2,
+      "failure_events": 0,
+      "delay_events": 0,
+      "success_events": 2,
+      "success_with_incident_events": 0
+    },
+    {
+      "launch_vehicle": "New Glenn",
+      "total_events": 1,
+      "failure_events": 1,
+      "delay_events": 0,
+      "success_events": 0,
+      "success_with_incident_events": 0
+    },
+    {
+      "launch_vehicle": "Vulcan Centaur",
+      "total_events": 1,
+      "failure_events": 0,
+      "delay_events": 1,
+      "success_events": 0,
+      "success_with_incident_events": 0
+    }
+  ],
+  "unlaunched_inventory": {
+    "production_start_date": "2025-04-01",
+    "latest_observed_date": "2026-07-15",
+    "deployed_count": 375,
+    "assumed_sustained_rate": 4.29,
+    "assumed_throttled_rate": 3.46,
+    "elapsed_days": 470,
+    "modeled_cumulative_produced_upper": 2016.0,
+    "modeled_unlaunched_inventory_upper": 1641.0,
+    "modeled_cumulative_produced_lower": 1626.0,
+    "modeled_unlaunched_inventory_lower": 1251.0,
+    "calculation_note": "UPPER: elapsed_days x sustained_consistent_rate (production never throttled down). LOWER: elapsed_days x realized_peak deployment rate, used as a proxy for production throttled to track what could actually ship -- NOT a claimed production-capacity figure. Both are illustrative modeled scenarios, not disclosed production figures; real output was somewhere in this range, most likely."
+  },
+  "supplier_concentration": [
+    {
+      "component_name": "Optical Inter-Satellite Link (OISL) Terminal",
+      "is_real_bottleneck": true,
+      "illustrative_supplier_count": 3,
+      "risk_tier": "high_concentration_risk",
+      "is_illustrative": true,
+      "notes": "Real component identified as a supply-chain bottleneck in public reporting; the supplier count is an illustrative estimate, not a disclosed figure",
+      "source": "Breaking Defense",
+      "source_url": "https://breakingdefense.com/2026/02/the-space-supply-chain-is-getting-stretched-heres-how-it-could-impact-the-pentagons-plans/"
+    },
+    {
+      "component_name": "Rad-Hardened Semiconductor",
+      "is_real_bottleneck": true,
+      "illustrative_supplier_count": 4,
+      "risk_tier": "medium_concentration_risk",
+      "is_illustrative": true,
+      "notes": "Real component identified as a supply-chain bottleneck in public reporting; the supplier count is an illustrative estimate, not a disclosed figure",
+      "source": "Breaking Defense",
+      "source_url": "https://breakingdefense.com/2026/02/the-space-supply-chain-is-getting-stretched-heres-how-it-could-impact-the-pentagons-plans/"
+    },
+    {
+      "component_name": "Standard Satellite Bus Component (generic comparison)",
+      "is_real_bottleneck": false,
+      "illustrative_supplier_count": 8,
+      "risk_tier": "low_concentration_risk",
+      "is_illustrative": true,
+      "notes": "Fully illustrative comparison baseline -- standardized components generally draw from a broader supplier base than the two bottleneck components above",
+      "source": "N/A (illustrative comparison baseline)",
+      "source_url": null
+    }
+  ],
+  "safety_incidents": [
+    {
+      "incident_date": "2026-02-12",
+      "description": "Amazon Leo's LE-01 mission (Ariane 6, 32 satellites) deployed at an altitude that SpaceX publicly stated created unmitigable collision risks with dozens of operational spacecraft near the 480km insertion altitude",
+      "disputing_party": "SpaceX (via public reporting)",
+      "source": "SpaceNews",
+      "source_url": "https://spacenews.com/spacex-and-amazon-spar-over-satellite-deployments/"
+    }
+  ],
+  "d2d_pipeline": {
+    "milestone_name": "Direct-to-Device FCC Application",
+    "filing_date": "2026-07-24",
+    "satellites_requested": 5105,
+    "review_framework": "Supplemental Coverage from Space (SCS)",
+    "expected_review_months_low": 12,
+    "expected_review_months_high": 18,
+    "earliest_expected_decision": "2027-07-24 00:00:00",
+    "latest_expected_decision": "2028-01-24 00:00:00",
+    "related_transaction": "Globalstar spectrum transaction",
+    "related_transaction_close_year": 2027,
+    "source": "SatNews",
+    "source_url": "https://satnews.com/2026/07/27/amazon-files-fcc-application-for-5105-satellite-constellation-to-enable-direct-to-device-mobile-services/"
+  },
+  "workforce_signal": {
+    "as_of_date": "2026-08-01",
+    "open_positions_redmond": 464,
+    "signal": "scaling_signal_not_distress",
+    "source": "Indeed",
+    "source_url": "https://www.indeed.com/q-amazon-kuiper-manufacturing-l-redmond,-wa-jobs.html"
+  }
+}
