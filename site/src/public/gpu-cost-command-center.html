@@ -266,10 +266,6 @@
   .econ-grid{padding:18px 20px}
   .igroup{margin-top:18px}
   .igroup:first-child{margin-top:0}
-  .igroup h4{
-    font:700 13px/1.35 ui-monospace,monospace; letter-spacing:.08em; text-transform:uppercase;
-    color:rgb(var(--c-text-secondary)); margin:0 0 10px;
-  }
   .inputs-row{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px 14px}
   .nfield{display:flex; flex-direction:column; gap:5px}
   .nfield label{font-size:13px; color:rgb(var(--c-text-secondary))}
@@ -1285,10 +1281,23 @@
     var ebitAtOpex = v.econRevenue - (opexAnnual + r.depreciationAnnual);
     return rodaAt(v.econFacCapex, v.econCompCapex, ebitAtOpex);
   }
+  // CapEx drivers must ALSO recompute EBIT at the perturbed value, not just the RODA
+  // denominator -- CapEx feeds depreciationAnnual (compCapex/gpuLifeYears + facCapex/
+  // BUILDING_LIFE_YEARS), which feeds fixedCosts, which feeds ebit, exactly the same
+  // "recompute, don't freeze" requirement the Revenue driver below already accounts for.
+  // Found by a whole-file stress test: an earlier version of this driver held r.ebit frozen
+  // while perturbing only the denominator, understating Compute CapEx's true swing by ~2.4x
+  // (4.20pp true vs 1.73pp as coded) and Facility CapEx's by ~1.4x (1.52pp vs 1.08pp) --
+  // confirmed by direct computation against ECON_DEFAULTS before this fix.
+  function rodaAtCapex(v, r, facCapex, compCapex){
+    var depreciationAnnual = (compCapex / r.gpuLifeYears) + (facCapex / BUILDING_LIFE_YEARS);
+    var ebitAtCapex = v.econRevenue - (r.opexAnnual + depreciationAnnual);
+    return rodaAt(facCapex, compCapex, ebitAtCapex);
+  }
   function computeRodaSensitivity(v, r){
     var drivers = [
-      { label: "Facility CapEx", low: rodaAt(v.econFacCapex * 1.1, v.econCompCapex, r.ebit), high: rodaAt(v.econFacCapex * 0.9, v.econCompCapex, r.ebit) },
-      { label: "Compute (GPU) CapEx", low: rodaAt(v.econFacCapex, v.econCompCapex * 1.1, r.ebit), high: rodaAt(v.econFacCapex, v.econCompCapex * 0.9, r.ebit) },
+      { label: "Facility CapEx", low: rodaAtCapex(v, r, v.econFacCapex * 1.1, v.econCompCapex), high: rodaAtCapex(v, r, v.econFacCapex * 0.9, v.econCompCapex) },
+      { label: "Compute (GPU) CapEx", low: rodaAtCapex(v, r, v.econFacCapex, v.econCompCapex * 1.1), high: rodaAtCapex(v, r, v.econFacCapex, v.econCompCapex * 0.9) },
       // Revenue is the genuinely independent typed input now that EBIT is derived, not
       // typed -- perturb revenue and recompute EBIT from the same fixed operating +
       // depreciation costs, rather than perturbing the already-computed EBIT directly.
@@ -1542,7 +1551,7 @@
   function narratePortfolio(p){
     var behindText = p.behind.length === 0
       ? "every site is on schedule right now"
-      : p.behind.length + " of 6 sites (" + p.behind.join(", ") + ") are running behind, together carrying about " + fmtUSDCompact(p.totalDelayCost) + " in idle GPU depreciation";
+      : p.behind.length + " of " + PORTFOLIO_SITES.length + " sites (" + p.behind.join(", ") + ") are running behind, together carrying about " + fmtUSDCompact(p.totalDelayCost) + " in idle GPU depreciation";
     return '<div class="card insight"><span class="tag">In plain terms</span>' +
       'Across the portfolio, <b>' + fmtPct(p.pctDeployed) + '</b> of planned capital (' + fmtUSDCompact(p.totalDeployed) + ' of ' + fmtUSDCompact(p.totalPlanned) + ') has actually been spent, ' +
       'and <b>' + fmtPct(p.pctDelivered) + '</b> of the target capacity (' + p.totalCurrentMW + ' of ' + p.totalTargetMW + ' MW) is live and earning today — the rest is still being built. ' +
@@ -1575,7 +1584,7 @@
     document.getElementById("portfolioCapitalSub").textContent = fmtPct(p.pctDeployed) + " deployed · " + fmtUSDCompact(p.remainingCapital) + " remaining";
     document.getElementById("portfolioCapacityVal").textContent = fmtPct(p.pctDelivered);
     document.getElementById("portfolioCapacitySub").textContent = p.totalCurrentMW + " of " + p.totalTargetMW + " MW live";
-    document.getElementById("portfolioBehindVal").textContent = p.behind.length + " of 6";
+    document.getElementById("portfolioBehindVal").textContent = p.behind.length + " of " + PORTFOLIO_SITES.length;
     document.getElementById("portfolioBehindSub").textContent = p.behind.join(", ") || "none";
     document.getElementById("portfolioDelayCostVal").textContent = fmtUSDCompact(p.totalDelayCost);
     document.getElementById("portfolioDelayCostSub").textContent = p.behind.length > 0
@@ -1689,6 +1698,15 @@
         def: "Modeling a few different overall futures at once, rather than nudging one variable at a time.",
         example: "Instead of nudging one number, model three whole futures — a strong year, a normal year, and a weak year — and see how far apart they land." }
     ]},
+    // Unlike the dbt-tenant group above (whose examples are safe to hardcode because that
+    // data never changes) or the econ-section groups (whose examples are deliberately
+    // hypothetical), these worked examples are hand-derived from the CURRENT PORTFOLIO_SITES
+    // array -- Site 03's PV/EV/CV, and the portfolio-wide EAC/VAC -- values PORTFOLIO_SITES
+    // has already been edited multiple times this session (EVM fields, the compute/facility
+    // split). A whole-file stress test flagged this: if a future round changes Site 03's
+    // numbers or the portfolio totals, THIS BLOCK GOES STALE while the live KPI tiles above
+    // update correctly. Re-derive these examples (or re-verify them by hand) any time
+    // PORTFOLIO_SITES changes.
     { group: "Earned Value Management (EVM)", terms: [
       { term: "Planned Value (PV)", anchor: "portfolioKpis",
         def: "The budgeted cost of the work that SHOULD be done by now, given the project's own planned schedule — a baseline, not an actual.",
@@ -2636,7 +2654,7 @@
   // position, dead zones or not -- position is defined everywhere, an intersection band isn't.
   // The first chapter link starts with class="active" in the static HTML itself -- an explicit
   // choice for "what's highlighted before the user has scrolled anywhere," not an emergent
-  // side effect of observer timing. All 9 target sections are static HTML (not dynamically
+  // side effect of observer timing. All target sections are static HTML (not dynamically
   // rendered into existence later), so this can run synchronously right away like
   // initScrollReveal -- no fetch-timing question here.
   function initSidebarSpy(){
