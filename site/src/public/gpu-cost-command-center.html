@@ -59,9 +59,9 @@
   .bar-in{max-width:1180px; margin:0 auto; padding:14px 20px; display:flex; align-items:center; gap:14px; flex-wrap:wrap}
   .brand{display:flex; align-items:center; gap:10px; font-weight:700; font-size:15px; letter-spacing:-.01em}
   .brand .dot{width:9px; height:9px; border-radius:3px; background:conic-gradient(from 210deg, rgb(var(--c-accent)), rgb(var(--c-success)), rgb(var(--c-accent)))}
-  .brand small{display:block; font-weight:600; font-size:9.5px; letter-spacing:.14em; color:rgb(var(--c-text-secondary)); text-transform:uppercase; margin-top:1px}
+  .brand small{display:block; font-weight:600; font-size:12.5px; letter-spacing:.14em; color:rgb(var(--c-text-secondary)); text-transform:uppercase; margin-top:1px}
   .badge{
-    font:600 11px/1 ui-monospace,Menlo,monospace; letter-spacing:.02em;
+    font:600 12.5px/1.2 ui-monospace,Menlo,monospace; letter-spacing:.02em;
     border:1px solid rgb(var(--c-accent) / .35); background:rgb(var(--c-accent) / .09); color:rgb(var(--c-text-code));
     border-radius:99px; padding:6px 11px;
   }
@@ -69,12 +69,12 @@
   .icobtn{
     display:inline-flex; align-items:center; gap:6px; height:32px; padding:0 12px; border-radius:8px;
     border:1px solid rgb(var(--c-accent) / .3); background:transparent; color:rgb(var(--c-text-secondary));
-    font:600 11.5px inherit; cursor:pointer; transition:all .15s;
+    font:600 13px/1.3 inherit; cursor:pointer; transition:all .15s;
   }
   .icobtn:hover{color:rgb(var(--c-text-primary)); border-color:rgb(var(--c-accent) / .55)}
 
   h1,h2,h3{font-weight:700; letter-spacing:-.01em; margin:0}
-  .eyebrow{font:700 10.5px/1 ui-monospace,monospace; letter-spacing:.14em; text-transform:uppercase; color:rgb(var(--c-accent))}
+  .eyebrow{font:700 12.5px/1.3 ui-monospace,monospace; letter-spacing:.14em; text-transform:uppercase; color:rgb(var(--c-accent))}
   section{margin-top:34px}
   .lede{color:rgb(var(--c-text-secondary)); font-size:13.5px; max-width:62ch; margin:6px 0 0}
 
@@ -97,9 +97,9 @@
   #econKpis{grid-template-columns:repeat(6, 1fr)}
   @media (max-width:1200px){ #econKpis{grid-template-columns:repeat(3, 1fr)} }
   .kpi{padding:16px 18px; position:relative}
-  .kpi .lbl{font-size:11px; color:rgb(var(--c-text-secondary)); font-weight:600; text-transform:uppercase; letter-spacing:.06em; padding-right:20px}
+  .kpi .lbl{font-size:12.5px; color:rgb(var(--c-text-secondary)); font-weight:600; text-transform:uppercase; letter-spacing:.06em; padding-right:20px}
   .kpi .val{font-size:26px; font-weight:700; margin-top:6px; letter-spacing:-.02em}
-  .kpi .sub{font-size:11.5px; color:rgb(var(--c-text-secondary)); margin-top:3px}
+  .kpi .sub{font-size:13px; color:rgb(var(--c-text-secondary)); margin-top:3px}
   .kpi.warn .val{color:rgb(var(--c-danger))}
 
   /* educational info popovers: one shared floating panel (position:fixed, JS-positioned),
@@ -107,7 +107,7 @@
   .infobtn{
     position:absolute; top:14px; right:14px; width:17px; height:17px; border-radius:50%; padding:0;
     border:1px solid rgb(var(--c-text-secondary) / .4); background:transparent; color:rgb(var(--c-text-secondary));
-    font:700 10px/1 ui-monospace,monospace; cursor:pointer; display:flex; align-items:center; justify-content:center;
+    font:700 12px/1.2 ui-monospace,monospace; cursor:pointer; display:flex; align-items:center; justify-content:center;
     transition:all .15s;
   }
   .infobtn:hover, .infobtn[aria-expanded="true"]{border-color:rgb(var(--c-accent)); color:rgb(var(--c-accent))}
@@ -115,7 +115,7 @@
   .infopop{
     position:fixed; z-index:9; display:none; width:200px;
     background:rgb(var(--c-bg-card2)); border:1px solid rgb(var(--c-accent) / .4); border-radius:8px;
-    padding:10px 12px; font-size:11.5px; line-height:1.55; color:rgb(var(--c-text-secondary));
+    padding:10px 12px; font-size:13px; line-height:1.55; color:rgb(var(--c-text-secondary));
     box-shadow:0 8px 24px rgb(0 0 0 / .35);
   }
   .infopop.show{display:block}
@@ -128,7 +128,7 @@
   .story svg{flex:none; margin-top:2px; color:rgb(var(--c-danger))}
   .story p{margin:0; font-size:13.5px; line-height:1.6}
   .story b{color:rgb(var(--c-text-primary))}
-  .story .tag{font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:rgb(var(--c-danger))}
+  .story .tag{font-size:12.5px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:rgb(var(--c-danger))}
 
   /* insight: the same "narrator" idea as .story, but accent-colored rather than danger-red --
      these callouts are computed live from the actual numbers on the page (deterministic,
@@ -137,33 +137,33 @@
   .insight{
     margin-top:12px; padding:14px 18px; border-left:3px solid rgb(var(--c-accent));
     background:rgb(var(--c-accent) / .05); border-radius:0 8px 8px 0;
-    font-size:12.5px; line-height:1.65; color:rgb(var(--c-text-secondary));
+    font-size:13px; line-height:1.65; color:rgb(var(--c-text-secondary));
   }
   .insight b{color:rgb(var(--c-text-primary))}
   .insight .tag{
-    display:block; font-size:10.5px; font-weight:700; letter-spacing:.08em; text-transform:uppercase;
+    display:block; font-size:12.5px; font-weight:700; letter-spacing:.08em; text-transform:uppercase;
     color:rgb(var(--c-accent)); margin-bottom:5px;
   }
-  .tcard .note{margin-top:10px; font-size:11.5px; line-height:1.5; color:rgb(var(--c-text-secondary))}
+  .tcard .note{margin-top:10px; font-size:13px; line-height:1.5; color:rgb(var(--c-text-secondary))}
 
   /* composition chart */
   .panel{padding:18px 20px 14px}
   .panel-head{display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap}
   .panel-head h2{font-size:14.5px}
-  .legend{display:flex; gap:16px; font-size:11.5px; color:rgb(var(--c-text-secondary))}
+  .legend{display:flex; gap:16px; font-size:13px; color:rgb(var(--c-text-secondary))}
   .legend span{display:inline-flex; align-items:center; gap:6px}
   .legend i{width:9px; height:9px; border-radius:2px; display:inline-block}
   .chart-wrap{position:relative; margin-top:10px}
   svg.chart{display:block; width:100%; height:auto; overflow:visible}
   .gridline{stroke:rgb(var(--c-accent) / .1); stroke-width:1}
-  .axislabel{fill:rgb(var(--c-text-secondary)); font-size:9.5px; font-family:ui-monospace,monospace}
+  .axislabel{fill:rgb(var(--c-text-secondary)); font-size:11px; font-family:ui-monospace,monospace}
   .tip{
     position:absolute; pointer-events:none; z-index:6; opacity:0; transition:opacity .1s;
     background:rgb(var(--c-bg-card2)); border:1px solid rgb(var(--c-accent) / .4); border-radius:8px;
-    padding:8px 10px; font-size:11.5px; white-space:nowrap; box-shadow:0 8px 24px rgb(0 0 0 / .35);
+    padding:8px 10px; font-size:13px; white-space:nowrap; box-shadow:0 8px 24px rgb(0 0 0 / .35);
   }
   .tip.show{opacity:1}
-  .tip .d{color:rgb(var(--c-text-secondary)); font:600 10px ui-monospace,monospace; margin-bottom:4px}
+  .tip .d{color:rgb(var(--c-text-secondary)); font:600 12px/1.25 ui-monospace,monospace; margin-bottom:4px}
   .tip .r{display:flex; align-items:center; gap:6px; justify-content:space-between; gap:14px}
   .tip .r i{width:8px;height:8px;border-radius:2px}
   .crosshair{stroke:rgb(var(--c-text-secondary) / .5); stroke-width:1; stroke-dasharray:3 3; pointer-events:none; opacity:0}
@@ -176,9 +176,9 @@
   @media (max-width:760px){ .tenants{grid-template-columns:1fr} }
   .tcard{padding:16px 16px 14px}
   .tcard .top{display:flex; align-items:center; justify-content:space-between; gap:8px}
-  .tcard .cid{font:700 13px ui-monospace,monospace; letter-spacing:-.01em}
+  .tcard .cid{font:700 13px/1.3 ui-monospace,monospace; letter-spacing:-.01em}
   .pill{
-    display:inline-flex; align-items:center; gap:5px; font:700 10px/1 inherit; letter-spacing:.03em;
+    display:inline-flex; align-items:center; gap:5px; font:700 12px/1.2 inherit; letter-spacing:.03em;
     text-transform:uppercase; padding:4px 8px; border-radius:99px; border:1px solid transparent;
   }
   .pill .sw{width:7px; height:7px; border-radius:50%}
@@ -189,7 +189,7 @@
   .pill.z-warning{color:rgb(var(--c-danger)); background:rgb(var(--c-danger)/.12); border-color:rgb(var(--c-danger)/.35)}
   .pill.z-warning .sw{background:rgb(var(--c-danger))}
   .tcard .margin{font-size:28px; font-weight:700; margin-top:10px; letter-spacing:-.02em}
-  .tcard .stats{display:flex; gap:16px; margin-top:8px; font-size:11.5px; color:rgb(var(--c-text-secondary))}
+  .tcard .stats{display:flex; gap:16px; margin-top:8px; font-size:13px; color:rgb(var(--c-text-secondary))}
   .tcard .stats b{display:block; color:rgb(var(--c-text-primary)); font-size:12.5px; font-weight:700}
   .tcard .spark{margin-top:12px}
   /* .expand-btn-site is a DELIBERATELY separate class from .expand-btn (not shared, not a
@@ -200,13 +200,20 @@
      visual style, distinct selector. */
   .tcard .expand-btn, .tcard .expand-btn-site{
     margin-top:12px; width:100%; background:transparent; border:1px dashed rgb(var(--c-accent) / .3);
-    border-radius:7px; padding:6px; color:rgb(var(--c-text-secondary)); font:600 10.5px inherit;
+    border-radius:7px; padding:6px; color:rgb(var(--c-text-secondary)); font:600 13px/1.3 inherit;
     cursor:pointer; text-transform:uppercase; letter-spacing:.04em; transition:all .15s;
   }
   .tcard .expand-btn:hover, .tcard .expand-btn-site:hover{color:rgb(var(--c-text-primary)); border-color:rgb(var(--c-accent) / .6)}
   .tcard .breakdown{display:none; margin-top:4px; padding-top:8px; border-top:1px dashed rgb(var(--c-accent) / .2)}
   .tcard .breakdown.show{display:block}
-  .waterfall text{font:600 9px ui-monospace,monospace}
+  .waterfall text{font:600 10px ui-monospace,monospace}
+  /* .waterfall text (0,1,1) is MORE specific than .axislabel alone (0,1,0), so it silently
+     overrode the category-label text's size to 10px instead of the 11px every other chart's
+     axis labels use, even though those <text> elements carry class="axislabel" -- found by
+     post-build review. .waterfall .axislabel (0,2,0) restores the intended 11px parity without
+     touching .waterfall text itself, which still correctly sizes the dollar-value labels above
+     each bar (a separate, unclassed <text> element in the same charts). */
+  .waterfall .axislabel{font-size:11px}
 
   /* allocation bar: the absorption key itself, visualized. Fixed opacity steps of the
      accent hue (not per-tenant categorical hues) -- this chart is about "share of usage,"
@@ -214,17 +221,17 @@
      so it deliberately does not compete with that color system. */
   .alloc-bar{display:flex; height:22px; border-radius:7px; overflow:hidden; gap:2px}
   .alloc-seg{transition:width .4s ease}
-  .alloc-legend{display:flex; gap:18px; flex-wrap:wrap; margin-top:10px; font-size:11.5px; color:rgb(var(--c-text-secondary))}
+  .alloc-legend{display:flex; gap:18px; flex-wrap:wrap; margin-top:10px; font-size:13px; color:rgb(var(--c-text-secondary))}
   .alloc-legend span{display:inline-flex; align-items:center; gap:6px}
   .alloc-legend i{width:9px; height:9px; border-radius:2px; display:inline-block}
-  .alloc-legend b{color:rgb(var(--c-text-primary)); font:700 11.5px ui-monospace,monospace}
+  .alloc-legend b{color:rgb(var(--c-text-primary)); font:700 13px/1.3 ui-monospace,monospace}
 
   .controls{padding:16px 18px}
-  .controls h3{font-size:12.5px}
-  .controls .lede{margin-top:4px; font-size:11.5px}
+  .controls h3{font-size:13px}
+  .controls .lede{margin-top:4px; font-size:13px}
   .field{margin-top:16px}
-  .field .fl{display:flex; justify-content:space-between; font-size:11.5px; color:rgb(var(--c-text-secondary)); margin-bottom:6px}
-  .field .fl b{color:rgb(var(--c-text-primary)); font:700 11.5px ui-monospace,monospace}
+  .field .fl{display:flex; justify-content:space-between; font-size:13px; color:rgb(var(--c-text-secondary)); margin-bottom:6px}
+  .field .fl b{color:rgb(var(--c-text-primary)); font:700 13px/1.3 ui-monospace,monospace}
   input[type=range]{
     -webkit-appearance:none; width:100%; height:4px; border-radius:2px;
     background:rgb(var(--c-accent) / .25); outline:none;
@@ -240,7 +247,7 @@
   }
   .reset{
     margin-top:14px; width:100%; height:32px; border-radius:8px; border:1px solid rgb(var(--c-accent) / .3);
-    background:transparent; color:rgb(var(--c-text-secondary)); font:600 11px inherit; cursor:pointer;
+    background:transparent; color:rgb(var(--c-text-secondary)); font:600 13px/1.3 inherit; cursor:pointer;
   }
   .reset:hover{color:rgb(var(--c-text-primary))}
 
@@ -249,7 +256,7 @@
      used for the dbt-sourced sections above. */
   .divider{margin-top:44px; padding-top:6px; border-top:1px dashed rgb(var(--c-accent) / .25)}
   .live-badge{
-    display:inline-flex; align-items:center; gap:5px; font:700 10px/1 ui-monospace,monospace;
+    display:inline-flex; align-items:center; gap:5px; font:700 12px/1.2 ui-monospace,monospace;
     letter-spacing:.04em; text-transform:uppercase; color:rgb(var(--c-accent2));
     background:rgb(var(--c-accent) / .1); border:1px solid rgb(var(--c-accent) / .3);
     border-radius:99px; padding:4px 9px; margin-left:8px; vertical-align:middle;
@@ -259,20 +266,20 @@
   .igroup{margin-top:18px}
   .igroup:first-child{margin-top:0}
   .igroup h4{
-    font:700 10.5px/1 ui-monospace,monospace; letter-spacing:.08em; text-transform:uppercase;
+    font:700 13px/1.35 ui-monospace,monospace; letter-spacing:.08em; text-transform:uppercase;
     color:rgb(var(--c-text-secondary)); margin:0 0 10px;
   }
   .inputs-row{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px 14px}
   .nfield{display:flex; flex-direction:column; gap:5px}
-  .nfield label{font-size:11px; color:rgb(var(--c-text-secondary))}
+  .nfield label{font-size:13px; color:rgb(var(--c-text-secondary))}
   .nfield input[type=number], .nfield input[type=text]{
     background:rgb(var(--c-bg-primary)); border:1px solid rgb(var(--c-accent) / .3); border-radius:7px;
-    padding:7px 9px; color:rgb(var(--c-text-primary)); font:600 12.5px ui-monospace,monospace; width:100%;
+    padding:7px 9px; color:rgb(var(--c-text-primary)); font:600 12.5px/1.3 ui-monospace,monospace; width:100%;
   }
   .nfield input[type=number]:focus, .nfield input[type=text]:focus{outline:2px solid rgb(var(--c-accent) / .5); outline-offset:1px}
   /* collapsible assumption groups: native <details>, styled to match the existing .igroup h4 look */
   details.igroup summary{
-    font:700 10.5px/1 ui-monospace,monospace; letter-spacing:.08em; text-transform:uppercase;
+    font:700 13px/1.35 ui-monospace,monospace; letter-spacing:.08em; text-transform:uppercase;
     color:rgb(var(--c-text-secondary)); margin:0 0 10px; cursor:pointer; list-style:none;
   }
   details.igroup summary::-webkit-details-marker{display:none}
@@ -282,7 +289,7 @@
 
   footer{
     margin-top:44px; padding-top:18px; border-top:1px solid rgb(var(--c-accent) / .16);
-    font-size:12px; color:rgb(var(--c-text-secondary)); display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap;
+    font-size:13px; color:rgb(var(--c-text-secondary)); display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap;
   }
   footer a{text-decoration:none; border-bottom:1px dotted rgb(var(--c-accent) / .5)}
   .skel{color:rgb(var(--c-text-secondary)); padding:40px 0; text-align:center; font-size:13px}
@@ -330,8 +337,8 @@
     display:block; text-decoration:none; border-radius:6px; transition:color .15s, background .15s;
     color:rgb(var(--c-text-secondary));
   }
-  .sidebar-nav .chapter-link{padding:7px 10px; font:700 11.5px/1.4 ui-monospace,monospace; letter-spacing:.03em}
-  .sidebar-nav .sub-link{padding:5px 10px 5px 20px; font:500 11.5px/1.4 inherit}
+  .sidebar-nav .chapter-link{padding:7px 10px; font:700 13px/1.45 ui-monospace,monospace; letter-spacing:.03em}
+  .sidebar-nav .sub-link{padding:5px 10px 5px 20px; font:500 13px/1.45 inherit}
   .sidebar-nav a:hover{color:rgb(var(--c-text-primary))}
   .sidebar-nav a.active{color:rgb(var(--c-accent)); background:rgb(var(--c-accent) / .08)}
   /* JS only ever adds .reveal-init when IntersectionObserver exists AND reduced-motion is off
@@ -351,7 +358,7 @@
      typographic style -- the two existing "second lens"/"third lens" eyebrows already narrate the
      same 3-part structure in prose; a chapter label styled identically would read as a duplicated
      micro-label stacked on the same fact rather than a distinct piece of UI. */
-  .chapter{display:inline-flex; align-items:center; gap:8px; margin-bottom:10px; font:700 10.5px/1 ui-monospace,monospace; letter-spacing:.1em; text-transform:uppercase; color:rgb(var(--c-accent))}
+  .chapter{display:inline-flex; align-items:center; gap:8px; margin-bottom:10px; font:700 12.5px/1.3 ui-monospace,monospace; letter-spacing:.1em; text-transform:uppercase; color:rgb(var(--c-accent))}
   .chapter .num{display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; border-radius:50%; background:rgb(var(--c-accent) / .12); border:1px solid rgb(var(--c-accent) / .4)}
 
   /* hero background motif: a faint blueprint/graph-paper grid, contained to the hero only.
@@ -586,7 +593,7 @@
   <section class="card econ-grid" id="assumptionsSection">
     <div class="panel-head" style="margin-bottom:4px">
       <div style="display:flex; align-items:center; gap:7px">
-        <h3 style="font-size:12.5px; text-transform:uppercase; letter-spacing:.06em; color:rgb(var(--c-text-secondary))">Assumptions</h3>
+        <h3 style="font-size:13px; text-transform:uppercase; letter-spacing:.06em; color:rgb(var(--c-text-secondary))">Assumptions</h3>
         <button class="infobtn inline" type="button" data-info="assumptionsInfo" aria-label="What is this?" aria-expanded="false">i</button>
       </div>
       <button class="reset" id="econReset" type="button" style="margin-top:0; width:auto; padding:0 14px">Reset to defaults</button>
@@ -1717,11 +1724,11 @@
     // reference" point of grouping it at all.
     var html = GLOSSARY.map(function(g, gi){
       var terms = g.terms.map(function(t){
-        var anchorHtml = t.anchor ? ' <a href="#' + t.anchor + '" style="font-size:10.5px">→ see it above</a>' : '';
+        var anchorHtml = t.anchor ? ' <a href="#' + t.anchor + '" style="font-size:12.5px">→ see it above</a>' : '';
         return '<div style="margin-bottom:14px">' +
           '<div><b style="color:rgb(var(--c-text-primary))">' + t.term + '</b>' + anchorHtml + '</div>' +
-          '<p style="margin:4px 0 0; font-size:12.5px; line-height:1.6; color:rgb(var(--c-text-secondary))">' + t.def + '</p>' +
-          '<p style="margin:4px 0 0; font-size:11.5px; line-height:1.5; color:rgb(var(--c-accent))">Example: ' + t.example + '</p>' +
+          '<p style="margin:4px 0 0; font-size:13px; line-height:1.6; color:rgb(var(--c-text-secondary))">' + t.def + '</p>' +
+          '<p style="margin:4px 0 0; font-size:12.5px; line-height:1.5; color:rgb(var(--c-accent))">Example: ' + t.example + '</p>' +
           '</div>';
       }).join("");
       return '<details class="igroup"' + (gi === 0 ? " open" : "") + '><summary>' + g.group + '</summary><div style="margin-top:4px">' + terms + '</div></details>';
@@ -1930,7 +1937,13 @@
       });
     }
     function varianceSVG(items){
-      var rowH = 34, padT = 10, padB = 20, labelW = 60, valueW = 170;
+      // labelW widened from 60 to 80 alongside the .axislabel font-size bump (9.5->11px) --
+      // this label is the live, dbt-sourced tenant id (it.cid), not a fixed string, so there's
+      // no length guarantee; today's real ids (cust_a/b/c) fit comfortably even at 60, but
+      // widening removes the open-ended future risk at near-zero cost. w stays fixed, so this
+      // only reallocates space within the existing viewBox -- it doesn't change the SVG's
+      // render scale the way changing w itself would.
+      var rowH = 34, padT = 10, padB = 20, labelW = 80, valueW = 170;
       var w = 640, h = padT + items.length * rowH + padB;
       var barZoneW = w - labelW - valueW;
       var maxAbs = Math.max.apply(null, items.map(function(i){ return Math.abs(i.variancePct); }).concat([0.01]));
@@ -2107,7 +2120,12 @@
     var slotW = w / 4, barW = slotW * 0.5;
     var bars = [
       { label: "Revenue", val: revenue, top: revenue, bottom: 0, color: "var(--c-accent)" },
-      { label: "Operating cost", val: -opex, top: revenue, bottom: revenue - opex, color: "var(--c-text-secondary)" },
+      // "OpEx" not "Operating cost" -- at the bumped .waterfall-text size (9->10px) the longer
+      // label measured a 1.7px gap to "Depreciation" next to it, uncomfortably close to
+      // overlapping under normal cross-browser font-rendering variance. "OpEx" is already an
+      // established, glossary-defined term on this page ("CapEx vs. OpEx"), not a new
+      // unexplained abbreviation, and its shorter width restores real margin.
+      { label: "OpEx", val: -opex, top: revenue, bottom: revenue - opex, color: "var(--c-text-secondary)" },
       { label: "Depreciation", val: -depreciation, top: revenue - opex, bottom: ebit, color: "var(--c-danger)" },
       { label: "EBIT", val: ebit, top: Math.max(ebit, 0), bottom: Math.min(ebit, 0), color: ebit >= 0 ? "var(--c-success)" : "var(--c-danger)" }
     ];
