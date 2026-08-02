@@ -1,0 +1,9 @@
+# Copy to ~/.dbt/profiles.yml, or run with DBT_PROFILES_DIR pointed at this folder.
+# DuckDB = local file database, no cloud warehouse needed.
+leo_program_finance:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: leo_program_finance.duckdb
+      threads: 4

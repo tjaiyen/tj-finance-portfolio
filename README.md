@@ -2,7 +2,7 @@
 
 [![dbt CI](https://github.com/tjaiyen/tj-finance-portfolio/actions/workflows/dbt-ci.yml/badge.svg)](https://github.com/tjaiyen/tj-finance-portfolio/actions/workflows/dbt-ci.yml)
 
-Seven small, runnable projects that show how I work: a cost accountant who builds the data, orchestration,
+Eight small, runnable projects that show how I work: a cost accountant who builds the data, orchestration,
 and AI layers behind finance reporting, with correctness and governance built in — not bolted on.
 
 **Business context:** every month-end close asks the same question — *which accounts moved, are the moves
@@ -68,6 +68,22 @@ logic, and **singular tests** (allocation ratios must sum to 1; no negative cost
 surfaces a tenant running at a negative margin — the *which customer is unprofitable, and why* question, answered
 by tested models. Runs locally on **DuckDB**: `pip install dbt-duckdb` then `dbt build` → 33 tests pass.
 
+## [`dbt_leo_program_finance/`](./dbt_leo_program_finance) — cross-functional capital-program visibility, applied to a public case
+The same cost-accounting discipline pointed at a large hardware/capital program's full operational picture —
+milestone-gated spend tracking, cost-escalation analysis, launch-vehicle reliability, supply-chain
+concentration risk, safety/coordination incidents, a second regulatory front, and a make-vs-buy/TCO framework
+— case-study framing: Amazon's Amazon Leo satellite broadband program. **Not affiliated with, endorsed by, or
+built using any internal Amazon data** — every figure describing the real program is sourced to public
+reporting (Amazon's own 10-K/earnings disclosures and FCC filings, third-party market analysis, cited inline
+per row with an evidence-tier badge); every figure describing an internal decision (make-vs-buy, variance
+drivers, supplier counts) is fully synthetic and flagged `is_illustrative`. Twelve **dbt** marts, including a
+milestone-risk projection shown alongside Amazon's *own* stated projection for the same date, the actual
+disclosed waiver mechanics (priority-status loss, not license revocation), and a real, dated safety incident
+(the Feb 2026 SpaceX collision-risk dispute). 111 tests pass; a singular test enforces that every illustrative
+mart's rows are explicitly flagged, making the grounded-vs-illustrative separation a tested property of the
+project, not just a README claim.
+🔗 Live: **https://tjaiyen.github.io/tj-finance-portfolio/leo-program-finance.html**
+
 ## [`agentic_ops_skeleton/`](./agentic_ops_skeleton) — guardrailed multi-agent orchestration
 The verify-before-trust discipline, applied to **agent autonomy**. A sanitized, stdlib-only skeleton of an
 autonomous ops pipeline — `ingest → score → draft → human-review queue`. Scoring is **deterministic** (the
@@ -91,16 +107,22 @@ by rule, never by a live model. Materiality-band and EVM-variance sliders re-fla
 palette, guided tour, and light/dark theme round it out. Synthetic, illustrative food-manufacturing data.
 🔗 Live: **https://tjaiyen.github.io/tj-finance-portfolio/operations-bridge.html**
 
-## Why these seven together
-Seven pieces, same discipline: two dbt projects for the modeled numbers, Airflow/Cosmos for reliable
-scheduling and recovery, a Claude agent for the narrative layer, an agentic-ops skeleton for guardrailed
-multi-agent autonomy, site/ to tie it together for a hiring reviewer, and Operations Bridge to show the same
-rigor at dashboard scale — deterministic thresholds and rule-based narration, never a generated claim about
-a number. The finance variance track and the GPU cost track use the same method — tested models,
-deterministic math, orchestrated runs. The AI layers touch only judgment and language: the variance agent's
-guardrail rejects any output that references an account not in the source, and the agentic skeleton treats
-all fetched content as data, never instructions, with a human gate before any irreversible action.
+## Why these eight together
+Eight pieces, same discipline: three dbt projects for the modeled numbers (finance variance, GPU cost
+attribution, and Leo program finance), Airflow/Cosmos for reliable scheduling and recovery, a Claude agent
+for the narrative layer, an agentic-ops skeleton for guardrailed multi-agent autonomy, site/ to tie it
+together for a hiring reviewer, and Operations Bridge to show the same rigor at dashboard scale —
+deterministic thresholds and rule-based narration, never a generated claim about a number. All three dbt
+tracks use the same method — tested models, deterministic math, orchestrated runs — with Leo program finance
+adding a third discipline: sourcing every real-world figure to a citation, and testing that illustrative data
+is never presented as real. The AI layers touch only judgment and language: the variance agent's guardrail
+rejects any output that references an account not in the source, and the agentic skeleton treats all fetched
+content as data, never instructions, with a human gate before any irreversible action.
 
-*Data in all projects is synthetic. No employer or confidential information is included.*
+*Data in the finance-variance, GPU-cost, orchestration, agent, and agentic-ops projects is synthetic — no
+employer or confidential information is included anywhere. The Leo program finance project is the one
+exception with real data: figures describing the public program are sourced to public reporting (cited
+inline); figures describing an internal decision are synthetic and flagged as such — see that project's
+README for the full sourcing discipline.*
 
 — Theerayut (TJ) Jaiyen · linkedin.com/in/jaiyentheerayut

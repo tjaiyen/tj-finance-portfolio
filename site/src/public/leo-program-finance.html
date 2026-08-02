@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Leo Program Finance — dbt Leo Program Finance</title>
+<meta name="description" content="Illustrative capital-program finance dashboard applying milestone governance, cost-escalation, and TCO methodology to Amazon Leo's public reporting. Not affiliated with Amazon." />
+<style>
+  /* ---- tokens: mirrors site/src/css/styles.css + gpu-cost-command-center.html exactly
+     (dark default, light via prefers-color-scheme, manual override via [data-theme]) so
+     this page reads as part of the same portfolio. Adds a --c-warning amber token beyond
+     the gpu page's success/danger pair, because this page has a genuine third state
+     (source_type: official / third-party-estimate / illustrative) that success/danger
+     alone can't distinguish -- amber is already validated elsewhere in this design
+     system (site/src/css/styles.css), not a new invention. */
+  :root{
+    --c-bg-primary:10 15 29; --c-bg-card:30 41 59; --c-bg-card2:27 35 52;
+    --c-accent:6 182 212; --c-accent2:34 211 238;
+    --c-text-primary:241 245 249; --c-text-secondary:148 163 184; --c-text-code:34 211 238;
+    --c-success:16 185 129; --c-warning:245 158 11; --c-danger:239 68 68; --c-line:6 182 212;
+  }
+  @media (prefers-color-scheme: light){
+    :root{
+      --c-bg-primary:248 250 252; --c-bg-card:255 255 255; --c-bg-card2:241 245 249;
+      --c-accent:14 116 144; --c-accent2:8 145 178;
+      --c-text-primary:15 23 42; --c-text-secondary:71 85 105; --c-text-code:8 145 178;
+      --c-success:5 150 105; --c-warning:180 83 9; --c-danger:220 38 38; --c-line:14 116 144;
+    }
+  }
+  :root[data-theme="dark"]{
+    --c-bg-primary:10 15 29; --c-bg-card:30 41 59; --c-bg-card2:27 35 52;
+    --c-accent:6 182 212; --c-accent2:34 211 238;
+    --c-text-primary:241 245 249; --c-text-secondary:148 163 184; --c-text-code:34 211 238;
+    --c-success:16 185 129; --c-warning:245 158 11; --c-danger:239 68 68; --c-line:6 182 212;
+  }
+  :root[data-theme="light"]{
+    --c-bg-primary:248 250 252; --c-bg-card:255 255 255; --c-bg-card2:241 245 249;
+    --c-accent:14 116 144; --c-accent2:8 145 178;
+    --c-text-primary:15 23 42; --c-text-secondary:71 85 105; --c-text-code:8 145 178;
+    --c-success:5 150 105; --c-warning:180 83 9; --c-danger:220 38 38; --c-line:14 116 144;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; min-height:100vh;
+    background:rgb(var(--c-bg-primary)); color:rgb(var(--c-text-primary));
+    font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  code,.mono,.tabular{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+  .tabular{font-variant-numeric:tabular-nums}
+  a{color:rgb(var(--c-accent))}
+  .wrap{max-width:1100px; margin:0 auto; padding:0 20px 64px}
+
+  .bar{
+    position:sticky; top:0; z-index:5; backdrop-filter:blur(8px);
+    background:rgb(var(--c-bg-primary) / .86); border-bottom:1px solid rgb(var(--c-accent) / .18);
+  }
+  .bar-in{max-width:1100px; margin:0 auto; padding:14px 20px; display:flex; align-items:center; gap:14px; flex-wrap:wrap}
+  .brand{display:flex; align-items:center; gap:10px; font-weight:700; font-size:15px; letter-spacing:-.01em}
+  .brand .dot{width:9px; height:9px; border-radius:3px; background:conic-gradient(from 210deg, rgb(var(--c-accent)), rgb(var(--c-success)), rgb(var(--c-accent)))}
+  .brand small{display:block; font-weight:600; font-size:12.5px; letter-spacing:.14em; color:rgb(var(--c-text-secondary)); text-transform:uppercase; margin-top:1px}
+  .badge{
+    font:600 12.5px/1.2 ui-monospace,Menlo,monospace; letter-spacing:.02em;
+    border:1px solid rgb(var(--c-accent) / .35); background:rgb(var(--c-accent) / .09); color:rgb(var(--c-text-code));
+    border-radius:99px; padding:6px 11px;
+  }
+  .bar .right{margin-left:auto; display:flex; align-items:center; gap:8px}
+  .icobtn{
+    display:inline-flex; align-items:center; gap:6px; height:32px; padding:0 12px; border-radius:8px;
+    border:1px solid rgb(var(--c-accent) / .3); background:transparent; color:rgb(var(--c-text-secondary));
+    font:600 13px/1.3 inherit; cursor:pointer; transition:all .15s;
+  }
+  .icobtn:hover{color:rgb(var(--c-text-primary)); border-color:rgb(var(--c-accent) / .55)}
+
+  .disclaimer{
+    background:rgb(var(--c-warning) / .1); border:1px solid rgb(var(--c-warning) / .4);
+    border-radius:10px; padding:14px 16px; margin:20px 0; font-size:13px; line-height:1.6;
+    color:rgb(var(--c-text-primary));
+  }
+  .disclaimer b{color:rgb(var(--c-warning))}
+
+  h1{font-size:26px; margin:28px 0 6px; letter-spacing:-.01em}
+  .lede{color:rgb(var(--c-text-secondary)); font-size:14.5px; max-width:70ch; margin:0 0 8px}
+  h2{font-size:16px; margin:0 0 4px; letter-spacing:-.01em}
+  .section{margin-top:40px}
+  .section-sub{color:rgb(var(--c-text-secondary)); font-size:13px; margin:0 0 14px; max-width:76ch}
+
+  .card{
+    background:rgb(var(--c-bg-card)); border:1px solid rgb(var(--c-accent) / .16);
+    border-radius:12px; padding:18px;
+  }
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+  .grid3{display:grid; grid-template-columns:repeat(3,1fr); gap:14px}
+  @media (max-width:720px){ .grid2,.grid3{grid-template-columns:1fr} }
+
+  .status{display:inline-flex; align-items:center; gap:6px; font:700 12px/1 ui-monospace,Menlo,monospace; padding:5px 10px; border-radius:99px}
+  .status.ok{background:rgb(var(--c-success) / .12); color:rgb(var(--c-success)); border:1px solid rgb(var(--c-success) / .35)}
+  .status.risk{background:rgb(var(--c-danger) / .12); color:rgb(var(--c-danger)); border:1px solid rgb(var(--c-danger) / .35)}
+  .status.warn{background:rgb(var(--c-warning) / .12); color:rgb(var(--c-warning)); border:1px solid rgb(var(--c-warning) / .35)}
+
+  .src-tag{display:inline-flex; align-items:center; gap:6px; font:600 11px/1 ui-monospace,Menlo,monospace; padding:4px 9px; border-radius:99px; white-space:nowrap}
+  .src-tag.official{background:rgb(var(--c-success) / .12); color:rgb(var(--c-success)); border:1px solid rgb(var(--c-success) / .35)}
+  .src-tag.company{background:rgb(var(--c-accent) / .12); color:rgb(var(--c-accent)); border:1px solid rgb(var(--c-accent) / .35)}
+  .src-tag.third_party{background:rgb(var(--c-warning) / .12); color:rgb(var(--c-warning)); border:1px solid rgb(var(--c-warning) / .35)}
+  .src-tag.illustrative{background:rgb(var(--c-text-secondary) / .14); color:rgb(var(--c-text-secondary)); border:1px solid rgb(var(--c-text-secondary) / .35)}
+
+  .kpi .label{font:600 11.5px/1.2 ui-monospace,Menlo,monospace; letter-spacing:.05em; text-transform:uppercase; color:rgb(var(--c-text-secondary))}
+  .kpi .val{font:800 26px/1.15 -apple-system,sans-serif; margin:6px 0 2px; letter-spacing:-.02em}
+  .kpi .note{font-size:12.5px; color:rgb(var(--c-text-secondary))}
+
+  table{width:100%; border-collapse:collapse; font-size:13px}
+  th,td{text-align:left; padding:8px 10px; border-bottom:1px solid rgb(var(--c-accent) / .14)}
+  th{color:rgb(var(--c-text-secondary)); font:600 11px/1.2 ui-monospace,Menlo,monospace; text-transform:uppercase; letter-spacing:.04em}
+  td.num{text-align:right; font-variant-numeric:tabular-nums}
+
+  .bar-row{display:flex; align-items:center; gap:10px; margin:10px 0}
+  .bar-row .track{flex:1; height:22px; background:rgb(var(--c-text-secondary) / .12); border-radius:6px; overflow:hidden; position:relative}
+  .bar-row .fill{height:100%; border-radius:6px 0 0 6px}
+  .bar-row .fill.accent{background:rgb(var(--c-accent))}
+  .bar-row .fill.warning{background:rgb(var(--c-warning))}
+  .bar-row .lbl{width:180px; font-size:12.5px; color:rgb(var(--c-text-secondary))}
+  .bar-row .amt{width:64px; text-align:right; font:700 13px/1 ui-monospace,Menlo,monospace}
+
+  .cite{font-size:12px; color:rgb(var(--c-text-secondary))}
+  .cite a{color:rgb(var(--c-text-secondary)); text-decoration:underline}
+
+  footer{margin-top:56px; padding-top:24px; border-top:1px solid rgb(var(--c-accent) / .16)}
+  .legend{display:flex; gap:16px; flex-wrap:wrap; font-size:12.5px; color:rgb(var(--c-text-secondary)); margin-bottom:16px}
+  .legend span{display:inline-flex; align-items:center; gap:6px}
+
+  #loadErr{display:none; margin:20px 0; padding:14px; border:1px solid rgb(var(--c-danger) / .4); border-radius:10px; color:rgb(var(--c-danger)); font-size:13px}
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <div class="bar-in">
+    <div class="brand"><span class="dot"></span><div>Leo Program Finance<small>dbt + DuckDB · illustrative</small></div></div>
+    <span class="badge">111 tests passing</span>
+    <div class="right">
+      <button class="icobtn" id="themeBtn" aria-pressed="false" title="Toggle theme">🌓 Theme</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <h1>Milestone-Gated Capital Governance — Applied to a Public Case</h1>
+  <p class="lede">A small, runnable dbt project modeling the finance disciplines a Finance Manager applies to a
+  large hardware/capital program — milestone risk, cost escalation, capacity-vs-realized variance, and a
+  make-vs-buy/TCO framework — case-study framing: Amazon's Amazon Leo satellite broadband program.</p>
+
+  <div class="disclaimer">
+    <b>⚠ Not affiliated with, endorsed by, or built using any internal Amazon data.</b> Every figure describing
+    the real program below is sourced to public reporting, shown with its citation and an evidence-tier badge
+    (see legend). Every figure describing an internal Amazon decision (make-vs-buy, variance drivers) is fully
+    synthetic and marked <span class="src-tag illustrative">illustrative</span>. This is an independent
+    analysis applying my own cost-accounting/FP&amp;A methodology to a public case — not a claim of insider knowledge.
+  </div>
+
+  <div id="loadErr"></div>
+
+  <!-- 1. Milestone risk -->
+  <div class="section">
+    <h2>Regulatory Milestone Risk</h2>
+    <p class="section-sub">FCC license conditions require a satellite count by each deadline. Projected using the
+    <em>best realized deployment rate on record</em> (not theoretical factory capacity) — a modeled projection, not an Amazon forecast.</p>
+    <div class="grid2" id="milestoneCards"></div>
+  </div>
+
+  <!-- 2. Capacity gap -->
+  <div class="section">
+    <h2>Deployment Capacity Gap</h2>
+    <p class="section-sub">Kirkland factory's theoretical capacity vs. the highest deployment rate actually achieved — even in the best month on record.</p>
+    <div class="card" id="capacityCard"></div>
+  </div>
+
+  <!-- 3. Cost escalation -->
+  <div class="section">
+    <h2>Total Program Cost Escalation</h2>
+    <p class="section-sub">Two distinct metric types, never blended: the cumulative total-program estimate over time, and the latest officially-disclosed year-over-year cost headwind.</p>
+    <div class="card" id="costCard"></div>
+  </div>
+
+  <!-- 4. Implied scale cost -->
+  <div class="section">
+    <h2>Implied Full-Scale Hardware Cost <span class="src-tag illustrative" style="margin-left:6px">derived</span></h2>
+    <p class="section-sub">A transparent calculation, not a published Amazon figure — formula shown alongside the output.</p>
+    <div class="card" id="scaleCard"></div>
+  </div>
+
+  <!-- 5. Make vs buy -->
+  <div class="section">
+    <h2>Make-vs-Buy TCO Framework <span class="src-tag illustrative" style="margin-left:6px">illustrative</span></h2>
+    <p class="section-sub">Fully synthetic, generic-category scenario demonstrating the framework named in the JD — not a real Amazon supplier decision.</p>
+    <div class="card"><table id="makevsbuyTable"></table></div>
+  </div>
+
+  <!-- 6. Variance demo -->
+  <div class="section">
+    <h2>Variance Decomposition Methodology <span class="src-tag illustrative" style="margin-left:6px">illustrative</span></h2>
+    <p class="section-sub">Price / volume / scope / timing drivers reconcile exactly to the total variance — a governance test, not just a display claim.</p>
+    <div class="card"><table id="varianceTable"></table></div>
+  </div>
+
+  <!-- 7. Launch vehicle reliability -->
+  <div class="section">
+    <h2>Launch Vehicle Fleet Reliability</h2>
+    <p class="section-sub">Amazon's own words in its FCC extension filing: "producing satellites considerably faster than others can launch them." Event counts by rocket family.</p>
+    <div class="card"><table id="launchVehicleTable"></table></div>
+  </div>
+
+  <!-- 8. Unlaunched inventory -->
+  <div class="section">
+    <h2>Built-but-Unlaunched Inventory <span class="src-tag illustrative" style="margin-left:6px">modeled range</span></h2>
+    <p class="section-sub">Two scenarios from the two production-adjacent rates already disclosed: an upper bound (production never throttled down) and a lower bound (production throttled to track the realized deployment pace) — a range, not a false-precision single number.</p>
+    <div class="card" id="inventoryCard"></div>
+  </div>
+
+  <!-- 9. Supplier concentration -->
+  <div class="section">
+    <h2>Critical-Component Supplier Concentration</h2>
+    <p class="section-sub">OISL terminals and rad-hardened semiconductors are real, publicly-identified bottleneck components; supplier counts and risk tiers are illustrative estimates.</p>
+    <div class="card"><table id="supplierTable"></table></div>
+  </div>
+
+  <!-- 10. Safety / coordination incidents -->
+  <div class="section">
+    <h2>Safety &amp; Coordination Incidents</h2>
+    <p class="section-sub">Real, dated, sourced incident log — not a claimed pattern from a single event.</p>
+    <div class="card" id="safetyCard"></div>
+  </div>
+
+  <!-- 11. D2D regulatory pipeline -->
+  <div class="section">
+    <h2>Direct-to-Device Regulatory Pipeline</h2>
+    <p class="section-sub">A second, larger regulatory front beyond the core Leo constellation.</p>
+    <div class="card" id="d2dCard"></div>
+  </div>
+
+  <!-- 12. Workforce scaling signal -->
+  <div class="section">
+    <h2>Workforce Scaling Signal</h2>
+    <p class="section-sub">One snapshot, not a trend — reported honestly as a scaling signal since no layoff evidence was found in public reporting.</p>
+    <div class="card" id="workforceCard"></div>
+  </div>
+
+  <footer>
+    <div class="legend">
+      <span><span class="src-tag official">official</span> Amazon's own disclosure (10-K, earnings call)</span>
+      <span><span class="src-tag company">company-stated</span> Amazon-stated figure, cited retrospectively</span>
+      <span><span class="src-tag third_party">third-party</span> independent market analysis</span>
+      <span><span class="src-tag illustrative">illustrative</span> fully synthetic, not real data</span>
+    </div>
+    <p class="cite">Source data, dbt models, and tests: <a href="https://github.com/tjaiyen/tj-finance-portfolio/tree/main/dbt_leo_program_finance">dbt_leo_program_finance/</a> in this repo. Built with Claude Code.</p>
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var root = document.documentElement;
+  var themeBtn = document.getElementById("themeBtn");
+  var mq = window.matchMedia("(prefers-color-scheme: dark)");
+  function applyThemeLabel(){ themeBtn.setAttribute("aria-pressed", root.dataset.theme ? "true" : "false"); }
+  themeBtn.addEventListener("click", function(){
+    var current = root.dataset.theme || (mq.matches ? "dark" : "light");
+    root.dataset.theme = current === "dark" ? "light" : "dark";
+    applyThemeLabel();
+  });
+  applyThemeLabel();
+
+  function fmtUSD(n){
+    var abs = Math.abs(n);
+    var s;
+    if (abs >= 1e9) s = "$" + (n/1e9).toFixed(2) + "B";
+    else if (abs >= 1e6) s = "$" + (n/1e6).toFixed(1) + "M";
+    else s = "$" + n.toLocaleString();
+    return s;
+  }
+  function srcClass(t){
+    return {official_disclosure:"official", company_stated:"company", third_party_estimate:"third_party"}[t] || "illustrative";
+  }
+  function srcLabel(t){
+    return {official_disclosure:"official", company_stated:"company-stated", third_party_estimate:"third-party"}[t] || "illustrative";
+  }
+  function esc(s){ var d=document.createElement("div"); d.textContent=s; return d.innerHTML; }
+  // esc() escapes &/</> via innerHTML serialization but NOT quotes -- safe for text nodes,
+  // NOT safe for attribute values (a `"` in the source could close the attribute early).
+  // All source_url values here come from this project's own seed data, so there's no live
+  // injection path today, but this is the correct escape for the href context regardless.
+  function escAttr(s){
+    return String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  }
+
+  fetch("./leo_finance_dashboard_data.json")
+    .then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
+    .then(render)
+    .catch(function(err){
+      document.getElementById("loadErr").style.display = "block";
+      document.getElementById("loadErr").innerHTML =
+        'Could not load leo_finance_dashboard_data.json (' + err.message + '). Run <code>python3 scripts/export_dashboard_data.py</code> in dbt_leo_program_finance/ after <code>dbt build</code>.';
+    });
+
+  function render(data){
+    // 1. Milestone risk cards
+    var mHtml = "";
+    data.milestone_risk.forEach(function(m){
+      var statusClass = m.status === "on_track" ? "ok" : "risk";
+      var statusLabel = m.status === "on_track" ? "✓ On Track" : "⚠ At Risk";
+      var waiverHtml = m.waiver_requested
+        ? '<div class="kpi note" style="margin-top:6px">Waiver requested ' + esc(m.waiver_requested_date) + ' (' + m.waiver_requested_extension_months + '-month extension asked). Disclosed consequence: ' + esc(m.regulatory_consequence) + '</div>'
+        : '<div class="kpi note" style="margin-top:6px">' + esc(m.regulatory_consequence) + '</div>';
+      var companyHtml = m.company_projected_count != null
+        ? '<div class="kpi note">Amazon\'s own projection for this date: <b>' + Number(m.company_projected_count).toLocaleString() + '</b> (' + (m.company_projected_shortfall > 0 ? 'shortfall of ' + Number(m.company_projected_shortfall).toLocaleString() : 'surplus') + ') — a company estimate, separate from our modeled projection below.</div>'
+        : '';
+      mHtml += '<div class="card">' +
+        '<div style="display:flex;justify-content:space-between;align-items:start;gap:10px">' +
+        '<div><div class="kpi label">Milestone ' + esc(m.milestone_date) + '</div>' +
+        '<div class="kpi val">' + Number(m.satellites_required).toLocaleString() + ' sats</div></div>' +
+        '<span class="status ' + statusClass + '">' + statusLabel + '</span></div>' +
+        '<div class="kpi note" style="margin-top:8px">' + esc(m.regulatory_basis) + '</div>' +
+        waiverHtml +
+        companyHtml +
+        '<div class="kpi note">Checkpoint ' + esc(m.checkpoint_date) + ': ' + Number(m.checkpoint_count).toLocaleString() + ' deployed. ' +
+        'Our modeled projection (best realized rate): <b>' + Number(m.modeled_projected_count).toLocaleString() + '</b> ' +
+        '(' + (m.modeled_projected_shortfall > 0 ? 'shortfall of ' + Number(m.modeled_projected_shortfall).toLocaleString() : 'surplus of ' + Number(-m.modeled_projected_shortfall).toLocaleString()) + ').</div>' +
+        '</div>';
+    });
+    document.getElementById("milestoneCards").innerHTML = mHtml;
+
+    // 2. Capacity gap
+    var cg = data.capacity_gap;
+    var capPct = 100, realPct = cg.utilization_pct * 100;
+    document.getElementById("capacityCard").innerHTML =
+      '<div class="bar-row"><div class="lbl">Factory capacity ceiling</div><div class="track"><div class="fill accent" style="width:' + capPct + '%"></div></div><div class="amt">' + cg.capacity_ceiling_per_day + '/day</div></div>' +
+      '<div class="bar-row"><div class="lbl">Best realized rate (Apr 2026)</div><div class="track"><div class="fill warning" style="width:' + realPct + '%"></div></div><div class="amt">' + cg.realized_peak_per_day + '/day</div></div>' +
+      '<div class="kpi note" style="margin-top:6px">Utilization even at peak: <b>' + (cg.utilization_pct*100).toFixed(1) + '%</b> — root cause: <code>' + cg.constraint_root_cause + '</code> (not manufacturing capacity).</div>' +
+      '<div class="cite" style="margin-top:8px">' + esc(cg.realized_peak_note) + ' — <a href="' + escAttr(cg.source_url) + '" target="_blank" rel="noopener">' + esc(cg.source) + '</a></div>';
+
+    // 3. Cost escalation
+    var cHtml = '<table><thead><tr><th>As of</th><th>Metric</th><th>Estimate</th><th>Δ vs prior</th><th>Source</th></tr></thead><tbody>';
+    data.cost_escalation.forEach(function(r){
+      var est = r.low_estimate_usd === r.high_estimate_usd ? fmtUSD(r.low_estimate_usd) : fmtUSD(r.low_estimate_usd) + '–' + fmtUSD(r.high_estimate_usd);
+      var delta = r.pct_change_from_prior != null ? (r.pct_change_from_prior*100).toFixed(0) + '%' : (r.metric_type === 'yoy_incremental' ? 'YoY, not cumulative' : '—');
+      cHtml += '<tr><td>' + esc(r.as_of_date) + '</td><td>' + esc(r.metric_type) + '</td><td class="num tabular">' + est + '</td>' +
+        '<td class="num tabular">' + delta + '</td>' +
+        '<td><span class="src-tag ' + srcClass(r.source_type) + '">' + srcLabel(r.source_type) + '</span> <a href="' + escAttr(r.source_url) + '" target="_blank" rel="noopener" class="cite">' + esc(r.source) + '</a></td></tr>';
+    });
+    cHtml += '</tbody></table>';
+    document.getElementById("costCard").innerHTML = cHtml;
+
+    // 4. Implied scale cost
+    var sc = data.implied_scale_cost;
+    document.getElementById("scaleCard").innerHTML =
+      '<div class="kpi label">Unit cost × constellation target</div>' +
+      '<div class="kpi val">' + fmtUSD(sc.implied_scale_cost_low_usd) + '–' + fmtUSD(sc.implied_scale_cost_high_usd) + '</div>' +
+      '<div class="kpi note">' + fmtUSD(sc.unit_cost_low_usd) + '–' + fmtUSD(sc.unit_cost_high_usd) + '/satellite × ' + Number(sc.constellation_target).toLocaleString() + ' satellites</div>' +
+      '<div class="kpi note" style="margin-top:6px">' + esc(sc.calculation_note) + '</div>' +
+      '<div class="cite" style="margin-top:8px"><a href="' + escAttr(sc.source_url) + '" target="_blank" rel="noopener">' + esc(sc.source) + '</a></div>';
+
+    // 5. Make vs buy
+    var mvHtml = '<thead><tr><th>Category</th><th>Option</th><th>Unit cost</th><th>Annual volume</th><th>Annual TCO</th><th>Δ vs cheaper option</th></tr></thead><tbody>';
+    data.makevsbuy.forEach(function(r){
+      mvHtml += '<tr><td>' + esc(r.category_label) + '</td><td>' + esc(r.option_label) + '</td>' +
+        '<td class="num tabular">' + fmtUSD(r.unit_cost_usd) + '</td><td class="num tabular">' + Number(r.annual_volume).toLocaleString() + '</td>' +
+        '<td class="num tabular">' + fmtUSD(r.annual_tco_usd) + '</td>' +
+        '<td class="num tabular">' + (r.tco_delta_vs_cheaper_option_usd === 0 ? '— (cheaper option)' : '+' + fmtUSD(r.tco_delta_vs_cheaper_option_usd)) + '</td></tr>';
+    });
+    mvHtml += '</tbody>';
+    document.getElementById("makevsbuyTable").innerHTML = mvHtml;
+
+    // 6. Variance demo
+    var vd = data.variance_demo[0];
+    var vHtml = '<thead><tr><th>Cost center</th><th>Period</th><th>Budget</th><th>Actual</th><th>Total variance</th><th>Price</th><th>Volume</th><th>Scope</th><th>Timing</th><th>Sum of drivers</th></tr></thead><tbody>' +
+      '<tr><td>' + esc(vd.cost_center) + '</td><td>' + esc(vd.period) + '</td>' +
+      '<td class="num tabular">' + fmtUSD(vd.budget_amount) + '</td><td class="num tabular">' + fmtUSD(vd.actual_amount) + '</td>' +
+      '<td class="num tabular">' + fmtUSD(vd.total_variance) + '</td>' +
+      '<td class="num tabular">' + fmtUSD(vd.price_driver) + '</td><td class="num tabular">' + fmtUSD(vd.volume_driver) + '</td>' +
+      '<td class="num tabular">' + fmtUSD(vd.scope_driver) + '</td><td class="num tabular">' + fmtUSD(vd.timing_driver) + '</td>' +
+      '<td class="num tabular"><b>' + fmtUSD(vd.sum_of_drivers) + '</b> ' + (vd.total_variance === vd.sum_of_drivers ? '✓' : '✗ MISMATCH') + '</td></tr></tbody>';
+    document.getElementById("varianceTable").innerHTML = vHtml;
+
+    // 7. Launch vehicle reliability
+    var lvHtml = '<thead><tr><th>Vehicle</th><th>Total Events</th><th>Failures</th><th>Delays</th><th>Successes</th><th>Success w/ Incident</th></tr></thead><tbody>';
+    data.launch_vehicle_reliability.forEach(function(v){
+      lvHtml += '<tr><td>' + esc(v.launch_vehicle) + '</td><td class="num tabular">' + v.total_events + '</td>' +
+        '<td class="num tabular">' + (v.failure_events > 0 ? '<span class="status risk">' + v.failure_events + '</span>' : v.failure_events) + '</td>' +
+        '<td class="num tabular">' + (v.delay_events > 0 ? '<span class="status warn">' + v.delay_events + '</span>' : v.delay_events) + '</td>' +
+        '<td class="num tabular">' + v.success_events + '</td>' +
+        '<td class="num tabular">' + (v.success_with_incident_events > 0 ? '<span class="status warn">' + v.success_with_incident_events + '</span>' : v.success_with_incident_events) + '</td></tr>';
+    });
+    lvHtml += '</tbody>';
+    document.getElementById("launchVehicleTable").innerHTML = lvHtml;
+
+    // 8. Unlaunched inventory
+    var ui = data.unlaunched_inventory;
+    document.getElementById("inventoryCard").innerHTML =
+      '<div class="kpi label">Modeled unlaunched inventory (range)</div>' +
+      '<div class="kpi val">' + Number(ui.modeled_unlaunched_inventory_lower).toLocaleString() + '–' + Number(ui.modeled_unlaunched_inventory_upper).toLocaleString() + ' satellites</div>' +
+      '<div class="kpi note"><b>Upper</b> (never throttled down): ' + Number(ui.modeled_cumulative_produced_upper).toLocaleString() + ' produced at ' + ui.assumed_sustained_rate + '/day. ' +
+      '<b>Lower</b> (throttled to deployment pace): ' + Number(ui.modeled_cumulative_produced_lower).toLocaleString() + ' produced at ' + ui.assumed_throttled_rate + '/day. ' +
+      'Both over ' + ui.elapsed_days + ' elapsed days since ' + esc(ui.production_start_date) + ', vs. ' + Number(ui.deployed_count).toLocaleString() + ' actually deployed as of ' + esc(ui.latest_observed_date) + '.</div>' +
+      '<div class="kpi note" style="margin-top:6px">' + esc(ui.calculation_note) + '</div>';
+
+    // 9. Supplier concentration
+    var spHtml = '<thead><tr><th>Component</th><th>Real Bottleneck?</th><th>Illustrative Supplier Count</th><th>Risk Tier</th></tr></thead><tbody>';
+    data.supplier_concentration.forEach(function(s){
+      var tierClass = s.risk_tier === 'high_concentration_risk' ? 'risk' : (s.risk_tier === 'medium_concentration_risk' ? 'warn' : 'ok');
+      var tierLabel = s.risk_tier.replace(/_/g,' ');
+      spHtml += '<tr><td>' + esc(s.component_name) + '</td><td>' + (s.is_real_bottleneck ? '✓ real' : '— comparison baseline') + '</td>' +
+        '<td class="num tabular">' + s.illustrative_supplier_count + '</td>' +
+        '<td><span class="status ' + tierClass + '">' + esc(tierLabel) + '</span></td></tr>';
+    });
+    spHtml += '</tbody>';
+    document.getElementById("supplierTable").innerHTML = spHtml;
+
+    // 10. Safety / coordination incidents
+    var siHtml = "";
+    data.safety_incidents.forEach(function(inc){
+      siHtml += '<div style="margin-bottom:10px"><div class="kpi note"><b>' + esc(inc.incident_date) + '</b> — disputed by ' + esc(inc.disputing_party) + '</div>' +
+        '<div class="kpi note">' + esc(inc.description) + '</div>' +
+        '<div class="cite" style="margin-top:4px"><a href="' + escAttr(inc.source_url) + '" target="_blank" rel="noopener">' + esc(inc.source) + '</a></div></div>';
+    });
+    document.getElementById("safetyCard").innerHTML = siHtml;
+
+    // 11. D2D regulatory pipeline
+    var d2d = data.d2d_pipeline;
+    document.getElementById("d2dCard").innerHTML =
+      '<div class="kpi label">' + esc(d2d.milestone_name) + '</div>' +
+      '<div class="kpi val">' + Number(d2d.satellites_requested).toLocaleString() + ' satellites</div>' +
+      '<div class="kpi note">Filed ' + esc(d2d.filing_date) + ' under ' + esc(d2d.review_framework) + '. Expected decision window: ' + esc(String(d2d.earliest_expected_decision).slice(0,10)) + ' – ' + esc(String(d2d.latest_expected_decision).slice(0,10)) + ' (' + d2d.expected_review_months_low + '–' + d2d.expected_review_months_high + ' months).</div>' +
+      '<div class="kpi note" style="margin-top:6px">Related: ' + esc(d2d.related_transaction) + ', expected to close ' + d2d.related_transaction_close_year + '.</div>' +
+      '<div class="cite" style="margin-top:8px"><a href="' + escAttr(d2d.source_url) + '" target="_blank" rel="noopener">' + esc(d2d.source) + '</a></div>';
+
+    // 12. Workforce scaling signal
+    var wf = data.workforce_signal;
+    document.getElementById("workforceCard").innerHTML =
+      '<div class="kpi label">Open Kuiper manufacturing roles, Redmond</div>' +
+      '<div class="kpi val">' + Number(wf.open_positions_redmond).toLocaleString() + '</div>' +
+      '<div class="kpi note">As of ' + esc(wf.as_of_date) + ' — a single snapshot, not a trend. Signal: <b>' + esc(wf.signal.replace(/_/g,' ')) + '</b> (active hiring, no layoff evidence found in public reporting).</div>' +
+      '<div class="cite" style="margin-top:8px"><a href="' + escAttr(wf.source_url) + '" target="_blank" rel="noopener">' + esc(wf.source) + '</a></div>';
+  }
+})();
+</script>
+</body>
+</html>

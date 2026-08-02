@@ -1,0 +1,4 @@
+as_of_date,metric_type,low_estimate_usd,high_estimate_usd,source_type,source,source_url
+2019-01-01,cumulative_total_program,10000000000,10000000000,company_stated,"Amazon (reported circa 2019, cited retrospectively)",https://www.datacenterdynamics.com/en/news/amazon-promises-invest-more-10bn-project-kuiper-satellite-internet-business/
+2024-12-01,cumulative_total_program,16500000000,20000000000,third_party_estimate,"Quilty Space market analysis (via GeekWire)",https://www.geekwire.com/2024/market-study-amazon-cost-project-kuiper-satellite-quilty/
+2026-04-29,yoy_incremental,1000000000,1000000000,official_disclosure,"CFO Brian Olsavsky, Amazon Q1 2026 earnings call",https://www.fool.com/earnings/call-transcripts/2026/04/29/amazon-amzn-q1-2026-earnings-call-transcript/

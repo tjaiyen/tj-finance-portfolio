@@ -1,0 +1,107 @@
+# dbt Leo Program Finance
+
+A small, runnable **dbt + DuckDB** project modeling the finance disciplines a Finance Manager would apply to
+a large hardware/capital program (case-study framing: Amazon's Amazon Leo satellite broadband program) --
+milestone-gated capital governance, cost-escalation tracking, capacity-vs-realized variance, launch-vehicle
+reliability, supply-chain concentration risk, safety/coordination incidents, a second regulatory front, and
+a make-vs-buy/TCO framework.
+
+**⚠ Not affiliated with, endorsed by, or built using any internal Amazon data.** Every figure describing the
+real program is sourced to public reporting (cited inline, per row, with a `source_type`: `company_stated` /
+`official_disclosure` / `third_party_estimate`); every figure describing an Amazon internal decision
+(make-vs-buy, variance drivers, supplier counts) is fully synthetic and flagged `is_illustrative`. This is an
+independent illustrative project applying my own cost-accounting/FP&A methodology to a public case, not a
+claim of insider knowledge.
+
+## The idea in one line
+Public satellite-deployment, cost, launch-vehicle, and regulatory reporting on Amazon Leo is rich enough to
+demonstrate real cross-functional operational-visibility analysis -- without ever needing to invent a real
+number.
+
+## What it does
+- **seeds** -- dated checkpoints and estimates, each carrying its own `source` / `source_url`
+- **staging** -- typed, 1:1 cleaned rows
+- **marts**
+  - `mart_milestone_risk` -- projects whether Amazon's FCC-mandated satellite-count deadlines
+    (1,618 by 2026-07-30; 3,236 by 2029-07-30) are reachable from the latest known **observed**
+    deployment checkpoint, using the best realized deployment rate as the projection basis --
+    shown alongside Amazon's **own** 700-satellite projection for the same date (a separate,
+    explicitly labeled company estimate, never conflated with an observation), plus the actual
+    disclosed waiver mechanics (a granted conditional waiver means **loss of priority status**,
+    not license revocation -- precision on the real consequence matters)
+  - `mart_deployment_capacity_gap` -- Kirkland factory's theoretical 5-satellites/day capacity vs.
+    the highest realized rate actually achieved (April 2026) -- a real utilization gap even in the
+    best month on record, root-caused publicly to launch-vehicle availability, not manufacturing
+  - `mart_cost_escalation` -- Amazon's own stated $10B (2019) vs. Quilty Space's $16.5-20B estimate
+    (2024) -- a confirmed ~100% cost increase -- kept strictly separate from the $1B YoY headwind
+    Amazon's CFO disclosed on the Q1 2026 earnings call (a different metric type, never blended)
+  - `mart_implied_scale_cost` -- a fully transparent derived calculation (published per-unit cost x
+    Amazon's own stated constellation target), formula shown alongside the output
+  - `mart_launch_vehicle_reliability` -- failure/delay/success event counts by rocket family (Atlas V,
+    Ariane 6, Vulcan Centaur, New Glenn) -- the real bottleneck behind the milestone shortfall is
+    launch supply, not manufacturing, per Amazon's own FCC filing language
+  - `mart_unlaunched_inventory` -- a **modeled range** of the built-vs-deployed gap: an upper-bound
+    scenario (constant production at the disclosed sustained rate) and a lower-bound scenario
+    (production throttled to track the realized deployment pace), both built from rates already in
+    the seed data -- no public "cumulative produced" figure exists, so this is presented as a range,
+    not a single number claiming false precision
+  - `mart_supplier_concentration_risk` -- real, publicly-named bottleneck components (OISL terminals,
+    rad-hardened semiconductors) with an illustrative supplier-concentration risk tier
+  - `mart_safety_coordination_incidents` -- a real, dated, sourced incident log (the Feb 2026 SpaceX
+    collision-risk dispute over an Amazon Leo deployment)
+  - `mart_d2d_regulatory_pipeline` -- the 5,105-satellite direct-to-device FCC filing and its
+    computed 12-18-month expected decision window
+  - `mart_workforce_scaling_signal` -- a single open-positions snapshot, deliberately reported as one
+    data point rather than a trend the data can't support
+  - `mart_makevsbuy_scenario` / `mart_variance_methodology_demo` -- fully synthetic methodology
+    demonstrations of the make-vs-buy/TCO and price-volume-scope-timing variance-decomposition
+    frameworks named in the JD, using generic category labels
+- **tests**
+  - data tests -- not_null/unique, `accepted_values` on every categorical/status column
+  - singular tests -- variance drivers must reconcile exactly to the total (nothing lost or
+    double-counted); every illustrative mart's rows must be explicitly flagged `is_illustrative`
+
+## Run it (~60 seconds, local, no cloud)
+```bash
+pip install dbt-duckdb
+export DBT_PROFILES_DIR=.        # or: cp profiles.example.yml ~/.dbt/profiles.yml
+dbt build
+```
+If you're rebuilding after changing seed column shapes, delete the local `.duckdb` file first --
+it's a rebuildable cache, and dbt won't reconcile a changed seed schema against an existing table on its own.
+
+## Structure
+```
+dbt_leo_program_finance/
+  dbt_project.yml
+  profiles.example.yml
+  seeds/   raw_deployment_checkpoints.csv, raw_deployment_rate.csv, raw_fcc_milestones.csv,
+           raw_program_cost_estimates.csv, raw_unit_cost.csv, raw_makevsbuy_scenario.csv,
+           raw_variance_demo.csv, raw_launch_vehicle_events.csv, raw_supplier_concentration.csv,
+           raw_safety_incidents.csv, raw_d2d_regulatory_pipeline.csv, raw_workforce_signal.csv
+  models/
+    staging/   12 typed staging models + staging.yml
+    marts/     12 marts + marts.yml
+  tests/   assert_variance_drivers_reconcile.sql, assert_illustrative_marts_are_flagged.sql,
+           assert_unlaunched_inventory_range_ordered.sql
+  scripts/ export_dashboard_data.py -- exports all marts to the site dashboard's JSON
+```
+
+## Notes / limitations
+- Deployment checkpoints are dated aggregate snapshots from public reporting, **not a complete
+  launch manifest** -- a full mission-by-mission list exists publicly (Wikipedia's "List of Amazon
+  Leo launches") and could extend this later.
+- `mart_milestone_risk` is a **modeled projection using the best publicly realized rate**, not an
+  Amazon-disclosed forecast -- shown with the projection method visible, and alongside Amazon's own
+  stated projection where one exists, not as a black-box status.
+- `mart_unlaunched_inventory` gives a **range**, not a point estimate: the upper bound assumes
+  constant production at the sustained rate for the entire elapsed period; the lower bound assumes
+  production throttled down to track the realized deployment pace instead (`realized_peak` is a
+  deployment rate, used here only as a proxy for "production kept pace with what could ship" -- not
+  a claim about manufacturing capability). A singular test (`assert_unlaunched_inventory_range_ordered`)
+  proves the lower bound never exceeds the upper bound.
+- Two launch-vehicle events (the New Glenn failure, the Vulcan Centaur delay) don't have a disclosed
+  exact date in public reporting -- `date_confidence = 'approximate'` flags this rather than inventing
+  a precise date.
+- Make-vs-buy, variance-driver, and supplier-count figures are **fully synthetic**, generic-category
+  illustrations of the analytical method -- not claims about any real Amazon decision or supplier.

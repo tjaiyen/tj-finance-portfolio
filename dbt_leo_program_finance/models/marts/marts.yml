@@ -1,0 +1,130 @@
+version: 2
+
+models:
+  - name: mart_milestone_risk
+    description: >
+      Projects whether each FCC satellite-count milestone is reachable from the latest
+      OBSERVED deployment checkpoint, using the realized_peak rate as the projection basis,
+      shown alongside Amazon's own stated projection for the same date where one exists, and
+      the actual disclosed waiver mechanics (priority-status loss, not license revocation).
+    columns:
+      - name: milestone_date
+        tests: [not_null, unique]
+      - name: status
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['on_track', 'at_risk']
+
+  - name: mart_deployment_capacity_gap
+    description: "Factory theoretical capacity vs. the best realized deployment rate on record."
+    columns:
+      - name: utilization_pct
+        tests: [not_null]
+
+  - name: mart_cost_escalation
+    description: >
+      Total-program cost estimates over time (source-typed) plus the latest confirmed
+      YoY cost headwind, kept as a distinct, non-blended metric type.
+    columns:
+      - name: metric_type
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['cumulative_total_program', 'yoy_incremental']
+      - name: source_type
+        tests: [not_null]
+
+  - name: mart_implied_scale_cost
+    description: "Derived unit_cost x constellation_target calculation, formula shown alongside the output."
+    columns:
+      - name: implied_scale_cost_low_usd
+        tests: [not_null]
+
+  - name: mart_makevsbuy_scenario
+    description: "Fully illustrative make-vs-buy TCO scenario."
+    columns:
+      - name: is_illustrative
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true]
+
+  - name: mart_variance_methodology_demo
+    description: "Synthetic price/volume/scope/timing variance decomposition demo."
+    columns:
+      - name: is_illustrative
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true]
+
+  - name: mart_launch_vehicle_reliability
+    description: "Launch vehicle event counts by family -- failures, delays, successes, and success-with-incident."
+    columns:
+      - name: launch_vehicle
+        tests: [not_null, unique]
+      - name: total_events
+        tests: [not_null]
+
+  - name: mart_unlaunched_inventory
+    description: >
+      MODELED RANGE of built-but-unlaunched satellites: an upper-bound scenario (constant
+      production at the sustained rate) and a lower-bound scenario (production throttled to
+      track the realized deployment pace) -- neither is a disclosed production figure. See
+      calculation_note.
+    columns:
+      - name: modeled_unlaunched_inventory_upper
+        tests: [not_null]
+      - name: modeled_unlaunched_inventory_lower
+        tests: [not_null]
+      - name: calculation_note
+        tests: [not_null]
+
+  - name: mart_supplier_concentration_risk
+    description: "Real bottleneck components with an illustrative supplier-concentration risk tier."
+    columns:
+      - name: component_name
+        tests: [not_null, unique]
+      - name: risk_tier
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['high_concentration_risk', 'medium_concentration_risk', 'low_concentration_risk']
+      - name: is_illustrative
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true]
+
+  - name: mart_safety_coordination_incidents
+    description: "Real, dated, sourced safety/coordination incident log."
+    columns:
+      - name: incident_date
+        tests: [not_null]
+
+  - name: mart_d2d_regulatory_pipeline
+    description: "The direct-to-device FCC filing and its expected decision window."
+    columns:
+      - name: milestone_name
+        tests: [not_null, unique]
+      - name: earliest_expected_decision
+        tests: [not_null]
+      - name: latest_expected_decision
+        tests: [not_null]
+
+  - name: mart_workforce_scaling_signal
+    description: "A single open-positions snapshot -- one data point, not a trend."
+    columns:
+      - name: signal
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['scaling_signal_not_distress']

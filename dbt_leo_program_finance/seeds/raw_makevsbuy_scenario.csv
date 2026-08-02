@@ -1,0 +1,5 @@
+scenario_id,category_label,option_label,unit_cost_usd,annual_volume,is_illustrative,notes
+1,RF Payload Manufacturing,In-house production,145000,1200,true,Illustrative generic hardware-program scenario -- not based on real Amazon figures
+1,RF Payload Manufacturing,Outsourced foundry,168000,1200,true,Illustrative generic hardware-program scenario -- not based on real Amazon figures
+2,Ground Terminal Assembly,In-house production,620,50000,true,Illustrative generic hardware-program scenario -- not based on real Amazon figures
+2,Ground Terminal Assembly,Outsourced contract manufacturer,540,50000,true,Illustrative generic hardware-program scenario -- not based on real Amazon figures

@@ -1,0 +1,6 @@
+as_of_date,cumulative_satellites,checkpoint_type,note,source,source_url
+2025-04-01,0,deployment_start_marker,"Full-scale deployment began April 2025 (used only as the elapsed-time reference point for the unlaunched-inventory model, not an observed count)",GeekWire,https://www.geekwire.com/2026/amazon-leo-double-pace-roll-out-satellite-broadband/
+2025-12-31,180,observed,"Late-2025 cumulative count (period-end aggregate, approximate)",GeekWire,https://www.geekwire.com/2026/amazon-leo-double-pace-roll-out-satellite-broadband/
+2026-04-29,250,observed,"Per CFO Brian Olsavsky on Amazon's Q1 2026 earnings call",Motley Fool Q1 2026 Earnings Call Transcript,https://www.fool.com/earnings/call-transcripts/2026/04/29/amazon-amzn-q1-2026-earnings-call-transcript/
+2026-07-15,375,observed,"Per Amazon's own progress update (date approximate -- see source)",About Amazon,https://www.aboutamazon.com/news/innovation-at-amazon/project-kuiper-satellite-rocket-launch-progress-updates
+2026-07-30,700,company_projected,"Amazon's own stated expectation in its Jan 2026 FCC extension-request filing -- a company projection, not an observed count",GeekWire,https://www.geekwire.com/2026/amazon-leo-fcc-extension-request/
