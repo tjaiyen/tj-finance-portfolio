@@ -26,7 +26,7 @@
   :root{
     --c-bg-primary:22 24 38; --c-bg-card:35 37 50; --c-bg-card2:63 66 77;
     --c-accent:145 132 217; --c-accent2:167 161 219;
-    --c-text-primary:233 233 237; --c-text-secondary:147 151 171; --c-text-code:210 206 253;
+    --c-text-primary:233 233 237; --c-text-secondary:147 151 171; --c-text-tertiary:178 182 202; --c-text-code:210 206 253;
     --c-success:114 191 142; --c-warning:223 175 80; --c-danger:235 129 127; --c-line:145 132 217;
 
     /* ---- Nocturne spacing/radius/shadow scale -- same handoff source as the
@@ -45,20 +45,20 @@
     :root{
       --c-bg-primary:243 245 254; --c-bg-card:255 255 255; --c-bg-card2:228 231 245;
       --c-accent:99 84 165; --c-accent2:112 105 159;
-      --c-text-primary:41 43 49; --c-text-secondary:117 121 140; --c-text-code:77 61 140;
+      --c-text-primary:41 43 49; --c-text-secondary:117 121 140; --c-text-tertiary:143 147 163; --c-text-code:77 61 140;
       --c-success:43 122 77; --c-warning:149 104 0; --c-danger:177 78 78; --c-line:99 84 165;
     }
   }
   :root[data-theme="dark"]{
     --c-bg-primary:22 24 38; --c-bg-card:35 37 50; --c-bg-card2:63 66 77;
     --c-accent:145 132 217; --c-accent2:167 161 219;
-    --c-text-primary:233 233 237; --c-text-secondary:147 151 171; --c-text-code:210 206 253;
+    --c-text-primary:233 233 237; --c-text-secondary:147 151 171; --c-text-tertiary:178 182 202; --c-text-code:210 206 253;
     --c-success:114 191 142; --c-warning:223 175 80; --c-danger:235 129 127; --c-line:145 132 217;
   }
   :root[data-theme="light"]{
     --c-bg-primary:243 245 254; --c-bg-card:255 255 255; --c-bg-card2:228 231 245;
     --c-accent:99 84 165; --c-accent2:112 105 159;
-    --c-text-primary:41 43 49; --c-text-secondary:117 121 140; --c-text-code:77 61 140;
+    --c-text-primary:41 43 49; --c-text-secondary:117 121 140; --c-text-tertiary:143 147 163; --c-text-code:77 61 140;
     --c-success:43 122 77; --c-warning:149 104 0; --c-danger:177 78 78; --c-line:99 84 165;
   }
   *{box-sizing:border-box}
@@ -93,7 +93,7 @@
   .badge{
     font:600 12.5px/1.2 ui-monospace,Menlo,monospace; letter-spacing:.02em;
     border:1px solid rgb(var(--c-accent) / .35); background:rgb(var(--c-accent) / .09); color:rgb(var(--c-text-code));
-    border-radius:calc(var(--c-radius-md) * .75); padding:3px 10px;
+    border-radius:99px; padding:3px 10px;
   }
   .bar .right{margin-left:auto; display:flex; align-items:center; gap:var(--c-space-3); flex-wrap:wrap; justify-content:flex-end}
   .icobtn{
@@ -113,37 +113,40 @@
   }
   .disclaimer b{color:rgb(var(--c-text-primary)); font-weight:600}
 
-  h1{font-size:26px; margin:calc(var(--c-space-8) * 1.25) 0 var(--c-space-2); letter-spacing:-.01em}
-  .lede{color:rgb(var(--c-text-secondary)); font-size:14.5px; max-width:70ch; margin:0 0 var(--c-space-3)}
+  h1{font-size:clamp(30px,5.4vw,62px); line-height:1.04; margin:var(--c-space-8) 0 0; letter-spacing:-.035em; max-width:20ch; text-wrap:balance}
+  .lede{color:rgb(var(--c-text-tertiary)); font-size:clamp(15px,1.5vw,18px); line-height:1.6; max-width:66ch; margin:var(--c-space-8) 0 0}
 
   .hero-row{display:flex; align-items:flex-start; gap:calc(var(--c-space-8) * 1.25); flex-wrap:wrap}
   .hero-row .hero-text{flex:1 1 380px; min-width:0}
-  h2{font-size:16px; margin:0 0 var(--c-space-1); letter-spacing:-.01em}
+  h2{font-size:clamp(19px,2.1vw,26px); line-height:1.15; margin:0; letter-spacing:-.025em}
   .section{margin-top:calc(var(--c-space-8) * 1.75)}
-  .section-sub{color:rgb(var(--c-text-secondary)); font-size:13px; margin:0 0 var(--c-space-6); max-width:76ch}
+  .section-sub{color:rgb(var(--c-text-tertiary)); font-size:14px; line-height:1.6; margin:var(--c-space-4) 0 0; max-width:78ch}
 
+  /* Elevation is the shadow ring, never an accent-tinted border -- confirmed
+     against the actual rendered reference (every sampled card across 12
+     different sections used box-shadow:0 0 0 1px <neutral>, border:none). */
   .card{
-    background:rgb(var(--c-bg-card)); border:1px solid rgb(var(--c-accent) / .16);
-    border-radius:var(--c-radius-lg); padding:var(--c-space-6);
+    background:rgb(var(--c-bg-card)); box-shadow:var(--c-shadow-sm);
+    border-radius:var(--c-radius-lg); padding:var(--c-space-8);
   }
   .grid2{display:grid; grid-template-columns:1fr 1fr; gap:var(--c-space-6)}
   .grid3{display:grid; grid-template-columns:repeat(3,1fr); gap:var(--c-space-6)}
   @media (max-width:720px){ .grid2,.grid3{grid-template-columns:1fr} }
 
-  .status{display:inline-flex; align-items:center; gap:var(--c-space-2); font:700 12px/1 ui-monospace,Menlo,monospace; padding:3px 10px; border-radius:calc(var(--c-radius-md) * .75)}
+  .status{display:inline-flex; align-items:center; gap:var(--c-space-2); font:700 12px/1 ui-monospace,Menlo,monospace; padding:3px 10px; border-radius:99px}
   .status.ok{background:rgb(var(--c-success) / .12); color:rgb(var(--c-success)); border:1px solid rgb(var(--c-success) / .35)}
   .status.risk{background:rgb(var(--c-danger) / .12); color:rgb(var(--c-danger)); border:1px solid rgb(var(--c-danger) / .35)}
   .status.warn{background:rgb(var(--c-warning) / .12); color:rgb(var(--c-warning)); border:1px solid rgb(var(--c-warning) / .35)}
   .status.muted{background:rgb(var(--c-text-secondary) / .10); color:rgb(var(--c-text-secondary)); border:1px solid rgb(var(--c-text-secondary) / .3)}
 
-  .src-tag{display:inline-flex; align-items:center; gap:var(--c-space-2); font:600 11px/1 ui-monospace,Menlo,monospace; padding:3px 10px; border-radius:calc(var(--c-radius-md) * .75); white-space:nowrap}
+  .src-tag{display:inline-flex; align-items:center; gap:var(--c-space-2); font:600 11px/1 ui-monospace,Menlo,monospace; padding:3px 10px; border-radius:99px; white-space:nowrap}
   .src-tag.official{background:rgb(var(--c-success) / .12); color:rgb(var(--c-success)); border:1px solid rgb(var(--c-success) / .35)}
   .src-tag.company{background:rgb(var(--c-accent) / .12); color:rgb(var(--c-accent)); border:1px solid rgb(var(--c-accent) / .35)}
   .src-tag.third_party{background:rgb(var(--c-warning) / .12); color:rgb(var(--c-warning)); border:1px solid rgb(var(--c-warning) / .35)}
   .src-tag.illustrative{background:rgb(var(--c-text-secondary) / .14); color:rgb(var(--c-text-secondary)); border:1px solid rgb(var(--c-text-secondary) / .35)}
 
   .kpi.label{font:600 11.5px/1.2 ui-monospace,Menlo,monospace; letter-spacing:.05em; text-transform:uppercase; color:rgb(var(--c-text-secondary))}
-  .kpi.val{font:800 26px/1.15 -apple-system,sans-serif; margin:var(--c-space-2) 0 var(--c-space-1); letter-spacing:-.02em}
+  .kpi.val{font:600 clamp(26px,3.2vw,38px)/1.15 -apple-system,sans-serif; margin:var(--c-space-2) 0 var(--c-space-1); letter-spacing:-.02em; font-variant-numeric:tabular-nums}
   .kpi.note{font-size:12.5px; color:rgb(var(--c-text-secondary))}
 
   /* Tables scroll horizontally inside their own box on narrow screens rather than
@@ -250,7 +253,7 @@
      terms" narrator boxes (28 of them, already written); OFF by default. */
   .plain-toggle{
     display:inline-flex; align-items:center; gap:var(--c-space-2); background:transparent;
-    border:1px solid rgb(var(--c-text-secondary) / .3); border-radius:calc(var(--c-radius-md) * .75);
+    border:1px solid rgb(var(--c-text-secondary) / .3); border-radius:99px;
     padding:var(--c-space-2) calc(var(--c-space-3) * 1.2); font:600 11.5px/1 inherit; color:rgb(var(--c-text-secondary)); cursor:pointer;
   }
   .plain-toggle:hover{border-color:rgb(var(--c-accent) / .5); color:rgb(var(--c-text-primary))}
@@ -258,16 +261,17 @@
   .plain-toggle.on{color:rgb(var(--c-accent)); border-color:rgb(var(--c-accent) / .5)}
   .plain-toggle.on .dot{background:rgb(var(--c-accent)); box-shadow:0 0 6px rgb(var(--c-accent) / .6)}
 
-  /* ---- header CTA ("Walk me through it") -- the one deliberately solid-filled
-     control on the page. Distinct from .tour-btn.primary (the in-tour Next
-     button, which stays outline per Nocturne's own rule): this is the launch
-     affordance, matching the reference's own solid treatment for it. */
+  /* ---- header CTA ("Walk me through it") -- confirmed against the actual
+     rendered reference: transparent background, accent-colored 1px outline --
+     NOT solid-filled (an earlier pass misread the accent border on a dark
+     background as a solid fill). Consistent with .tour-btn.primary's own
+     outline treatment and Nocturne's "never solid-filled" button rule. */
   .hdr-cta{
     display:inline-flex; align-items:center; gap:var(--c-space-2); padding:var(--c-space-2) calc(var(--c-space-3) * 1.2);
-    border-radius:calc(var(--c-radius-md) * .75); font:600 12px/1 inherit; cursor:pointer;
-    background:rgb(var(--c-text-primary)); color:rgb(var(--c-bg-primary)); border:1px solid rgb(var(--c-text-primary));
+    border-radius:99px; font:600 12px/1 inherit; cursor:pointer;
+    background:transparent; color:rgb(var(--c-accent)); border:1px solid rgb(var(--c-accent));
   }
-  .hdr-cta:hover{background:rgb(var(--c-text-primary) / .85)}
+  .hdr-cta:hover{background:rgb(var(--c-accent) / .1)}
 
   /* Scroll progress: how far through the 4 chapters, not a decorative loader. */
   .scrollbar{height:2px; background:rgb(var(--c-accent) / .12)}
@@ -332,7 +336,7 @@
   .drawer-head h2{font-size:19px; margin:0}
   .drawer-close{
     padding:var(--c-space-2) calc(var(--c-space-3) * 1.2); background:transparent; border:1px solid rgb(var(--c-text-secondary) / .3);
-    border-radius:var(--c-radius-md); font:600 11px/1 inherit; color:rgb(var(--c-text-secondary)); cursor:pointer;
+    border-radius:var(--c-radius-sm); font:600 11px/1 inherit; color:rgb(var(--c-text-secondary)); cursor:pointer;
   }
   .drawer-close:hover{border-color:rgb(var(--c-accent) / .6); color:rgb(var(--c-text-primary))}
   .drawer-intro{margin:0 0 var(--c-space-8); font-size:12.5px; line-height:1.6; color:rgb(var(--c-text-secondary))}
@@ -345,7 +349,7 @@
      this page already uses -- this is a second DISPLAY of an existing figure,
      never a new one computed independently. */
   .pin-chip{
-    display:inline-flex; align-items:center; gap:var(--c-space-2); padding:var(--c-space-2) calc(var(--c-space-3) * 1.2); border-radius:calc(var(--c-radius-md) * .75);
+    display:inline-flex; align-items:center; gap:var(--c-space-2); padding:var(--c-space-2) calc(var(--c-space-3) * 1.2); border-radius:99px;
     font:600 11.5px/1.2 inherit; color:rgb(var(--c-text-secondary)); cursor:pointer;
     border:1px solid rgb(var(--c-text-secondary) / .3); background:transparent;
   }
@@ -373,7 +377,7 @@
   .pin-item .s{font-size:10px; color:rgb(var(--c-text-secondary))}
   .pin-clear-btn{
     flex:0 0 auto; padding:var(--c-space-2) calc(var(--c-space-3) * 1.2); background:transparent; border:1px solid rgb(var(--c-text-secondary) / .3);
-    border-radius:calc(var(--c-radius-md) * .75); font:600 11px/1 inherit; color:rgb(var(--c-text-secondary)); cursor:pointer;
+    border-radius:99px; font:600 11px/1 inherit; color:rgb(var(--c-text-secondary)); cursor:pointer;
   }
   .pin-clear-btn:hover{border-color:rgb(var(--c-accent) / .5); color:rgb(var(--c-text-primary))}
 
@@ -406,7 +410,7 @@
   .tour-step-count{font:600 10.5px/1 ui-monospace,Menlo,monospace; letter-spacing:.06em; text-transform:uppercase; color:rgb(var(--c-text-secondary))}
   .tour-close{
     padding:var(--c-space-2) calc(var(--c-space-3) * 1.2); background:transparent; border:1px solid rgb(var(--c-text-secondary) / .3);
-    border-radius:var(--c-radius-md); font:600 10.5px/1 inherit; color:rgb(var(--c-text-secondary)); cursor:pointer;
+    border-radius:var(--c-radius-sm); font:600 10.5px/1 inherit; color:rgb(var(--c-text-secondary)); cursor:pointer;
   }
   .tour-close:hover{border-color:rgb(var(--c-accent) / .6); color:rgb(var(--c-text-primary))}
   .tour-title{font-size:15px; font-weight:600; margin:0 0 var(--c-space-2)}
@@ -434,7 +438,7 @@
   .slidercard .rateval{width:64px; text-align:right; font:700 13px/1 ui-monospace,Menlo,monospace}
   .resetbtn{
     font:600 11.5px/1 inherit; color:rgb(var(--c-accent)); background:none; border:1px solid rgb(var(--c-accent) / .4);
-    border-radius:var(--c-radius-md); padding:var(--c-space-2) calc(var(--c-space-3) * 1.2); cursor:pointer;
+    border-radius:var(--c-radius-sm); padding:var(--c-space-2) calc(var(--c-space-3) * 1.2); cursor:pointer;
   }
   .resetbtn:hover{background:rgb(var(--c-accent) / .1)}
 
@@ -455,7 +459,7 @@
     display:inline-flex; align-items:center; gap:var(--c-space-2); font:700 10px/1 ui-monospace,Menlo,monospace;
     letter-spacing:.04em; text-transform:uppercase; color:rgb(var(--c-accent2));
     background:rgb(var(--c-accent) / .1); border:1px solid rgb(var(--c-accent) / .3);
-    border-radius:calc(var(--c-radius-md) * .75); padding:3px 10px; margin-bottom:var(--c-space-3);
+    border-radius:99px; padding:3px 10px; margin-bottom:var(--c-space-3);
   }
 
   /* ---- closing recommendation section */
@@ -474,7 +478,7 @@
   .kpi-filter-group{display:flex; flex-wrap:wrap; align-items:center; gap:var(--c-space-2)}
   .kpi-filter-label{font:600 10px/1 ui-monospace,Menlo,monospace; letter-spacing:.06em; text-transform:uppercase; color:rgb(var(--c-text-secondary)); margin-right:var(--c-space-1)}
   .kpi-chip{
-    display:inline-flex; align-items:center; padding:var(--c-space-2) calc(var(--c-space-3) * 1.2); border-radius:calc(var(--c-radius-md) * .75);
+    display:inline-flex; align-items:center; padding:var(--c-space-2) calc(var(--c-space-3) * 1.2); border-radius:99px;
     font:600 11px/1.2 inherit; color:rgb(var(--c-text-secondary)); cursor:pointer;
     border:1px solid rgb(var(--c-text-secondary) / .3); background:transparent;
   }
