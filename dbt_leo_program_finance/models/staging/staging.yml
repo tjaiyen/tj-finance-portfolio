@@ -1,0 +1,244 @@
+version: 2
+
+models:
+  - name: stg_deployment_checkpoints
+    description: "Dated cumulative-satellite-count checkpoints from public reporting -- not a complete launch manifest. checkpoint_type separates observed counts from Amazon's own forward projection and the elapsed-time reference marker."
+    columns:
+      - name: as_of_date
+        tests: [not_null, unique]
+      - name: cumulative_satellites
+        tests: [not_null]
+      - name: checkpoint_type
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['observed', 'company_projected', 'deployment_start_marker']
+
+  - name: stg_deployment_rate
+    description: "Factory capacity ceiling, sustained/consistent rate, and realized peak deployment rate (satellites/day)."
+    columns:
+      - name: metric_type
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['capacity_ceiling', 'realized_peak', 'sustained_consistent']
+      - name: satellites_per_day
+        tests: [not_null]
+
+  - name: stg_fcc_milestones
+    description: "FCC license-condition satellite-count deadlines, plus the actual disclosed waiver mechanics (regulatory_consequence, waiver_requested fields)."
+    columns:
+      - name: milestone_date
+        tests: [not_null, unique]
+      - name: satellites_required
+        tests: [not_null]
+      - name: regulatory_consequence
+        tests: [not_null]
+      - name: waiver_requested
+        tests: [not_null]
+
+  - name: stg_program_cost_estimates
+    description: "Total-program cost estimates over time (cumulative_total_program) plus the latest confirmed YoY cost headwind (yoy_incremental) -- two distinct metric types, never blended."
+    columns:
+      - name: metric_type
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['cumulative_total_program', 'yoy_incremental']
+      - name: source_type
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['company_stated', 'third_party_estimate', 'official_disclosure']
+
+  - name: stg_unit_cost
+    description: "Per-satellite manufacturing cost estimate, single point-in-time (no trend claimed)."
+    columns:
+      - name: low_estimate_usd
+        tests: [not_null]
+      - name: constellation_target
+        tests: [not_null]
+
+  - name: stg_makevsbuy_scenario
+    description: "Fully synthetic make-vs-buy TCO scenario -- generic category labels, not real Amazon data."
+    columns:
+      - name: is_illustrative
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true]
+
+  - name: stg_variance_demo
+    description: "Synthetic price/volume/scope/timing variance-decomposition demo."
+    columns:
+      - name: is_illustrative
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true]
+
+  - name: stg_launch_vehicle_events
+    description: "Launch vehicle events by family -- success, success_with_incident, delay, failure. event_date is intentionally nullable for two events with no disclosed exact date."
+    columns:
+      - name: launch_vehicle
+        tests: [not_null]
+      - name: event_type
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['success', 'success_with_incident', 'delay', 'failure']
+      - name: date_confidence
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['confirmed', 'approximate']
+
+  - name: stg_supplier_concentration
+    description: "Real bottleneck components (OISL terminals, rad-hard semiconductors); supplier counts are illustrative estimates."
+    columns:
+      - name: component_name
+        tests: [not_null, unique]
+      - name: is_illustrative
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true]
+
+  - name: stg_safety_incidents
+    description: "Real, dated, sourced safety/coordination incidents."
+    columns:
+      - name: incident_date
+        tests: [not_null]
+      - name: description
+        tests: [not_null]
+
+  - name: stg_d2d_regulatory_pipeline
+    description: "The direct-to-device FCC filing and its related Globalstar spectrum transaction."
+    columns:
+      - name: milestone_name
+        tests: [not_null, unique]
+      - name: satellites_requested
+        tests: [not_null]
+
+  - name: stg_workforce_signal
+    description: "A single open-positions snapshot -- one data point, not a trend."
+    columns:
+      - name: open_positions_redmond
+        tests: [not_null]
+      - name: signal
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['scaling_signal_not_distress']
+
+  - name: stg_op1_op2_plan
+    description: "Fully synthetic multi-year OpEx/CapEx/headcount roadmap -- generic hardware-program shape, not Amazon's real Leo P&L."
+    columns:
+      - name: fiscal_year
+        tests: [not_null, unique]
+      - name: is_illustrative
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true]
+
+  - name: stg_roi_payback_scenarios
+    description: "Fully synthetic capital-investment ROI/payback scenarios -- generic categories, not a real Amazon decision."
+    columns:
+      - name: scenario_name
+        tests: [not_null, unique]
+      - name: is_illustrative
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true]
+
+  - name: stg_operational_kpi_framework
+    description: "Generic operational-KPI framework (9 domains) applied to this case -- target benchmarks are illustrative, not Amazon-disclosed figures."
+    columns:
+      - name: kpi_name
+        tests: [not_null, unique]
+      - name: is_illustrative
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true]
+
+  - name: stg_cashflow_breakdown
+    description: "Fully synthetic latest-period direct/indirect cash-flow breakdown, 22 subcategories, with an illustrative percent_complete feeding per-row EVM."
+    columns:
+      - name: subcategory
+        tests: [not_null, unique]
+      - name: percent_complete
+        tests: [not_null]
+      - name: is_illustrative
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true]
+
+  - name: stg_cashflow_trend
+    description: "Fully synthetic period-level cash-flow totals; actual is null for future periods."
+    columns:
+      - name: period
+        tests: [not_null, unique]
+      - name: is_illustrative
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true]
+
+  - name: stg_pnl_assumptions
+    description: "Fully synthetic illustrative revenue assumption for the P&L waterfall."
+    columns:
+      - name: period
+        tests: [not_null, unique]
+      - name: is_illustrative
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true]
+
+  - name: stg_90day_roadmap
+    description: "Fully synthetic 90-day accountability plan, keyed to mart_risk_register's own risk_name -- generic role titles only, never a real named individual."
+    columns:
+      - name: risk_name
+        tests: [not_null, unique]
+      - name: target_type
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['percent_improvement', 'qualify_count', 'threshold_zero_new', 'milestone_checkpoint', 'monitor_only']
+
+  - name: stg_data_quality_routing
+    description: "Fully synthetic anomaly-category -> role routing table -- generic role titles only, not a claim about Amazon's real org chart."
+    columns:
+      - name: category
+        tests: [not_null, unique]
+      - name: routes_to
+        tests: [not_null]
+
+  - name: stg_data_quality_incidents
+    description: "Real, dated history of this project's own data-quality incidents, cited to this repo's own git commits."
+    columns:
+      - name: commit_sha
+        tests: [not_null, unique]
+      - name: category
+        tests: [not_null]

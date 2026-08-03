@@ -1,0 +1,6 @@
+category,description,routes_to,authority_note
+pipeline_nondeterminism,"A computed value or row order changes between identical rebuilds with no underlying data change",VP Data Governance,"Owns this project's build-reproducibility contracts (dbt tests, deterministic SQL)"
+source_fact_discrepancy,"A cited real-world fact does not match what its source actually states",The domain owner already named for that risk in the 90-day roadmap,"Owns the business narrative for that specific domain -- reuses existing accountability, no parallel structure invented"
+referential_integrity,"A row references an entity that does not exist elsewhere in the data",VP Data Governance,"Owns cross-mart consistency (relationships and completeness tests)"
+staleness,"A cited source or figure has not been re-checked past an acceptable window",VP Data Governance,"Owns the re-verification cadence for previously-sourced facts"
+test_regression,"A previously-passing test starts failing",VP Data Governance,"Owns the CI gate and the test suite itself"

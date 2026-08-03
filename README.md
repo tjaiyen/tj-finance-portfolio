@@ -2,7 +2,7 @@
 
 [![dbt CI](https://github.com/tjaiyen/tj-finance-portfolio/actions/workflows/dbt-ci.yml/badge.svg)](https://github.com/tjaiyen/tj-finance-portfolio/actions/workflows/dbt-ci.yml)
 
-Seven small, runnable projects that show how I work: a cost accountant who builds the data, orchestration,
+Eight small, runnable projects that show how I work: a cost accountant who builds the data, orchestration,
 and AI layers behind finance reporting, with correctness and governance built in — not bolted on.
 
 **Business context:** every month-end close asks the same question — *which accounts moved, are the moves
@@ -68,6 +68,65 @@ logic, and **singular tests** (allocation ratios must sum to 1; no negative cost
 surfaces a tenant running at a negative margin — the *which customer is unprofitable, and why* question, answered
 by tested models. Runs locally on **DuckDB**: `pip install dbt-duckdb` then `dbt build` → 33 tests pass.
 
+## [`dbt_leo_program_finance/`](./dbt_leo_program_finance) — cross-functional capital-program visibility, applied to a public case
+The same cost-accounting discipline pointed at a large hardware/capital program's full operational picture —
+milestone-gated spend tracking, cost-escalation analysis, launch-vehicle reliability, supply-chain
+concentration risk, safety/coordination incidents, a second regulatory front, and a make-vs-buy/TCO framework
+— case-study framing: Amazon's Amazon Leo satellite broadband program. **Not affiliated with, endorsed by, or
+built using any internal Amazon data** — every figure describing the real program is sourced to public
+reporting (Amazon's own 10-K/earnings disclosures and FCC filings, third-party market analysis, cited inline
+per row with an evidence-tier badge); every figure describing an internal decision (make-vs-buy, variance
+drivers, supplier counts) is fully synthetic and flagged `is_illustrative`. Twenty-nine **dbt** marts — including a
+multi-year OP1/OP2 OpEx/CapEx/headcount roadmap, an ROI/payback framework, a 54-KPI operational scorecard,
+a 3-level direct/indirect cash-flow tracker (Plan/Forecast/Actual, forecast computed from the elapsed-period
+run-rate) with per-subcategory **Earned Value Management** (EV/CPI/SPI) rolling up to a program-level
+**EAC/VAC/TCPI** — including the honest edge case where actual cost already exceeds budget, making
+TCPI-to-original-budget mathematically negative rather than smoothed into a fake number — plus a derived P&L
+bridge and cost-driver Pareto, a rule-based **Program Delivery Risk Index** weighting 5 signals — most drawn
+from this project's own real marts — into a tier, never a fabricated failure-probability, and a
+manufacturing-to-launch **efficiency trend** that extends the milestone-risk and unlaunched-inventory
+methodology across every real checkpoint instead of just the latest, using zero new data — the same disclosed
+rates, computed at more points. Closes the JD's own "financial models...across multi-year program roadmaps"
+and "ROI frameworks" lines — plus a milestone-risk projection shown alongside Amazon's *own* stated projection
+for the same date, the actual disclosed waiver mechanics (priority-status loss, not license revocation), and a
+real, dated safety incident (the Feb 2026 SpaceX collision-risk dispute), plus a **risk register** consolidating
+those same 5 scored signals with 2 more real factors deliberately left out of the composite score (probability x
+impact → an exposure tier, zero new data) and a **launch reliability trend** whose flat, all-success line is itself
+the finding — the 2 real adverse events are exactly the ones missing a disclosed date, so a clean-looking chart is
+an artifact of the data, not evidence, and the dashboard says so rather than letting the chart imply otherwise,
+plus a **capitalized-inventory roll-forward** (the built-but-unlaunched satellites, valued and rolled forward
+checkpoint to checkpoint) and an **EAC sensitivity** sweep on the EVM roll-up — CPI and SPI swung ±10%/20%
+independently, which turn out to produce numerically identical EAC at every level because the formula only
+sees their product, so the dashboard shows one curve rather than a misleading pair of overlapping ones, plus a
+**90-day accountability roadmap** keyed to the risk register itself — one action per risk, generic role titles
+only (never a real named individual), every target a stated goal rather than a fabricated completion status,
+and an honest "no action needed" row for the one signal that was never actually a problem. The same 7 rows are
+then re-read through a **Finance Manager's accountability lens** — critical-first, what a Finance Manager
+specifically tracks/analyzes/delivers on each, regardless of which domain owns the operational fix (4 of the 7
+tie directly to this page's own Chapter 4 recommendations); "mission critical" reuses the register's own
+exposure tier rather than inventing a new bar. Closes with **"The
+Throughline"** — an AI-synthesized paragraph connecting facts already on the page (two of seven register risks
+share one root cause; the 90-day plan's own domain grouping already reflects it) — guarded not by a post-hoc
+fact-checker but architecturally: every number renders through the same live data-interpolation every other
+narrator box on this page already uses, so there's no code path for a hand-typed figure to slip in. Ends with
+**"How This Page Verifies Itself"** — a real, dated log of the two data-quality incidents this project's own
+testing has actually found and fixed (a nondeterminism bug, a full source-hallucination audit), each cited to
+its own real, checkable GitHub commit, plus a category-to-role routing map for what would happen if it happened
+again. Not a live monitoring system — the honest version of "the system learns to prevent future errors" for a
+static analytics pipeline: tests accumulate, they don't forget.
+290 tests pass, enforced in CI on every push (not just run locally before committing), with a full column-level
+lineage graph published alongside the dashboard; singular tests enforce that every illustrative mart's rows are
+explicitly flagged and that every risk in the register has an owner, making the grounded-vs-illustrative
+separation a tested property of the project, not just a README claim.
+
+A second page, **`leo-operations-map.html`**, redraws the same marts as one relational graph instead of a scrolling
+narrative — 11 operating domains (the union of the risk register's and the KPI framework's domain taxonomies,
+computed at runtime, not hand-listed), the 7 register risks, their 7 90-day actions, 9 KPI-summary rollups, and
+8 hand-picked grounding facts, all click-to-expand with a who/what/when/where/why/how detail panel per node, a
+search box, and a flat-table accessibility fallback. No new data — same exported JSON as the narrative page.
+🔗 Live: **https://tjaiyen.github.io/tj-finance-portfolio/leo-program-finance.html** ·
+**https://tjaiyen.github.io/tj-finance-portfolio/leo-operations-map.html**
+
 ## [`agentic_ops_skeleton/`](./agentic_ops_skeleton) — guardrailed multi-agent orchestration
 The verify-before-trust discipline, applied to **agent autonomy**. A sanitized, stdlib-only skeleton of an
 autonomous ops pipeline — `ingest → score → draft → human-review queue`. Scoring is **deterministic** (the
@@ -91,16 +150,22 @@ by rule, never by a live model. Materiality-band and EVM-variance sliders re-fla
 palette, guided tour, and light/dark theme round it out. Synthetic, illustrative food-manufacturing data.
 🔗 Live: **https://tjaiyen.github.io/tj-finance-portfolio/operations-bridge.html**
 
-## Why these seven together
-Seven pieces, same discipline: two dbt projects for the modeled numbers, Airflow/Cosmos for reliable
-scheduling and recovery, a Claude agent for the narrative layer, an agentic-ops skeleton for guardrailed
-multi-agent autonomy, site/ to tie it together for a hiring reviewer, and Operations Bridge to show the same
-rigor at dashboard scale — deterministic thresholds and rule-based narration, never a generated claim about
-a number. The finance variance track and the GPU cost track use the same method — tested models,
-deterministic math, orchestrated runs. The AI layers touch only judgment and language: the variance agent's
-guardrail rejects any output that references an account not in the source, and the agentic skeleton treats
-all fetched content as data, never instructions, with a human gate before any irreversible action.
+## Why these eight together
+Eight pieces, same discipline: three dbt projects for the modeled numbers (finance variance, GPU cost
+attribution, and Leo program finance), Airflow/Cosmos for reliable scheduling and recovery, a Claude agent
+for the narrative layer, an agentic-ops skeleton for guardrailed multi-agent autonomy, site/ to tie it
+together for a hiring reviewer, and Operations Bridge to show the same rigor at dashboard scale —
+deterministic thresholds and rule-based narration, never a generated claim about a number. All three dbt
+tracks use the same method — tested models, deterministic math, orchestrated runs — with Leo program finance
+adding a third discipline: sourcing every real-world figure to a citation, and testing that illustrative data
+is never presented as real. The AI layers touch only judgment and language: the variance agent's guardrail
+rejects any output that references an account not in the source, and the agentic skeleton treats all fetched
+content as data, never instructions, with a human gate before any irreversible action.
 
-*Data in all projects is synthetic. No employer or confidential information is included.*
+*Data in the finance-variance, GPU-cost, orchestration, agent, and agentic-ops projects is synthetic — no
+employer or confidential information is included anywhere. The Leo program finance project is the one
+exception with real data: figures describing the public program are sourced to public reporting (cited
+inline); figures describing an internal decision are synthetic and flagged as such — see that project's
+README for the full sourcing discipline.*
 
 — Theerayut (TJ) Jaiyen · linkedin.com/in/jaiyentheerayut

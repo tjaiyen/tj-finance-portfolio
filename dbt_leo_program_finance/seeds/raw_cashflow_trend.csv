@@ -1,0 +1,7 @@
+period,plan_amount_usd,actual_amount_usd,is_illustrative,notes
+2026-Q1,41000000,41500000,true,Illustrative generic hardware-program cash-flow scenario -- not Amazon's real Leo spend.
+2026-Q2,42000000,47000000,true,Illustrative generic hardware-program cash-flow scenario -- not Amazon's real Leo spend.
+2026-Q3,44900000,47750000,true,Illustrative generic hardware-program cash-flow scenario -- reconciles exactly to raw_cashflow_breakdown's totals for this period.
+2026-Q4,46000000,,true,Future period -- actual not yet available; forecast computed in mart_cashflow_trend from the elapsed-quarter run-rate.
+2027-Q1,47000000,,true,Future period -- actual not yet available; forecast computed in mart_cashflow_trend from the elapsed-quarter run-rate.
+2027-Q2,48000000,,true,Future period -- actual not yet available; forecast computed in mart_cashflow_trend from the elapsed-quarter run-rate.

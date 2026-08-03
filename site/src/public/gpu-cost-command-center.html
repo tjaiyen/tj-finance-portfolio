@@ -1,0 +1,2709 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>GPU Cost Command Center — dbt GPU Cost Attribution</title>
+<meta name="description" content="Live command center for the dbt + DuckDB GPU cost attribution model: per-tenant overhead absorption and gross margin, computed and tested in SQL." />
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2306b6d4'/%3E%3Crect x='12' y='12' width='8' height='8' rx='2' fill='%230a0f1d'/%3E%3C/svg%3E" />
+<style>
+  /* ---- tokens: mirrors site/src/css/styles.css exactly (dark default, light via
+     prefers-color-scheme, manual override via [data-theme]) so this page reads as
+     part of the same portfolio, not a one-off. Status pair (success/danger) chosen
+     over a 3-hue set because it is the pair that passes CVD/contrast validation
+     (scripts/validate_palette.js) in both themes; the "standard" zone uses neutral
+     ink rather than the amber warning token, since it isn't a warning state. */
+  :root{
+    --c-bg-primary:10 15 29; --c-bg-card:30 41 59; --c-bg-card2:27 35 52;
+    --c-accent:6 182 212; --c-accent2:34 211 238;
+    --c-text-primary:241 245 249; --c-text-secondary:148 163 184; --c-text-code:34 211 238;
+    --c-success:16 185 129; --c-danger:239 68 68; --c-line:6 182 212;
+  }
+  @media (prefers-color-scheme: light){
+    :root{
+      --c-bg-primary:248 250 252; --c-bg-card:255 255 255; --c-bg-card2:241 245 249;
+      --c-accent:14 116 144; --c-accent2:8 145 178;
+      --c-text-primary:15 23 42; --c-text-secondary:71 85 105; --c-text-code:8 145 178;
+      --c-success:5 150 105; --c-danger:220 38 38; --c-line:14 116 144;
+    }
+  }
+  :root[data-theme="dark"]{
+    --c-bg-primary:10 15 29; --c-bg-card:30 41 59; --c-bg-card2:27 35 52;
+    --c-accent:6 182 212; --c-accent2:34 211 238;
+    --c-text-primary:241 245 249; --c-text-secondary:148 163 184; --c-text-code:34 211 238;
+    --c-success:16 185 129; --c-danger:239 68 68; --c-line:6 182 212;
+  }
+  :root[data-theme="light"]{
+    --c-bg-primary:248 250 252; --c-bg-card:255 255 255; --c-bg-card2:241 245 249;
+    --c-accent:14 116 144; --c-accent2:8 145 178;
+    --c-text-primary:15 23 42; --c-text-secondary:71 85 105; --c-text-code:8 145 178;
+    --c-success:5 150 105; --c-danger:220 38 38; --c-line:14 116 144;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; min-height:100vh;
+    background:rgb(var(--c-bg-primary)); color:rgb(var(--c-text-primary));
+    font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  code,.mono,.tabular{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+  .tabular{font-variant-numeric:tabular-nums}
+  a{color:rgb(var(--c-accent))}
+  .wrap{max-width:1180px; margin:0 auto; padding:0 20px 64px}
+
+  /* header */
+  .bar{
+    position:sticky; top:0; z-index:5; backdrop-filter:blur(8px);
+    background:rgb(var(--c-bg-primary) / .86); border-bottom:1px solid rgb(var(--c-accent) / .18);
+  }
+  .bar-in{max-width:1180px; margin:0 auto; padding:14px 20px; display:flex; align-items:center; gap:14px; flex-wrap:wrap}
+  .brand{display:flex; align-items:center; gap:10px; font-weight:700; font-size:15px; letter-spacing:-.01em}
+  .brand .dot{width:9px; height:9px; border-radius:3px; background:conic-gradient(from 210deg, rgb(var(--c-accent)), rgb(var(--c-success)), rgb(var(--c-accent)))}
+  .brand small{display:block; font-weight:600; font-size:12.5px; letter-spacing:.14em; color:rgb(var(--c-text-secondary)); text-transform:uppercase; margin-top:1px}
+  .badge{
+    font:600 12.5px/1.2 ui-monospace,Menlo,monospace; letter-spacing:.02em;
+    border:1px solid rgb(var(--c-accent) / .35); background:rgb(var(--c-accent) / .09); color:rgb(var(--c-text-code));
+    border-radius:99px; padding:6px 11px;
+  }
+  .bar .right{margin-left:auto; display:flex; align-items:center; gap:8px}
+  .icobtn{
+    display:inline-flex; align-items:center; gap:6px; height:32px; padding:0 12px; border-radius:8px;
+    border:1px solid rgb(var(--c-accent) / .3); background:transparent; color:rgb(var(--c-text-secondary));
+    font:600 13px/1.3 inherit; cursor:pointer; transition:all .15s;
+  }
+  .icobtn:hover{color:rgb(var(--c-text-primary)); border-color:rgb(var(--c-accent) / .55)}
+
+  h1,h2,h3{font-weight:700; letter-spacing:-.01em; margin:0}
+  .eyebrow{font:700 12.5px/1.3 ui-monospace,monospace; letter-spacing:.14em; text-transform:uppercase; color:rgb(var(--c-accent))}
+  section{margin-top:34px}
+  .lede{color:rgb(var(--c-text-secondary)); font-size:13.5px; max-width:62ch; margin:6px 0 0}
+
+  .card{
+    background:rgb(var(--c-bg-card)); border:1px solid rgb(var(--c-accent) / .16);
+    border-radius:12px;
+  }
+
+  /* KPI strip */
+  .kpis{display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:16px}
+  /* econ strip has 6 tiles (PUE + payback added), not 4. auto-fit/minmax alone isn't
+     safe here: for 6 tiles, ANY minmax floor has a width band where the browser lands
+     on exactly 5 columns (6 mod 5 = 1), stranding the 6th tile alone on its own row --
+     empirically confirmed at ~1050px window width with a 180px floor, the exact
+     stranded-tile failure mode this section was supposed to avoid. auto-fit only avoids
+     stranding when the tile count divides evenly by the column count it lands on, so
+     this uses fixed column counts at explicit breakpoints instead (6 wide / 3 medium /
+     1 narrow -- 6 divides evenly into all three, so it can never land on 5). Tenant
+     strip (#kpis) keeps the clean 4-up above, untouched. */
+  #econKpis{grid-template-columns:repeat(6, 1fr)}
+  @media (max-width:1200px){ #econKpis{grid-template-columns:repeat(3, 1fr)} }
+  .kpi{padding:16px 18px; position:relative}
+  .kpi .lbl{font-size:12.5px; color:rgb(var(--c-text-secondary)); font-weight:600; text-transform:uppercase; letter-spacing:.06em; padding-right:20px}
+  .kpi .val{font-size:26px; font-weight:700; margin-top:6px; letter-spacing:-.02em}
+  .kpi .sub{font-size:13px; color:rgb(var(--c-text-secondary)); margin-top:3px}
+  .kpi.warn .val{color:rgb(var(--c-danger))}
+
+  /* educational info popovers: one shared floating panel (position:fixed, JS-positioned),
+     toggled by any .infobtn via event delegation -- avoids 8 separate popover elements. */
+  .infobtn{
+    position:absolute; top:14px; right:14px; width:17px; height:17px; border-radius:50%; padding:0;
+    border:1px solid rgb(var(--c-text-secondary) / .4); background:transparent; color:rgb(var(--c-text-secondary));
+    font:700 12px/1.2 ui-monospace,monospace; cursor:pointer; display:flex; align-items:center; justify-content:center;
+    transition:all .15s;
+  }
+  .infobtn:hover, .infobtn[aria-expanded="true"]{border-color:rgb(var(--c-accent)); color:rgb(var(--c-accent))}
+  .infobtn.inline{position:static; display:inline-flex; vertical-align:middle; flex:none; text-transform:none}
+  .infopop{
+    position:fixed; z-index:9; display:none; width:200px;
+    background:rgb(var(--c-bg-card2)); border:1px solid rgb(var(--c-accent) / .4); border-radius:8px;
+    padding:10px 12px; font-size:13px; line-height:1.55; color:rgb(var(--c-text-secondary));
+    box-shadow:0 8px 24px rgb(0 0 0 / .35);
+  }
+  .infopop.show{display:block}
+
+  /* story callout */
+  .story{
+    padding:16px 20px; border-left:3px solid rgb(var(--c-danger));
+    display:flex; gap:12px; align-items:flex-start;
+  }
+  .story svg{flex:none; margin-top:2px; color:rgb(var(--c-danger))}
+  .story p{margin:0; font-size:13.5px; line-height:1.6}
+  .story b{color:rgb(var(--c-text-primary))}
+  .story .tag{font-size:12.5px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:rgb(var(--c-danger))}
+
+  /* insight: the same "narrator" idea as .story, but accent-colored rather than danger-red --
+     these callouts are computed live from the actual numbers on the page (deterministic,
+     rule-based text templates -- no model call, nothing invented), but the takeaway isn't
+     always bad news, so it shouldn't always read as a warning. */
+  .insight{
+    margin-top:12px; padding:14px 18px; border-left:3px solid rgb(var(--c-accent));
+    background:rgb(var(--c-accent) / .05); border-radius:0 8px 8px 0;
+    font-size:13px; line-height:1.65; color:rgb(var(--c-text-secondary));
+  }
+  .insight b{color:rgb(var(--c-text-primary))}
+  .insight .tag{
+    display:block; font-size:12.5px; font-weight:700; letter-spacing:.08em; text-transform:uppercase;
+    color:rgb(var(--c-accent)); margin-bottom:5px;
+  }
+  .tcard .note{margin-top:10px; font-size:13px; line-height:1.5; color:rgb(var(--c-text-secondary))}
+
+  /* composition chart */
+  .panel{padding:18px 20px 14px}
+  .panel-head{display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap}
+  .panel-head h2{font-size:14.5px}
+  .legend{display:flex; gap:16px; font-size:13px; color:rgb(var(--c-text-secondary))}
+  .legend span{display:inline-flex; align-items:center; gap:6px}
+  .legend i{width:9px; height:9px; border-radius:2px; display:inline-block}
+  .chart-wrap{position:relative; margin-top:10px}
+  svg.chart{display:block; width:100%; height:auto; overflow:visible}
+  .gridline{stroke:rgb(var(--c-accent) / .1); stroke-width:1}
+  .axislabel{fill:rgb(var(--c-text-secondary)); font-size:11px; font-family:ui-monospace,monospace}
+  .tip{
+    position:absolute; pointer-events:none; z-index:6; opacity:0; transition:opacity .1s;
+    background:rgb(var(--c-bg-card2)); border:1px solid rgb(var(--c-accent) / .4); border-radius:8px;
+    padding:8px 10px; font-size:13px; white-space:nowrap; box-shadow:0 8px 24px rgb(0 0 0 / .35);
+  }
+  .tip.show{opacity:1}
+  .tip .d{color:rgb(var(--c-text-secondary)); font:600 12px/1.25 ui-monospace,monospace; margin-bottom:4px}
+  .tip .r{display:flex; align-items:center; gap:6px; justify-content:space-between; gap:14px}
+  .tip .r i{width:8px;height:8px;border-radius:2px}
+  .crosshair{stroke:rgb(var(--c-text-secondary) / .5); stroke-width:1; stroke-dasharray:3 3; pointer-events:none; opacity:0}
+  .crosshair.show{opacity:1}
+
+  /* tenants + controls */
+  .split{display:grid; grid-template-columns:1fr 260px; gap:16px; align-items:start}
+  @media (max-width:860px){ .split{grid-template-columns:1fr} .kpis{grid-template-columns:repeat(2,1fr)} }
+  .tenants{display:grid; grid-template-columns:repeat(3,1fr); gap:12px}
+  @media (max-width:760px){ .tenants{grid-template-columns:1fr} }
+  .tcard{padding:16px 16px 14px}
+  .tcard .top{display:flex; align-items:center; justify-content:space-between; gap:8px}
+  .tcard .cid{font:700 13px/1.3 ui-monospace,monospace; letter-spacing:-.01em}
+  .pill{
+    display:inline-flex; align-items:center; gap:5px; font:700 12px/1.2 inherit; letter-spacing:.03em;
+    text-transform:uppercase; padding:4px 8px; border-radius:99px; border:1px solid transparent;
+  }
+  .pill .sw{width:7px; height:7px; border-radius:50%}
+  .pill.z-best{color:rgb(var(--c-success)); background:rgb(var(--c-success)/.12); border-color:rgb(var(--c-success)/.35)}
+  .pill.z-best .sw{background:rgb(var(--c-success))}
+  .pill.z-standard{color:rgb(var(--c-text-secondary)); background:rgb(var(--c-text-secondary)/.12); border-color:rgb(var(--c-text-secondary)/.3)}
+  .pill.z-standard .sw{background:rgb(var(--c-text-secondary))}
+  .pill.z-warning{color:rgb(var(--c-danger)); background:rgb(var(--c-danger)/.12); border-color:rgb(var(--c-danger)/.35)}
+  .pill.z-warning .sw{background:rgb(var(--c-danger))}
+  .tcard .margin{font-size:28px; font-weight:700; margin-top:10px; letter-spacing:-.02em}
+  .tcard .stats{display:flex; gap:16px; margin-top:8px; font-size:13px; color:rgb(var(--c-text-secondary))}
+  .tcard .stats b{display:block; color:rgb(var(--c-text-primary)); font-size:12.5px; font-weight:700}
+  .tcard .spark{margin-top:12px}
+  /* .expand-btn-site is a DELIBERATELY separate class from .expand-btn (not shared, not a
+     second class on the same element) -- the tenant cards' own wiring uses an unscoped
+     document.querySelectorAll(".expand-btn") that re-runs on every tenant slider drag; giving
+     the portfolio buttons that same class (even alongside a second one) would still match that
+     selector by membership and double-wire a mismatched click handler onto them. Identical
+     visual style, distinct selector. */
+  .tcard .expand-btn, .tcard .expand-btn-site{
+    margin-top:12px; width:100%; background:transparent; border:1px dashed rgb(var(--c-accent) / .3);
+    border-radius:7px; padding:6px; color:rgb(var(--c-text-secondary)); font:600 13px/1.3 inherit;
+    cursor:pointer; text-transform:uppercase; letter-spacing:.04em; transition:all .15s;
+  }
+  .tcard .expand-btn:hover, .tcard .expand-btn-site:hover{color:rgb(var(--c-text-primary)); border-color:rgb(var(--c-accent) / .6)}
+  .tcard .breakdown{display:none; margin-top:4px; padding-top:8px; border-top:1px dashed rgb(var(--c-accent) / .2)}
+  .tcard .breakdown.show{display:block}
+  .waterfall text{font:600 10px ui-monospace,monospace}
+  /* .waterfall text (0,1,1) is MORE specific than .axislabel alone (0,1,0), so it silently
+     overrode the category-label text's size to 10px instead of the 11px every other chart's
+     axis labels use, even though those <text> elements carry class="axislabel" -- found by
+     post-build review. .waterfall .axislabel (0,2,0) restores the intended 11px parity without
+     touching .waterfall text itself, which still correctly sizes the dollar-value labels above
+     each bar (a separate, unclassed <text> element in the same charts). */
+  .waterfall .axislabel{font-size:11px}
+
+  /* allocation bar: the absorption key itself, visualized. Fixed opacity steps of the
+     accent hue (not per-tenant categorical hues) -- this chart is about "share of usage,"
+     a different dimension than the margin-zone status colors used elsewhere on the page,
+     so it deliberately does not compete with that color system. */
+  .alloc-bar{display:flex; height:22px; border-radius:7px; overflow:hidden; gap:2px}
+  .alloc-seg{transition:width .4s ease}
+  .alloc-legend{display:flex; gap:18px; flex-wrap:wrap; margin-top:10px; font-size:13px; color:rgb(var(--c-text-secondary))}
+  .alloc-legend span{display:inline-flex; align-items:center; gap:6px}
+  .alloc-legend i{width:9px; height:9px; border-radius:2px; display:inline-block}
+  .alloc-legend b{color:rgb(var(--c-text-primary)); font:700 13px/1.3 ui-monospace,monospace}
+
+  .controls{padding:16px 18px}
+  .controls h3{font-size:13px}
+  .controls .lede{margin-top:4px; font-size:13px}
+  .field{margin-top:16px}
+  .field .fl{display:flex; justify-content:space-between; font-size:13px; color:rgb(var(--c-text-secondary)); margin-bottom:6px}
+  .field .fl b{color:rgb(var(--c-text-primary)); font:700 13px/1.3 ui-monospace,monospace}
+  input[type=range]{
+    -webkit-appearance:none; width:100%; height:4px; border-radius:2px;
+    background:rgb(var(--c-accent) / .25); outline:none;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none; width:14px; height:14px; border-radius:50%;
+    background:rgb(var(--c-accent)); cursor:pointer; border:2px solid rgb(var(--c-bg-card));
+    box-shadow:0 0 0 1px rgb(var(--c-accent) / .5);
+  }
+  input[type=range]::-moz-range-thumb{
+    width:14px; height:14px; border-radius:50%; background:rgb(var(--c-accent)); cursor:pointer;
+    border:2px solid rgb(var(--c-bg-card));
+  }
+  .reset{
+    margin-top:14px; width:100%; height:32px; border-radius:8px; border:1px solid rgb(var(--c-accent) / .3);
+    background:transparent; color:rgb(var(--c-text-secondary)); font:600 13px/1.3 inherit; cursor:pointer;
+  }
+  .reset:hover{color:rgb(var(--c-text-primary))}
+
+  /* site-economics: a second, independently-computed panel (client-side, not dbt) —
+     kept visually distinct via its own divider + caption rather than the accent rail
+     used for the dbt-sourced sections above. */
+  .divider{margin-top:44px; padding-top:6px; border-top:1px dashed rgb(var(--c-accent) / .25)}
+  .live-badge{
+    display:inline-flex; align-items:center; gap:5px; font:700 12px/1.2 ui-monospace,monospace;
+    letter-spacing:.04em; text-transform:uppercase; color:rgb(var(--c-accent2));
+    background:rgb(var(--c-accent) / .1); border:1px solid rgb(var(--c-accent) / .3);
+    border-radius:99px; padding:4px 9px; margin-left:8px; vertical-align:middle;
+  }
+  .live-badge .dot2{width:5px; height:5px; border-radius:50%; background:rgb(var(--c-accent2))}
+  .econ-grid{padding:18px 20px}
+  .igroup{margin-top:18px}
+  .igroup:first-child{margin-top:0}
+  .inputs-row{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px 14px}
+  .nfield{display:flex; flex-direction:column; gap:5px}
+  .nfield label{font-size:13px; color:rgb(var(--c-text-secondary))}
+  .nfield input[type=number], .nfield input[type=text]{
+    background:rgb(var(--c-bg-primary)); border:1px solid rgb(var(--c-accent) / .3); border-radius:7px;
+    padding:7px 9px; color:rgb(var(--c-text-primary)); font:600 12.5px/1.3 ui-monospace,monospace; width:100%;
+  }
+  .nfield input[type=number]:focus, .nfield input[type=text]:focus{outline:2px solid rgb(var(--c-accent) / .5); outline-offset:1px}
+  /* collapsible assumption groups: native <details>, styled to match the existing .igroup h4 look */
+  details.igroup summary{
+    font:700 13px/1.35 ui-monospace,monospace; letter-spacing:.08em; text-transform:uppercase;
+    color:rgb(var(--c-text-secondary)); margin:0 0 10px; cursor:pointer; list-style:none;
+  }
+  details.igroup summary::-webkit-details-marker{display:none}
+  details.igroup summary::before{content:"▾ "; color:rgb(var(--c-accent))}
+  details.igroup:not([open]) summary::before{content:"▸ "}
+  details.igroup:not([open]) summary{margin-bottom:0}
+
+  footer{
+    margin-top:44px; padding-top:18px; border-top:1px solid rgb(var(--c-accent) / .16);
+    font-size:13px; color:rgb(var(--c-text-secondary)); display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap;
+  }
+  footer a{text-decoration:none; border-bottom:1px dotted rgb(var(--c-accent) / .5)}
+  .skel{color:rgb(var(--c-text-secondary)); padding:40px 0; text-align:center; font-size:13px}
+
+  /* <=560px: phone portrait. Same breakpoint number as site/tools/ob-mobile.css (Operations
+     Bridge) for consistency; measured against a real 375px viewport, not inferred. */
+  @media (max-width:560px){
+    /* type floor: chart axis labels measured unreadable at the authored 9.5px. */
+    .axislabel{font-size:11px}
+    /* 150px minmax collapsed the 2-col grid to 1 col at ~295px usable width; 130px fits 2. */
+    .inputs-row{grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}
+    /* margin-left:auto pushed Theme/Repo flush-right even after wrapping to their own line
+       under the badge, leaving a dead gap; let them flow left instead. */
+    .bar .right{margin-left:0}
+    /* the 6-tile econ grid's 3-column mid-size layout is too wide for a phone; 1 up. */
+    #econKpis{grid-template-columns:1fr}
+  }
+  @media (prefers-reduced-motion: reduce){ *{transition:none !important; animation:none !important} }
+
+  /* ---- scroll storytelling: reveal-on-scroll, a scroll-progress rail, hover-lift on card-shaped
+     units, and a slightly more confident heading scale. Additive/presentational only -- nothing
+     here changes what any section computes or which numbers are dbt-tested vs. illustrative. ---- */
+  .scroll-progress{position:fixed; top:0; left:0; height:3px; width:0%; background:rgb(var(--c-accent)); z-index:10; pointer-events:none}
+
+  /* sidebar nav: wide-desktop only. Hidden by default (display:none) and only shown past
+     1400px, where .wrap's margin is shifted right to make room -- below that breakpoint
+     neither rule fires and .wrap renders byte-for-byte as it did before this section existed.
+     z-index:3 is deliberately BELOW the existing overlay stack (.bar=5, .tip=6, .infopop=9,
+     .scroll-progress=10) -- .infopop's positioning math (rect.left - 182, clamped to
+     Math.max(4, left)) can land an open popover's left edge inside this sidebar's 0-220px
+     column when a nearby .infobtn sits close to the (now-shifted) left edge of the content,
+     e.g. the Assumptions section's inline info button. A popover rendering on top of the
+     sidebar in that case is correct; the sidebar covering an open popover would be the bug. */
+  .sidebar-nav{
+    /* top measured against the real, rendered .bar height (~68px) + a small gap, not guessed */
+    display:none; position:fixed; left:0; top:76px; width:220px; max-height:calc(100vh - 96px);
+    overflow-y:auto; padding:8px 16px 20px; z-index:3;
+  }
+  @media (min-width:1400px){
+    .sidebar-nav{display:block}
+    .wrap{margin-left:260px}
+  }
+  .sidebar-nav .group{margin-bottom:6px}
+  .sidebar-nav a{
+    display:block; text-decoration:none; border-radius:6px; transition:color .15s, background .15s;
+    color:rgb(var(--c-text-secondary));
+  }
+  .sidebar-nav .chapter-link{padding:7px 10px; font:700 13px/1.45 ui-monospace,monospace; letter-spacing:.03em}
+  .sidebar-nav .sub-link{padding:5px 10px 5px 20px; font:500 13px/1.45 inherit}
+  .sidebar-nav a:hover{color:rgb(var(--c-text-primary))}
+  .sidebar-nav a.active{color:rgb(var(--c-accent)); background:rgb(var(--c-accent) / .08)}
+  /* JS only ever adds .reveal-init when IntersectionObserver exists AND reduced-motion is off
+     (see the script below) -- the base/no-JS state is always fully visible, never hidden. Resting
+     state is "transform:none", not "translateY(0)": a translateY(0) is still a non-none transform
+     value, which per the CSS Transforms spec makes the element the containing block for any
+     position:fixed descendant -- would silently break #infoPop/#sparkTip's viewport-relative
+     getBoundingClientRect() math if either ever ended up nested inside a revealed section again. */
+  .reveal-init{opacity:0; transform:translateY(16px)}
+  .reveal-visible{opacity:1; transform:none; transition:opacity .45s ease, transform .45s ease}
+  .card.kpi, .card.panel, .card.tcard{transition:transform .18s ease, box-shadow .18s ease}
+  .card.kpi:hover, .card.panel:hover, .card.tcard:hover{transform:translateY(-2px); box-shadow:0 10px 28px rgb(0 0 0 / .18)}
+  h1{text-wrap:balance}
+  h2{text-wrap:balance}
+
+  /* chapter markers: a distinct numbered-pill treatment, deliberately NOT reusing .eyebrow's
+     typographic style -- the two existing "second lens"/"third lens" eyebrows already narrate the
+     same 3-part structure in prose; a chapter label styled identically would read as a duplicated
+     micro-label stacked on the same fact rather than a distinct piece of UI. */
+  .chapter{display:inline-flex; align-items:center; gap:8px; margin-bottom:10px; font:700 12.5px/1.3 ui-monospace,monospace; letter-spacing:.1em; text-transform:uppercase; color:rgb(var(--c-accent))}
+  .chapter .num{display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; border-radius:50%; background:rgb(var(--c-accent) / .12); border:1px solid rgb(var(--c-accent) / .4)}
+
+  /* hero background motif: a faint blueprint/graph-paper grid, contained to the hero only.
+     .1 alpha matches this file's own existing .gridline precedent (stroke-based marks need more
+     alpha than a solid fill to register once anti-aliased -- .insight's .05 solid-fill precedent
+     is the wrong comparison for a grid of thin lines). Uses the existing --c-accent token at both
+     themes' own lightness, so it never needs a separate light/dark value; masked to fade out
+     toward the bottom of the hero rather than reading as a hard-edged box. */
+  .hero-motif{position:relative}
+  .hero-motif::before{
+    content:""; position:absolute; inset:0; z-index:-1; pointer-events:none;
+    background-image:
+      linear-gradient(rgb(var(--c-accent) / .1) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(var(--c-accent) / .1) 1px, transparent 1px);
+    background-size:32px 32px;
+    -webkit-mask-image:linear-gradient(to bottom, black, transparent);
+    mask-image:linear-gradient(to bottom, black, transparent);
+  }
+</style>
+</head>
+<body>
+
+<div class="scroll-progress" id="scrollProgress"></div>
+
+<div class="bar">
+  <div class="bar-in">
+    <a class="brand" href="./" style="text-decoration:none; color:inherit" title="Back to portfolio"><span class="dot"></span><span>GPU Cost Command Center<small>dbt · DuckDB · gpu_cost_attribution</small></span></a>
+    <span class="badge" id="rangeBadge">loading…</span>
+    <div class="right">
+      <button class="icobtn" id="themeBtn" type="button" aria-pressed="false">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+        Theme
+      </button>
+      <a class="icobtn" href="#glossarySection">Glossary ↓</a>
+      <a class="icobtn" href="https://github.com/tjaiyen/tj-finance-portfolio/tree/main/dbt_gpu_cost_attribution" target="_blank" rel="noopener">Repo →</a>
+    </div>
+  </div>
+</div>
+
+<!-- Sidebar nav: wide-desktop only (see .sidebar-nav CSS). A sibling of .wrap, never nested
+     inside it -- zero change to any existing section's nesting, so the reveal system's
+     `body > .wrap > section` selector stays exactly as valid as it was before this existed. -->
+<nav class="sidebar-nav" id="sidebarNav">
+  <div class="group">
+    <a class="chapter-link active" href="#kpiSection" data-nav-target="kpiSection">Chapter 1 · The Ledger</a>
+    <a class="sub-link" href="#tenantsSection" data-nav-target="tenantsSection">Tenant margins</a>
+    <a class="sub-link" href="#varianceSection" data-nav-target="varianceSection">Variance &amp; forecast</a>
+    <a class="sub-link" href="#reconciliationSection" data-nav-target="reconciliationSection">Data integrity</a>
+  </div>
+  <div class="group">
+    <a class="chapter-link" href="#econKpis" data-nav-target="econKpis">Chapter 2 · The Site</a>
+    <a class="sub-link" href="#assumptionsSection" data-nav-target="assumptionsSection">Assumptions</a>
+    <a class="sub-link" href="#pnlSection" data-nav-target="pnlSection">P&amp;L &amp; capital structure</a>
+    <a class="sub-link" href="#irrSection" data-nav-target="irrSection">10-yr IRR &amp; NPV</a>
+  </div>
+  <div class="group">
+    <a class="chapter-link" href="#portfolioKpis" data-nav-target="portfolioKpis">Chapter 3 · The Portfolio</a>
+  </div>
+  <div class="group">
+    <a class="chapter-link" href="#glossarySection" data-nav-target="glossarySection">Glossary</a>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <section class="hero-motif" style="margin-top:26px; padding:4px 4px 20px">
+    <div class="chapter"><span class="num">1</span>The ledger</div>
+    <div class="eyebrow">FinOps · overhead absorption</div>
+    <h1 style="font-size:clamp(28px, 4vw, 40px); margin-top:10px">Who actually pays for idle GPU capacity?</h1>
+    <p class="lede">Shared inference cluster cost, split into an active pool (compute actually used) and an idle pool
+      (provisioned but unused — the overhead), then absorbed across tenants by token share, exactly like a factory
+      absorbs shared equipment cost across job orders by machine-hours. Every number below is a column produced and
+      tested by <code>dbt build</code> — nothing is computed on this page.</p>
+  </section>
+
+  <section id="kpiSection">
+    <div class="kpis" id="kpis"><div class="skel">loading…</div></div>
+  </section>
+
+  <section id="storySection"></section>
+
+  <section class="card panel">
+    <div class="panel-head">
+      <div>
+        <div style="display:flex; align-items:center; gap:7px">
+          <h2>Daily cluster cost — active vs. idle</h2>
+          <button class="infobtn inline" type="button" data-info="compositionInfo" aria-label="What is this?" aria-expanded="false">i</button>
+        </div>
+        <p class="lede" style="margin-top:2px">The overhead pool being absorbed, day by day.</p>
+      </div>
+      <div class="legend">
+        <span><i style="background:rgb(var(--c-accent))"></i>Active (used)</span>
+        <span><i style="background:rgb(var(--c-text-secondary))"></i>Idle (provisioned, unused)</span>
+      </div>
+    </div>
+    <div class="chart-wrap" id="compositionWrap"><div class="skel">loading…</div></div>
+    <div id="compositionInsight"></div>
+  </section>
+
+  <section class="card panel">
+    <div class="panel-head">
+      <div>
+        <div style="display:flex; align-items:center; gap:7px">
+          <h2>The absorption key — token share by tenant</h2>
+          <button class="infobtn inline" type="button" data-info="allocationInfo" aria-label="What is this?" aria-expanded="false">i</button>
+        </div>
+        <p class="lede" style="margin-top:2px">This ratio is what decides how much of the idle pool each tenant gets stuck absorbing.</p>
+      </div>
+    </div>
+    <div id="allocPanel" style="margin-top:12px"><div class="skel">loading…</div></div>
+    <div id="allocationInsight"></div>
+  </section>
+
+  <section class="split" id="tenantsSection">
+    <div>
+      <h2 style="font-size:14.5px; margin-bottom:10px">Tenant margin — by absorbed overhead</h2>
+      <div class="tenants" id="tenants"><div class="skel">loading…</div></div>
+    </div>
+    <div class="card controls">
+      <div style="display:flex; align-items:center; gap:7px">
+        <h3>Explore margin-zone thresholds</h3>
+        <button class="infobtn inline" type="button" data-info="thresholdInfo" aria-label="What is this?" aria-expanded="false">i</button>
+      </div>
+      <p class="lede">Re-colors the cards above against each tenant's already-computed <code>gross_margin_pct</code> —
+        this does not recompute any cost or margin figure. Mirrors <code>dbt build --vars</code> re-tunability.</p>
+      <div class="field">
+        <div class="fl"><span>Warning below</span><b id="warnVal">40%</b></div>
+        <input type="range" id="warnSlider" min="0" max="60" step="1" value="40" />
+      </div>
+      <div class="field">
+        <div class="fl"><span>Best-in-class above</span><b id="bestVal">65%</b></div>
+        <input type="range" id="bestSlider" min="40" max="90" step="1" value="65" />
+      </div>
+      <button class="reset" id="resetBtn" type="button">Reset to dbt_project.yml defaults</button>
+    </div>
+  </section>
+
+  <section class="card panel" id="varianceSection">
+    <div class="panel-head">
+      <div>
+        <div style="display:flex; align-items:center; gap:7px">
+          <h2>Budget vs. actual — margin variance</h2>
+          <button class="infobtn inline" type="button" data-info="varianceInfo" aria-label="What is this?" aria-expanded="false">i</button>
+        </div>
+        <p class="lede" style="margin-top:2px">"Budget" here is the same best-in-class threshold set in the panel above — drag it and this re-renders too.</p>
+      </div>
+    </div>
+    <div class="chart-wrap" id="varianceWrap"><div class="skel">loading…</div></div>
+    <div id="varianceInsight"></div>
+  </section>
+
+  <section class="card panel">
+    <div class="panel-head">
+      <div>
+        <div style="display:flex; align-items:center; gap:7px">
+          <h2>12-month rolling forecast</h2>
+          <button class="infobtn inline" type="button" data-info="forecastInfo" aria-label="What is this?" aria-expanded="false">i</button>
+        </div>
+        <p class="lede" style="margin-top:2px">Month 0 is the real, dbt-tested blended margin above. The 12-month projection forward is an illustrative what-if, not a forecast sourced from data.</p>
+      </div>
+      <div class="legend" id="forecastLegend"></div>
+    </div>
+    <div class="chart-wrap" id="forecastWrap"><div class="skel">loading…</div></div>
+    <div id="forecastInsight"></div>
+  </section>
+
+  <section class="card panel" id="reconciliationSection">
+    <div class="panel-head">
+      <div>
+        <div style="display:flex; align-items:center; gap:7px">
+          <h2>Data integrity check — two paths, one number</h2>
+          <button class="infobtn inline" type="button" data-info="reconciliationInfo" aria-label="What is this?" aria-expanded="false">i</button>
+        </div>
+        <p class="lede" style="margin-top:2px">The audit trail behind everything in this chapter: two independent ways of adding up the same underlying data, checked against each other.</p>
+      </div>
+    </div>
+    <div id="reconciliationWrap"><div class="skel">loading…</div></div>
+    <div id="reconciliationInsight"></div>
+  </section>
+
+  <section class="divider">
+    <div class="chapter"><span class="num">2</span>The site</div>
+    <div class="eyebrow">Capital efficiency · a second lens<span class="live-badge"><span class="dot2"></span>Live calculator</span></div>
+    <h2 style="font-size:18px; margin-top:8px">Site deployment economics</h2>
+    <p class="lede">A different question than the tenant view above: not "who pays for shared compute," but
+      "how efficiently is capital turned into revenue-generating capacity." The 6 figures below are computed
+      <b style="color:rgb(var(--c-text-primary))">live, in your browser, from the assumptions you set</b> —
+      unlike the tenant section, they are not dbt-tested columns. Change any field to model a different site.</p>
+  </section>
+
+  <section class="kpis" id="econKpis">
+    <div class="card kpi">
+      <button class="infobtn" type="button" data-info="econUtil" aria-label="What is this?" aria-expanded="false">i</button>
+      <div class="lbl">Site utilization</div>
+      <div class="val tabular" id="econUtilVal">—</div>
+      <div class="sub" id="econUtilSub">—</div>
+    </div>
+    <div class="card kpi">
+      <button class="infobtn" type="button" data-info="econCostMw" aria-label="What is this?" aria-expanded="false">i</button>
+      <div class="lbl">Cost per deployed MW</div>
+      <div class="val tabular" id="econCostMwVal">—</div>
+      <div class="sub" id="econCostMwSub">—</div>
+    </div>
+    <div class="card kpi">
+      <button class="infobtn" type="button" data-info="econSavings" aria-label="What is this?" aria-expanded="false">i</button>
+      <div class="lbl">Annual power savings / rack</div>
+      <div class="val tabular" id="econSavingsVal">—</div>
+      <div class="sub" id="econSavingsSub">—</div>
+    </div>
+    <div class="card kpi">
+      <button class="infobtn" type="button" data-info="econPue" aria-label="What is this?" aria-expanded="false">i</button>
+      <div class="lbl">Power usage effectiveness</div>
+      <div class="val tabular" id="econPueVal">—</div>
+      <div class="sub" id="econPueSub">—</div>
+    </div>
+    <div class="card kpi">
+      <button class="infobtn" type="button" data-info="econPayback" aria-label="What is this?" aria-expanded="false">i</button>
+      <div class="lbl">Efficiency retrofit payback</div>
+      <div class="val tabular" id="econPaybackVal">—</div>
+      <div class="sub" id="econPaybackSub">—</div>
+    </div>
+    <div class="card kpi">
+      <button class="infobtn" type="button" data-info="econRoda" aria-label="What is this?" aria-expanded="false">i</button>
+      <div class="lbl">Return on deployed assets</div>
+      <div class="val tabular" id="econRodaVal">—</div>
+      <div class="sub" id="econRodaSub">—</div>
+    </div>
+  </section>
+
+  <section id="economicsInsight"></section>
+
+  <section class="card econ-grid" id="assumptionsSection">
+    <div class="panel-head" style="margin-bottom:4px">
+      <div style="display:flex; align-items:center; gap:7px">
+        <h3 style="font-size:13px; text-transform:uppercase; letter-spacing:.06em; color:rgb(var(--c-text-secondary))">Assumptions</h3>
+        <button class="infobtn inline" type="button" data-info="assumptionsInfo" aria-label="What is this?" aria-expanded="false">i</button>
+      </div>
+      <button class="reset" id="econReset" type="button" style="margin-top:0; width:auto; padding:0 14px">Reset to defaults</button>
+    </div>
+
+    <details class="igroup" open>
+      <summary>Site utilization</summary>
+      <div class="inputs-row">
+        <div class="nfield"><label for="econCap">Total facility capacity (MW)</label><input type="number" id="econCap" min="0" step="1" /></div>
+        <div class="nfield"><label for="econLoad">Active IT load (MW)</label><input type="number" id="econLoad" min="0" step="1" /></div>
+      </div>
+    </details>
+
+    <details class="igroup" open>
+      <summary>Cost per deployed MW</summary>
+      <div class="inputs-row">
+        <div class="nfield"><label for="econShell">CapEx — shell &amp; civil ($)</label><input type="text" inputmode="decimal" id="econShell" /></div>
+        <div class="nfield"><label for="econMep">CapEx — MEP infrastructure ($)</label><input type="text" inputmode="decimal" id="econMep" /></div>
+        <div class="nfield"><label for="econFitout">CapEx — technology fit-out ($)</label><input type="text" inputmode="decimal" id="econFitout" /></div>
+        <div class="nfield"><label for="econMw">Total deployed capacity (MW)</label><input type="number" id="econMw" min="0" step="1" /></div>
+      </div>
+    </details>
+
+    <details class="igroup" open>
+      <summary>Operating cost per site (annualized, per rack)</summary>
+      <div class="inputs-row">
+        <div class="nfield"><label for="econRack">Rack IT power (kW)</label><input type="number" id="econRack" min="0" step="1" /></div>
+        <div class="nfield"><label for="econRate">Electricity rate ($/kWh)</label><input type="number" id="econRate" min="0" step="0.001" /></div>
+        <div class="nfield"><label for="econPueL">PUE — legacy / industry avg</label><input type="number" id="econPueL" min="1" step="0.01" /></div>
+        <div class="nfield"><label for="econPueE">PUE — efficient AI-optimized</label><input type="number" id="econPueE" min="1" step="0.01" /></div>
+      </div>
+    </details>
+
+    <details class="igroup" open>
+      <summary>Return on deployed assets</summary>
+      <div class="inputs-row">
+        <div class="nfield"><label for="econFacCapex">Facility CapEx ($)</label><input type="text" inputmode="decimal" id="econFacCapex" /></div>
+        <div class="nfield"><label for="econCompCapex">Compute (GPU) CapEx ($)</label><input type="text" inputmode="decimal" id="econCompCapex" /></div>
+        <div class="nfield"><label for="econRevenue">Site annual revenue ($)</label><input type="text" inputmode="decimal" id="econRevenue" /></div>
+        <div class="nfield"><label for="gpuLifeYears">GPU useful life (years)</label><input type="number" id="gpuLifeYears" min="1" step="0.5" /></div>
+      </div>
+    </details>
+
+    <details class="igroup" open>
+      <summary>Efficiency retrofit</summary>
+      <div class="inputs-row">
+        <div class="nfield"><label for="retrofitCostPerRack">Retrofit cost per rack ($)</label><input type="text" inputmode="decimal" id="retrofitCostPerRack" /></div>
+      </div>
+    </details>
+
+    <details class="igroup" open>
+      <summary>Capital structure &amp; taxes</summary>
+      <div class="inputs-row">
+        <div class="nfield"><label for="debtInterestRate">Debt interest rate (%)</label><input type="number" id="debtInterestRate" min="0" step="0.1" /></div>
+        <div class="nfield"><label for="equityHurdleRate">Equity hurdle rate (%)</label><input type="number" id="equityHurdleRate" min="0" step="0.1" /></div>
+        <div class="nfield"><label for="taxRate">Effective tax rate (%)</label><input type="number" id="taxRate" min="0" max="60" step="0.5" /></div>
+      </div>
+    </details>
+
+    <p class="lede" style="margin-top:16px">Illustrative defaults, not this project's employer or any confirmed
+      site's real figures — swap in your own numbers. Operating hours/year is fixed at 24 × 365 = 8,760.</p>
+  </section>
+
+  <section class="split">
+    <div class="card panel">
+      <div class="panel-head">
+        <div>
+          <div style="display:flex; align-items:center; gap:7px">
+            <h2>Cost of a delayed ramp — GPUs vs. the building shell</h2>
+            <button class="infobtn inline" type="button" data-info="depreciationInfo" aria-label="What is this?" aria-expanded="false">i</button>
+          </div>
+          <p class="lede" style="margin-top:2px">GPUs and buildings write off their capital cost at very different speeds — that mismatch is why a slow ramp is expensive.</p>
+        </div>
+      </div>
+      <div class="chart-wrap" id="depreciationWrap"><div class="skel">loading…</div></div>
+      <div id="depreciationInsight"></div>
+    </div>
+    <div class="card controls">
+      <div style="display:flex; align-items:center; gap:7px">
+        <h3>Model a delayed ramp</h3>
+        <button class="infobtn inline" type="button" data-info="delayInfo" aria-label="What is this?" aria-expanded="false">i</button>
+      </div>
+      <p class="lede">Months between the building being ready and GPUs actually going live and earning revenue.</p>
+      <div class="field">
+        <div class="fl"><span>Delay</span><b id="delayVal">6 months</b></div>
+        <input type="range" id="delaySlider" min="0" max="24" step="1" value="6" />
+      </div>
+    </div>
+  </section>
+
+  <section class="card panel" id="pnlSection">
+    <div class="panel-head">
+      <div>
+        <div style="display:flex; align-items:center; gap:7px">
+          <h2>Site-level P&amp;L</h2>
+          <button class="infobtn inline" type="button" data-info="pnlInfo" aria-label="What is this?" aria-expanded="false">i</button>
+        </div>
+        <p class="lede" style="margin-top:2px">Revenue, operating cost, and depreciation assembled into the statement RODA above is actually built from — EBIT here is computed, not a separately typed number.</p>
+      </div>
+    </div>
+    <div class="chart-wrap" id="pnlWrap"><div class="skel">loading…</div></div>
+    <div id="pnlInsight"></div>
+  </section>
+
+  <section class="split">
+    <div class="card panel">
+      <div class="panel-head">
+        <div>
+          <div style="display:flex; align-items:center; gap:7px">
+            <h2>Capital structure — debt vs. equity</h2>
+            <button class="infobtn inline" type="button" data-info="capitalStructureInfo" aria-label="What is this?" aria-expanded="false">i</button>
+          </div>
+          <p class="lede" style="margin-top:2px">The P&amp;L above ends at EBIT. This is what's left after paying for however that capital was actually financed.</p>
+        </div>
+      </div>
+      <div id="capitalStructureWrap"><div class="skel">loading…</div></div>
+      <div id="capitalStructureInsight"></div>
+    </div>
+    <div class="card controls">
+      <div style="display:flex; align-items:center; gap:7px">
+        <h3>Explore the financing mix</h3>
+        <button class="infobtn inline" type="button" data-info="debtSliderInfo" aria-label="What is this?" aria-expanded="false">i</button>
+      </div>
+      <p class="lede">Real infrastructure builds are rarely all-equity — this models funding part of the build with asset-backed debt instead.</p>
+      <div class="field">
+        <div class="fl"><span>Debt-financed</span><b id="debtVal">55%</b></div>
+        <input type="range" id="debtSlider" min="0" max="100" step="1" value="55" />
+      </div>
+    </div>
+  </section>
+
+  <section class="card panel">
+    <div class="panel-head">
+      <div>
+        <div style="display:flex; align-items:center; gap:7px">
+          <h2>What moves RODA the most — a sensitivity check</h2>
+          <button class="infobtn inline" type="button" data-info="tornadoInfo" aria-label="What is this?" aria-expanded="false">i</button>
+        </div>
+        <p class="lede" style="margin-top:2px">Nudge each input ±10% on its own, holding the rest steady, and see which one swings the return the most.</p>
+      </div>
+    </div>
+    <div class="chart-wrap" id="tornadoWrap"><div class="skel">loading…</div></div>
+    <div id="tornadoInsight"></div>
+  </section>
+
+  <section class="card panel" id="irrSection">
+    <div class="panel-head">
+      <div>
+        <div style="display:flex; align-items:center; gap:7px">
+          <h2>10-year project return — IRR &amp; NPV</h2>
+          <button class="infobtn inline" type="button" data-info="irrInfo" aria-label="What is this?" aria-expanded="false">i</button>
+        </div>
+        <p class="lede" style="margin-top:2px">Everything above is a single year's snapshot. This carries the same assumptions out ten years and discounts them back to today.</p>
+      </div>
+    </div>
+    <div class="kpis" style="grid-template-columns:repeat(2,1fr); margin:0 0 12px">
+      <div class="card kpi">
+        <div class="lbl">Net present value (10 yr)</div>
+        <div class="val tabular" id="irrNpvVal">—</div>
+        <div class="sub">at the blended cost of capital above</div>
+      </div>
+      <div class="card kpi">
+        <div class="lbl">Unlevered IRR</div>
+        <div class="val tabular" id="irrIrrVal">—</div>
+        <div class="sub" id="irrIrrSub">—</div>
+      </div>
+    </div>
+    <div id="irrInsight"></div>
+  </section>
+
+  <section class="divider">
+    <div class="chapter"><span class="num">3</span>The portfolio</div>
+    <div class="eyebrow">Site deployments · a third lens<span class="live-badge"><span class="dot2"></span>Illustrative snapshot</span></div>
+    <div style="display:flex; align-items:center; gap:7px; margin-top:8px">
+      <h2 style="font-size:18px">Deployment portfolio</h2>
+      <button class="infobtn inline" type="button" data-info="portfolioInfo" aria-label="What is this?" aria-expanded="false">i</button>
+    </div>
+    <p class="lede">A synthetic six-site portfolio at different build stages — what "site deployments" looks like as a
+      fleet-management problem, not a single build. Static illustrative data, not a live calculator like the section
+      above and not sourced from dbt.</p>
+  </section>
+
+  <section class="kpis" id="portfolioKpis">
+    <div class="card kpi">
+      <button class="infobtn" type="button" data-info="portfolioCapital" aria-label="What is this?" aria-expanded="false">i</button>
+      <div class="lbl">Capital deployed</div>
+      <div class="val tabular" id="portfolioCapitalVal">—</div>
+      <div class="sub" id="portfolioCapitalSub">—</div>
+    </div>
+    <div class="card kpi">
+      <button class="infobtn" type="button" data-info="portfolioCapacity" aria-label="What is this?" aria-expanded="false">i</button>
+      <div class="lbl">Capacity delivered vs. target</div>
+      <div class="val tabular" id="portfolioCapacityVal">—</div>
+      <div class="sub" id="portfolioCapacitySub">—</div>
+    </div>
+    <div class="card kpi">
+      <button class="infobtn" type="button" data-info="portfolioBehind" aria-label="What is this?" aria-expanded="false">i</button>
+      <div class="lbl">Sites behind schedule</div>
+      <div class="val tabular" id="portfolioBehindVal">—</div>
+      <div class="sub" id="portfolioBehindSub">—</div>
+    </div>
+    <div class="card kpi">
+      <button class="infobtn" type="button" data-info="portfolioDelayCost" aria-label="What is this?" aria-expanded="false">i</button>
+      <div class="lbl">Portfolio cost of delay</div>
+      <div class="val tabular" id="portfolioDelayCostVal">—</div>
+      <div class="sub" id="portfolioDelayCostSub">—</div>
+    </div>
+    <div class="card kpi">
+      <button class="infobtn" type="button" data-info="portfolioCPI" aria-label="What is this?" aria-expanded="false">i</button>
+      <div class="lbl">Cost performance (CPI)</div>
+      <div class="val tabular" id="portfolioCPIVal">—</div>
+      <div class="sub" id="portfolioCPISub">—</div>
+    </div>
+    <div class="card kpi">
+      <button class="infobtn" type="button" data-info="portfolioSPI" aria-label="What is this?" aria-expanded="false">i</button>
+      <div class="lbl">Schedule performance (SPI)</div>
+      <div class="val tabular" id="portfolioSPIVal">—</div>
+      <div class="sub" id="portfolioSPISub">—</div>
+    </div>
+    <div class="card kpi">
+      <button class="infobtn" type="button" data-info="portfolioEAC" aria-label="What is this?" aria-expanded="false">i</button>
+      <div class="lbl">Estimate at completion (EAC)</div>
+      <div class="val tabular" id="portfolioEACVal">—</div>
+      <div class="sub" id="portfolioEACSub">—</div>
+    </div>
+    <div class="card kpi">
+      <button class="infobtn" type="button" data-info="portfolioVAC" aria-label="What is this?" aria-expanded="false">i</button>
+      <div class="lbl">Variance at completion (VAC)</div>
+      <div class="val tabular" id="portfolioVACVal">—</div>
+      <div class="sub" id="portfolioVACSub">—</div>
+    </div>
+  </section>
+
+  <section class="tenants" id="portfolioSites"><div class="skel">loading…</div></section>
+  <section id="portfolioInsight"></section>
+  <section id="portfolioEvmInsight"></section>
+
+  <section style="margin-top:34px">
+    <div class="card insight" style="margin-top:0">
+      <span class="tag">The throughline</span>
+      Three chapters, one problem, at three different scales. Chapter 1 shows it in a single
+      customer's bill — idle capacity, split by who used the cluster the most. Chapter 2 shows it
+      in a single site's economics — the same idle capacity, reframed as depreciation running with
+      nothing yet to show for it. Chapter 3 shows it across a fleet — the same clock, ticking on
+      every site still ramping at once. Different scale, same math, every time it could be checked
+      against a tested number, it was.
+    </div>
+  </section>
+
+  <section id="glossarySection" style="margin-top:34px">
+    <div class="eyebrow">Reference · glossary</div>
+    <h2 style="font-size:20px; margin-top:8px">Terms used on this page</h2>
+    <p class="lede">Every finance and data-center term above, in plain language, with a worked example — not just what it means, but what it looks like with real numbers.</p>
+  </section>
+
+  <section class="card econ-grid" id="glossaryWrap"><div class="skel">loading…</div></section>
+
+  <footer>
+    <span>Synthetic data — no employer or confidential information. Model: <a href="https://github.com/tjaiyen/tj-finance-portfolio/tree/main/dbt_gpu_cost_attribution" target="_blank" rel="noopener">dbt_gpu_cost_attribution</a></span>
+    <span>Built with 24 automated dbt tests across 3 tiers (data, unit, singular) · <code>dbt build</code> passes clean · CI on every push</span>
+    <span id="genAt"></span>
+  </footer>
+
+  <!-- Shared floating tooltip/popover elements -- deliberately siblings of every <section>, never
+       nested inside one. A CSS transform on an ancestor becomes the containing block for a
+       position:fixed descendant, which would break these elements' viewport-relative
+       getBoundingClientRect() positioning math if a scroll-reveal transform ever landed on an
+       ancestor section. Living here, outside every <section>, makes that structurally impossible
+       regardless of what reveal-related CSS classes get added above. -->
+  <div class="tip" id="sparkTip"></div>
+  <div class="infopop" id="infoPop"></div>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var root = document.documentElement;
+  var themeBtn = document.getElementById("themeBtn");
+  var mq = window.matchMedia("(prefers-color-scheme: dark)");
+  function applyThemeLabel(){
+    var explicit = root.dataset.theme;
+    themeBtn.setAttribute("aria-pressed", explicit ? "true" : "false");
+  }
+  themeBtn.addEventListener("click", function(){
+    var current = root.dataset.theme || (mq.matches ? "dark" : "light");
+    var next = current === "dark" ? "light" : "dark";
+    root.dataset.theme = next;
+    applyThemeLabel();
+  });
+  applyThemeLabel();
+
+  var fmtUSD = function(n){
+    var neg = n < 0;
+    var abs = Math.abs(n);
+    var s = "$" + abs.toLocaleString(undefined, {maximumFractionDigits: abs >= 100 ? 0 : 2});
+    return neg ? "(" + s + ")" : s;
+  };
+  // Large $ headline figures ("$16,000,000/MW") are one unbroken string -- commas and a "/"
+  // aren't line-break opportunities, so a KPI tile too narrow to fit it doesn't wrap, it
+  // overflows past the card's edge (.kpi .val is a block div with overflow:visible, so it
+  // doesn't clip either; measured via scrollWidth(212) > clientWidth(180) at the 5-tile
+  // grid's tightest, not via any height/line-count check -- every tile reports the same
+  // ~40px single-line height regardless of content, so height is not a valid wrap signal
+  // here). Abbreviate to millions for tiles whose headline number can run this large (cost
+  // per MW, annual power savings under extreme inputs); sub-text/narrator prose elsewhere
+  // keeps full precision. Billions get their own tier ("$3.8B" not "$3795M") -- the portfolio
+  // section's totals are the first values on this page to actually reach it, but any econ
+  // input is user-editable, so a large enough typed CapEx hits this path too.
+  var fmtUSDCompact = function(n){
+    var neg = n < 0, abs = Math.abs(n);
+    if (abs < 1e6) return fmtUSD(n);
+    if (abs >= 1e9) {
+      var b = Math.round(abs / 1e8) / 10; // one decimal of precision in billions
+      var sb = "$" + (b % 1 === 0 ? b.toFixed(0) : b.toFixed(1)) + "B";
+      return neg ? "(" + sb + ")" : sb;
+    }
+    var m = Math.round(abs / 1e5) / 10; // one decimal of precision in millions
+    var s = "$" + (m % 1 === 0 ? m.toFixed(0) : m.toFixed(1)) + "M";
+    return neg ? "(" + s + ")" : s;
+  };
+  var fmtPct = function(n){ return (n * 100).toFixed(1) + "%"; };
+  var fmtPct0 = function(n){ return Math.round(n * 100) + "%"; };
+
+  // ---- educational info popovers: one shared floating panel, delegated click handler so
+  // it works for both static and dynamically-inserted .infobtn elements without re-wiring. ----
+  // Plain language, no jargon: every term is explained from scratch, not assumed knowledge.
+  var KPI_INFO = {
+    totalSpend: "What this tenant paid for GPU time — including its fair share of capacity that was reserved but sat unused. Added up over the whole time period shown.",
+    idleOverhead: "Data centers get billed for GPUs whether or not those GPUs are doing any work. This is the slice of total spend that comes from capacity that was paid for but sat idle.",
+    blendedMargin: "Money left over after costs, as a percentage of money billed — combining all three tenants into one number.",
+    tenantsAtRisk: "Tenants whose most recent day dropped below the “in trouble” line. You can drag that line yourself in the panel to the right.",
+    econUtil: "How much of the site's total power capacity is actually being used right now. The unused rest still costs money — rent, depreciation, and upkeep don't pause just because a GPU sits idle.",
+    econCostMw: "What it costs to build one megawatt of ready-to-use capacity — the building, the power and cooling systems, and the tech installed inside it. A standard way builders compare one site to another.",
+    econSavings: "Cooling and power systems aren't all equally efficient. This is how much one rack of servers would save every year by running on a more efficient setup instead of an older, less efficient one — same electricity price either way.",
+    econRoda: "For every dollar spent building this site and filling it with GPUs, how many cents come back as profit each year. A simple gut-check for whether the money was well spent.",
+    econPayback: "If you spent money upgrading a rack to the more efficient cooling/power setup, how many years of the savings it produces would it take to earn that spend back. Shorter is better — it means the upgrade pays for itself faster.",
+    econPue: "For every 1 unit of power that actually reaches the servers, this is how many total units the whole building draws — the rest goes to cooling, lighting, and other overhead. 1.0 would mean zero overhead, which no real building hits. Lower is better.",
+    compositionInfo: "Think of the cluster's daily bill as a pie. The blue slice is compute that customers actually used. The gray slice is capacity that was reserved and paid for, but nobody used it that day.",
+    allocationInfo: "The unused capacity above isn't split evenly — it's split by how much each tenant actually used. Send more requests, and you pick up a bigger share of the leftover, unused capacity too.",
+    thresholdInfo: "Drag these to change where a tenant counts as “in trouble” versus “doing great.” This only changes the labels and colors on the cards above — it never changes the dollar figures themselves.",
+    assumptionsInfo: "Every box below is something you can change to ask a what-if question, e.g. what if the building cost more, what if the site ran hotter, what if electricity got pricier. The six numbers above update instantly as you type.",
+    depreciationInfo: "Depreciation just means spreading a big purchase's cost over the years it stays useful, instead of counting it all on day one. GPUs wear out, and go obsolete, much faster than a building shell does, so every idle month costs very different amounts depending on which one is sitting unused.",
+    delayInfo: "A real site doesn't flip from under-construction to fully-earning overnight, GPUs typically arrive and get racked after the building itself is ready. This slider asks: what if that gap were longer or shorter?",
+    tornadoInfo: "A tornado chart is a standard finance technique for stress-testing an estimate: move one input at a time by the same percentage, holding everything else fixed, and see which one swings the result the most. The widest bar is the number most worth double-checking.",
+    portfolioInfo: "Everything above modeled one site. Real deployments are usually a fleet -- several sites at once, each at a different stage from early planning to fully live. This section is a static, illustrative snapshot of six such sites, not something you can edit like the calculator above.",
+    portfolioCapital: "How much of the money set aside for these six sites has actually been spent so far, versus how much was planned in total. The remaining figure is what's still needed to finish every site in the portfolio -- the forward-looking capital number, not just a look back at spend to date.",
+    portfolioCapacity: "Across all six sites, how many megawatts are actually live and delivering today, compared to what the finished portfolio is targeting. Sites still in planning or construction count toward the target but not yet toward what's delivered.",
+    portfolioBehind: "How many of the six sites are running later than planned. A site still early in planning isn't counted as behind -- there's no schedule to miss yet.",
+    portfolioDelayCost: "For every site that's running behind, this adds up the GPU depreciation that ran during the delay with no site there yet to use it -- the same idea as the single-site \"cost of a delayed ramp\" above, added across the whole portfolio.",
+    varianceInfo: "\"Budget\" isn't a separate number someone typed in -- it's the same best-in-class margin line from the threshold panel above. This compares what each tenant actually earned, on average, against that line. Note this uses each tenant's whole-period average margin, not just the latest day shown on its card above, so the percentage here can read a little differently than the card's headline number.",
+    forecastInfo: "The starting point (month 0) is the real, dbt-tested blended margin from the top of this page. Everything after that is illustrative -- three simple, made-up monthly trend lines, not a statistical projection, showing roughly how far apart a good, a middling, and a bad next 12 months could look.",
+    pnlInfo: "Revenue is the one number you type in. Operating cost and depreciation are pulled from the numbers already computed elsewhere on this page, not typed separately. EBIT falls out of that subtraction -- it's not its own input, so it can never quietly disagree with the return-on-assets number above, which is built from this same EBIT.",
+    capitalStructureInfo: "The return-on-assets figure above treats every dollar of capital the same, however it was raised. In practice, a data-center build is usually funded by a mix of debt (a loan, secured against the GPUs or the site itself) and equity. Debt has an explicit yearly cost -- interest. Equity's cost is less visible but real -- investors expect a higher return for taking on more risk than a lender does. This section splits the capital and shows what's actually left for equity holders once the debt is paid.",
+    debtSliderInfo: "This slider models the mix, not a change to how much the site costs to build -- the total capital needed stays the same. What changes is how much of it comes from a lender (debt) versus an investor (equity), and each has a different price.",
+    reconciliationInfo: "A standard finance-controls technique: calculate the same total two completely different ways, from the same underlying data, and check they agree. Bottom-up adds up every tenant's own daily bill. Top-down adds up the cluster's daily active-plus-idle cost. If tenant costs are genuinely built from the cluster split (they are), the two should land within a hair of each other -- and a real gap here, not just a rounding one, is exactly the kind of thing this check exists to catch.",
+    dscrInfo: "DSCR (debt service coverage ratio) is what a lender actually checks: does this site's EBIT cover the interest it owes, with room to spare? This assumes interest-only debt -- no principal repayment modeled anywhere on this page -- so it's a simplified, not a complete, covenant check. Below 1.2x is thin by typical lender standards; above 1.5x is comfortable.",
+    irrInfo: "Every other number on this page is a single year. This carries the same site out 10 years -- the upfront build cost, a GPU refresh partway through (GPUs wear out faster than the building does), and the after-tax cash the site generates each year -- and discounts all of it back to today's dollars at the blended cost of capital above. It's a project-level (unlevered) estimate, not a levered equity return, and it assumes no resale or ongoing value past year 10 -- a conservative choice, not a missing one.",
+    portfolioCPI: "Cost Performance Index -- for every dollar actually spent (Actual Cost), how many dollars of planned value has the site delivered (Earned Value, measured by physical progress -- MW actually commissioned, or an independent construction estimate for sites not live yet -- never by money spent, or this would trivially read 1.00x for every site). Below 1.00x means over budget for what's been delivered; above means under budget. Summed across all six sites first, then divided -- never averaged site-by-site.",
+    portfolioSPI: "Schedule Performance Index -- Earned Value against Planned Value (the budgeted cost of work that SHOULD be done by now, given each site's own planned schedule). Below 1.00x means behind schedule in value-weighted terms; above means ahead. A different question from the \"months behind schedule\" note on each site card below, which tracks simple lateness, not value delivered.",
+    portfolioEAC: "Estimate At Completion -- if this portfolio keeps spending at its current cost efficiency (CPI) for the work still remaining, this is the total it's actually projected to cost, not what was originally budgeted (shown just below).",
+    portfolioVAC: "Variance At Completion -- the gap between the original budget (Budget At Completion) and the forecast Estimate At Completion. A negative number means the portfolio is projected to cost more than planned."
+  };
+  var infoPop = document.getElementById("infoPop");
+  document.addEventListener("click", function(e){
+    var btn = e.target.closest && e.target.closest(".infobtn");
+    if (btn) {
+      var key = btn.getAttribute("data-info");
+      var alreadyOpenForThis = infoPop.classList.contains("show") && infoPop.dataset.for === key;
+      document.querySelectorAll(".infobtn[aria-expanded='true']").forEach(function(b){ b.setAttribute("aria-expanded", "false"); });
+      if (alreadyOpenForThis) { infoPop.classList.remove("show"); return; }
+      infoPop.textContent = KPI_INFO[key] || "";
+      infoPop.dataset.for = key;
+      infoPop.classList.add("show");
+      btn.setAttribute("aria-expanded", "true");
+      var rect = btn.getBoundingClientRect();
+      var left = Math.min(rect.left - 182, window.innerWidth - 212);
+      left = Math.max(4, left);
+      infoPop.style.left = left + "px";
+      // vertical clamp: flip above the button if there isn't room below (short viewport / low button)
+      var top = rect.bottom + 6;
+      if (top + infoPop.offsetHeight > window.innerHeight - 4) top = rect.top - infoPop.offsetHeight - 6;
+      infoPop.style.top = Math.max(4, top) + "px";
+    } else if (!e.target.closest || !e.target.closest(".infopop")) {
+      infoPop.classList.remove("show");
+      document.querySelectorAll(".infobtn[aria-expanded='true']").forEach(function(b){ b.setAttribute("aria-expanded", "false"); });
+    }
+  });
+
+  // Portfolio site cards' cost-breakdown toggle -- a SEPARATE delegated listener, added once
+  // on document, same idiom as .infobtn above. NOT the tenant cards' own per-render
+  // document.querySelectorAll(".expand-btn").forEach(addEventListener) pattern (renderTenants
+  // re-runs that on every tenant slider drag) -- a delegated listener is immune to re-renders
+  // by construction, since it never re-binds to specific DOM nodes at all.
+  var expandedPortfolioSites = {}; // siteKey -> bool, survives renderPortfolioSites() re-renders
+  document.addEventListener("click", function(e){
+    var btn = e.target.closest && e.target.closest(".expand-btn-site");
+    if (!btn) return;
+    var siteKey = btn.getAttribute("data-site");
+    expandedPortfolioSites[siteKey] = !expandedPortfolioSites[siteKey];
+    btn.textContent = expandedPortfolioSites[siteKey] ? "Hide cost breakdown ▴" : "Show cost breakdown ▾";
+    btn.setAttribute("aria-expanded", expandedPortfolioSites[siteKey]);
+    var el = document.getElementById("breakdown-" + siteKey);
+    if (el) el.classList.toggle("show", expandedPortfolioSites[siteKey]);
+  });
+
+  // ---- count-up number animation; respects prefers-reduced-motion, and never leaves a
+  // tile stuck on its placeholder -- a backgrounded tab throttles/pauses requestAnimationFrame
+  // (measured: hidden tab -> rAF never fires -> tile stays "-" forever with no rAF fallback),
+  // so skip straight to the final value when hidden, and force-land it via setTimeout even if
+  // rAF stalls mid-animation after the tab is hidden partway through. ----
+  var REDUCE_MOTION = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function animateValue(el, toRaw, formatFn, duration){
+    duration = duration || 600;
+    if (REDUCE_MOTION || document.hidden) { el.textContent = formatFn(toRaw); el.dataset.raw = toRaw; return; }
+    var fromRaw = Number(el.dataset.raw) || 0;
+    var start = null;
+    var done = false;
+    function land(){
+      if (done) return;
+      done = true;
+      el.textContent = formatFn(toRaw);
+      el.dataset.raw = toRaw;
+    }
+    function step(ts){
+      if (done) return;
+      if (!start) start = ts;
+      var p = Math.min((ts - start) / duration, 1);
+      var eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = formatFn(fromRaw + (toRaw - fromRaw) * eased);
+      if (p < 1) requestAnimationFrame(step); else land();
+    }
+    requestAnimationFrame(step);
+    setTimeout(land, duration + 250); // safety net if rAF stalls (e.g. tab hidden mid-animation)
+  }
+
+  function zoneOf(pct, warnBelow, bestAbove){
+    if (pct < warnBelow) return "warning";
+    if (pct > bestAbove) return "best";
+    return "standard";
+  }
+  var ZONE_LABEL = { warning: "At risk", standard: "Standard", best: "Best-in-class" };
+  // Deterministic, rule-based narration -- every sentence below is a template filled in with
+  // already-computed numbers already shown elsewhere on the page. No model call, nothing
+  // invented: the same "computed from the value and its threshold" narrator pattern this
+  // portfolio already uses on its Operations Bridge page.
+  function narrateTenantShort(zone){
+    if (zone === "warning") return "Losing money — what it's charged doesn't cover what it costs to serve.";
+    if (zone === "best") return "Comfortably profitable, well clear of the target margin.";
+    return "Profitable, but not by a wide margin.";
+  }
+  function narrateIdleShare(p){
+    if (p < 0.05) return "very lean, almost nothing here goes to waste";
+    if (p < 0.15) return "a fairly normal, modest amount of unused capacity";
+    if (p < 0.30) return "a meaningful chunk of spend going toward capacity nobody used";
+    return "a large share of spend going toward capacity that sat idle";
+  }
+
+  // ---- site deployment economics: independent, client-side, not sourced from dbt ----
+  var HOURS_PER_YEAR = 24 * 365;
+  // Building life is fixed, not user-adjustable -- typical straight-line depreciable-life
+  // midpoint (15-20yr), simplified straight-line, explicitly labeled illustrative in the UI
+  // copy. GPU life is NOT a fixed constant -- it's the `gpuLifeYears` econ input below, since
+  // it's the one shared assumption the depreciation section, the delayed-ramp cost, the
+  // portfolio's cost-of-delay figures, and the 10-year IRR's refresh-capex timing all read from
+  // the same place, so changing it moves every one of them together.
+  var BUILDING_LIFE_YEARS = 17.5;
+  // delaySlider default -- kept as its own constant (not folded into ECON_DEFAULTS/econIds,
+  // since it's a dedicated slider like the margin-zone thresholds, not a generic input) so
+  // econReset has one place to read from instead of a second hardcoded "6".
+  var DELAY_DEFAULT = 6;
+  // debtSlider default -- same "own dedicated slider, own constant" pattern as delaySlider
+  // above, not folded into ECON_DEFAULTS/econIds.
+  var DEBT_DEFAULT = 55;
+  // 12-month rolling forecast: illustrative monthly-delta constants only, not fit to any
+  // data -- three simple trend lines to show a spread, not a statistical model.
+  var FORECAST_MONTHS = 12;
+  var FORECAST_DELTA = { base: 0.003, upside: 0.008, downside: -0.004 };
+  // 10-year IRR horizon: long enough to capture one full GPU refresh cycle at the default
+  // 5-year life, without needing a terminal-value guess for year 11 onward -- a deliberately
+  // conservative choice, not a missing piece (see irrInfo).
+  var IRR_HORIZON_YEARS = 10;
+  var ECON_DEFAULTS = {
+    econCap: 40, econLoad: 30,
+    econShell: 144000000, econMep: 456000000, econFitout: 200000000, econMw: 50,
+    econRack: 60, econRate: 0.1063, econPueL: 1.58, econPueE: 1.10,
+    econFacCapex: 742000000, econCompCapex: 1186000000, econRevenue: 580000000,
+    gpuLifeYears: 5,
+    retrofitCostPerRack: 8000,
+    // Stored as whole percentages (8.5, not 0.085) -- matches the warnSlider/bestSlider
+    // margin-threshold convention already used elsewhere on this page (store whole-percent,
+    // divide by 100 at compute time), not the econPueL/econPueE decimal-ratio convention,
+    // since a PUE isn't a percentage to begin with.
+    debtInterestRate: 8.5, equityHurdleRate: 18, taxRate: 25
+  };
+  var econIds = Object.keys(ECON_DEFAULTS);
+  // Comma-formatted for readability (742000000 -> 742,000,000); parseNum() strips the commas
+  // back out before computing, so every econ field -- number or text -- reads the same way.
+  var ECON_CURRENCY_IDS = ["econShell", "econMep", "econFitout", "econFacCapex", "econCompCapex", "econRevenue", "retrofitCostPerRack"];
+
+  function parseNum(v){ return Number(String(v).replace(/,/g, "")) || 0; }
+
+  function econValues(){
+    var v = {};
+    econIds.forEach(function(id){ v[id] = parseNum(document.getElementById(id).value); });
+    return v;
+  }
+
+  function formatCurrencyField(id){
+    var el = document.getElementById(id);
+    el.value = parseNum(el.value).toLocaleString();
+  }
+
+  function computeSiteEconomics(v){
+    var utilization = v.econCap > 0 ? v.econLoad / v.econCap : 0;
+    var totalBuildCapex = v.econShell + v.econMep + v.econFitout;
+    var costPerMW = v.econMw > 0 ? totalBuildCapex / v.econMw : 0;
+    var legacyCost = v.econRack * v.econPueL * HOURS_PER_YEAR * v.econRate;
+    var efficientCost = v.econRack * v.econPueE * HOURS_PER_YEAR * v.econRate;
+    var savings = legacyCost - efficientCost;
+    var totalCapexBase = v.econFacCapex + v.econCompCapex;
+    // Site-level P&L: revenue is the one typed assumption; operating cost and depreciation
+    // are derived from figures already computed elsewhere on this page (efficientCost per
+    // rack, scaled by active racks; the same straight-line GPU/building depreciation the
+    // "cost of a delayed ramp" section uses) -- EBIT is COMPUTED here, not typed, so there
+    // is exactly one EBIT on the page, not two independently-typed numbers that could
+    // silently disagree. fixedCosts is exposed so the RODA sensitivity tornado can
+    // recompute ebit at a perturbed revenue rather than perturbing ebit directly.
+    var activeRacks = v.econRack > 0 ? (v.econLoad * 1000) / v.econRack : 0;
+    var opexAnnual = activeRacks * efficientCost;
+    // gpuLifeYears is a live, user-editable divisor now, not a fixed constant -- guarded the
+    // same way every other divisor field on this page already is (econCap, econMw, econRack,
+    // totalCapexBase above). A blank or 0 input would otherwise divide by zero -> Infinity ->
+    // NaN cascading through EBIT, RODA, DSCR, and the IRR solver below. Floored at 1 year, not
+    // silently zeroed, since "0 years of GPU life" has no sane real-world reading either way.
+    var gpuLifeYears = v.gpuLifeYears > 0 ? v.gpuLifeYears : 1;
+    var depreciationAnnual = (v.econCompCapex / gpuLifeYears) + (v.econFacCapex / BUILDING_LIFE_YEARS);
+    var fixedCosts = opexAnnual + depreciationAnnual;
+    var ebit = v.econRevenue - fixedCosts;
+    var roda = totalCapexBase > 0 ? ebit / totalCapexBase : 0;
+    // Guarded, not just divided: savings can legitimately go negative (swap the two PUE
+    // inputs) or zero, and a retrofit that saves nothing has no payback period to report.
+    var paybackYears = (v.retrofitCostPerRack > 0 && savings > 0) ? v.retrofitCostPerRack / savings : null;
+    return { utilization: utilization, totalBuildCapex: totalBuildCapex, costPerMW: costPerMW,
+      legacyCost: legacyCost, efficientCost: efficientCost, savings: savings,
+      totalCapexBase: totalCapexBase, activeRacks: activeRacks, opexAnnual: opexAnnual,
+      gpuLifeYears: gpuLifeYears,
+      depreciationAnnual: depreciationAnnual, fixedCosts: fixedCosts, ebit: ebit, roda: roda,
+      paybackYears: paybackYears };
+  }
+
+  function renderSiteEconomics(animate){
+    var v = econValues();
+    var r = computeSiteEconomics(v);
+
+    var utilEl = document.getElementById("econUtilVal");
+    var costMwEl = document.getElementById("econCostMwVal");
+    var savingsEl = document.getElementById("econSavingsVal");
+    var pueEl = document.getElementById("econPueVal");
+    var rodaEl = document.getElementById("econRodaVal");
+    var paybackEl = document.getElementById("econPaybackVal");
+    var fmtRatio = function(x){ return x.toFixed(2); };
+    var fmtPayback = function(x){ return x === null ? "N/A" : x.toFixed(1) + " yrs"; };
+    if (animate) {
+      animateValue(utilEl, r.utilization, fmtPct);
+      animateValue(costMwEl, r.costPerMW, function(x){ return fmtUSDCompact(x) + "/MW"; });
+      animateValue(savingsEl, r.savings, fmtUSDCompact);
+      animateValue(pueEl, v.econPueE, fmtRatio);
+      animateValue(rodaEl, r.roda, fmtPct);
+      // paybackYears is null on a guarded edge, not a number -- animateValue's count-up
+      // math (fromRaw + (toRaw-fromRaw)*eased) can't tween through null, so this tile
+      // always lands its final text immediately rather than counting up.
+      paybackEl.textContent = fmtPayback(r.paybackYears); paybackEl.dataset.raw = r.paybackYears || 0;
+    } else {
+      utilEl.textContent = fmtPct(r.utilization); utilEl.dataset.raw = r.utilization;
+      costMwEl.textContent = fmtUSDCompact(r.costPerMW) + "/MW"; costMwEl.dataset.raw = r.costPerMW;
+      savingsEl.textContent = fmtUSDCompact(r.savings); savingsEl.dataset.raw = r.savings;
+      pueEl.textContent = fmtRatio(v.econPueE); pueEl.dataset.raw = v.econPueE;
+      rodaEl.textContent = fmtPct(r.roda); rodaEl.dataset.raw = r.roda;
+      paybackEl.textContent = fmtPayback(r.paybackYears); paybackEl.dataset.raw = r.paybackYears || 0;
+    }
+
+    document.getElementById("econUtilSub").textContent = v.econLoad + " of " + v.econCap + " MW active";
+    document.getElementById("econCostMwSub").textContent = fmtUSD(r.totalBuildCapex) + " total build, " + v.econMw + " MW";
+    document.getElementById("econSavingsSub").textContent =
+      "Legacy " + fmtUSD(r.legacyCost) + " → Efficient " + fmtUSD(r.efficientCost);
+    document.getElementById("econPueSub").textContent = "vs. " + fmtRatio(v.econPueL) + " industry average";
+    document.getElementById("econRodaSub").textContent =
+      "EBIT " + fmtUSD(r.ebit) + " / CapEx " + fmtUSD(r.totalCapexBase);
+    document.getElementById("econPaybackSub").textContent = r.paybackYears === null
+      ? "No savings at current assumptions"
+      : fmtUSD(v.retrofitCostPerRack) + "/rack ÷ " + fmtUSD(r.savings) + "/yr saved";
+
+    document.getElementById("economicsInsight").innerHTML =
+      '<div class="card insight"><span class="tag">In plain terms</span>' +
+      'At <b>' + fmtPct(r.utilization) + '</b> utilization, how much of this site\'s capacity is actually earning money is <b>' + narrateUtilWord(r.utilization) + '</b> — ' +
+      'the rest still costs money, used or not. Building a new megawatt of capacity here runs <b>' + fmtUSD(r.costPerMW) + '</b>. ' +
+      'At a PUE of <b>' + fmtRatio(v.econPueE) + '</b>, this site\'s cooling and power overhead is <b>' + narratePueWord(v.econPueE) + '</b> by industry standards — ' +
+      'switching from the legacy setup to this one saves <b>' + fmtUSD(r.savings) + '</b> per rack every year. Put together, the site returns ' +
+      '<b>' + fmtPct(r.roda) + '</b> on the money invested in it each year — ' + narrateRodaWord(r.roda) + ' return by typical infrastructure standards.</div>';
+
+    // Depreciation, the P&L, capital structure, RODA-sensitivity, the 10-year IRR, and the
+    // portfolio's cost-of-delay figures all derive from these same econ inputs (plus, for
+    // depreciation and capital structure, their own separate sliders) -- recomputing them here
+    // keeps every derived section in sync on every input change, not just the 6 KPI tiles.
+    // renderCapitalStructure now returns cs so the IRR panel discounts at the SAME blended
+    // cost of capital shown above it, instead of a second, independently-recomputed cs that
+    // could silently drift from what's on screen.
+    renderDepreciation(v, r);
+    renderPnl(v, r);
+    var cs = renderCapitalStructure(v, r);
+    renderIrr(v, r, cs);
+    renderTornado(v, r);
+    renderPortfolio(r.gpuLifeYears);
+  }
+  function narrateUtilWord(u){
+    return u >= 0.85 ? "excellent" : u >= 0.65 ? "solid" : u >= 0.4 ? "underwhelming" : "poor";
+  }
+  function narrateRodaWord(roda){
+    return roda >= 0.15 ? "a strong" : roda >= 0.08 ? "a reasonable" : "a weak";
+  }
+  // PUE: lower is better. Bands roughly track published industry benchmarks (hyperscale
+  // leaders ~1.1, "good" modern facilities ~1.2-1.5, legacy/average ~1.5-2.0, 2.0+ is poor).
+  function narratePueWord(pue){
+    return pue < 1.2 ? "excellent" : pue < 1.5 ? "good" : pue < 2.0 ? "about average" : "poor";
+  }
+
+  // ---- depreciation / cost-of-delay: same two-bar hand-rolled house style as waterfallSVG ----
+  function depreciationSVG(gpuAnnual, bldgAnnual, gpuLifeYears){
+    var w = 320, h = 140, padT = 20, padB = 26;
+    var innerH = h - padT - padB;
+    var maxV = Math.max(gpuAnnual, bldgAnnual) || 1;
+    var yAt = function(v){ return padT + innerH - (v / maxV) * innerH; };
+    var slotW = w / 2, barW = slotW * 0.45;
+    var bars = [
+      { label: "GPU (" + gpuLifeYears + "-yr life)", val: gpuAnnual, color: "var(--c-accent)" },
+      { label: "Building shell (17.5-yr life)", val: bldgAnnual, color: "var(--c-text-secondary)" }
+    ];
+    var parts = bars.map(function(b, i){
+      var x = slotW * i + (slotW - barW) / 2;
+      var yTop = yAt(b.val);
+      var bh = Math.max(padT + innerH - yTop, 2);
+      var rgb = 'rgb(' + b.color + ')'; // b.color is already "var(--c-x)" -- rgb(var(--c-x)) is the valid form
+      return '<rect x="' + x.toFixed(1) + '" y="' + yTop.toFixed(1) + '" width="' + barW.toFixed(1) + '" height="' + bh.toFixed(1) + '" rx="3" fill="' + rgb + '"/>' +
+        '<text x="' + (x + barW / 2).toFixed(1) + '" y="' + (yTop - 5).toFixed(1) + '" text-anchor="middle" fill="' + rgb + '">' + fmtUSDCompact(b.val) + '/yr</text>' +
+        '<text x="' + (x + barW / 2).toFixed(1) + '" y="' + (h - 8) + '" text-anchor="middle" class="axislabel">' + b.label + '</text>';
+    }).join("");
+    return '<svg class="chart" viewBox="0 0 ' + w + ' ' + h + '" style="width:100%;height:140px" role="img" aria-label="Annual GPU vs. building-shell depreciation">' + parts + '</svg>';
+  }
+  function narrateDepreciation(delayMonths, costOfDelay, gpuAnnual, bldgAnnual, gpuLifeYears){
+    var ratio = bldgAnnual > 0 ? gpuAnnual / bldgAnnual : 0;
+    var ratioWord = ratio >= 3 ? "several times faster" : ratio >= 1.5 ? "notably faster" : "at a similar pace";
+    return '<div class="card insight"><span class="tag">In plain terms</span>' +
+      'A GPU\'s ' + gpuLifeYears + '-year useful life burns through its cost <b>' + ratioWord + '</b> than a 17.5-year building shell does — ' +
+      '<b>' + fmtUSDCompact(gpuAnnual) + '</b>/year of GPU depreciation vs. <b>' + fmtUSDCompact(bldgAnnual) + '</b>/year for the shell. ' +
+      'That\'s why deployment speed matters so much: a <b>' + delayMonths + '-month</b> delay between the building being ready and GPUs actually earning revenue costs about ' +
+      '<b>' + fmtUSDCompact(costOfDelay) + '</b> in GPU depreciation that ran with nothing to show for it.</div>';
+  }
+  function renderDepreciation(v, r){
+    var delayMonths = Number(document.getElementById("delaySlider").value);
+    document.getElementById("delayVal").textContent = delayMonths + (delayMonths === 1 ? " month" : " months");
+    var gpuAnnual = v.econCompCapex / r.gpuLifeYears;
+    var bldgAnnual = v.econFacCapex / BUILDING_LIFE_YEARS;
+    var gpuMonthly = gpuAnnual / 12;
+    var costOfDelay = gpuMonthly * delayMonths;
+    document.getElementById("depreciationWrap").innerHTML =
+      depreciationSVG(gpuAnnual, bldgAnnual, r.gpuLifeYears) +
+      '<div class="card kpi" style="margin-top:12px"><div class="lbl">Cost of a ' + delayMonths + '-month delay</div>' +
+      '<div class="val tabular">' + fmtUSDCompact(costOfDelay) + '</div>' +
+      '<div class="sub">' + fmtUSDCompact(gpuMonthly) + '/month of GPU depreciation while idle</div></div>';
+    document.getElementById("depreciationInsight").innerHTML = narrateDepreciation(delayMonths, costOfDelay, gpuAnnual, bldgAnnual, r.gpuLifeYears);
+  }
+
+  // ---- RODA sensitivity: roda = ebit / (facCapex + compCapex) -- utilization does NOT feed
+  // this formula anywhere in the model, so it is deliberately not a driver here. PUE and
+  // electricity rate DO feed it (via opexAnnual, part of fixedCosts), so they're added below. ----
+  function rodaAt(facCapex, compCapex, ebit){
+    var base = facCapex + compCapex;
+    return base > 0 ? ebit / base : 0;
+  }
+  // PUE/electricity-rate drivers don't move CapEx -- they move opexAnnual (part of
+  // fixedCosts). opexAnnual = activeRacks * (rack kW * PUE * hours/yr * $/kWh), linear in both
+  // PUE and rate, so perturbing either directly here (rather than re-deriving activeRacks) is
+  // exact, not an approximation.
+  function rodaAtOpex(v, r, pueE, rate){
+    var opexAnnual = r.activeRacks * v.econRack * pueE * HOURS_PER_YEAR * rate;
+    var ebitAtOpex = v.econRevenue - (opexAnnual + r.depreciationAnnual);
+    return rodaAt(v.econFacCapex, v.econCompCapex, ebitAtOpex);
+  }
+  // CapEx drivers must ALSO recompute EBIT at the perturbed value, not just the RODA
+  // denominator -- CapEx feeds depreciationAnnual (compCapex/gpuLifeYears + facCapex/
+  // BUILDING_LIFE_YEARS), which feeds fixedCosts, which feeds ebit, exactly the same
+  // "recompute, don't freeze" requirement the Revenue driver below already accounts for.
+  // Found by a whole-file stress test: an earlier version of this driver held r.ebit frozen
+  // while perturbing only the denominator, understating Compute CapEx's true swing by ~2.4x
+  // (4.20pp true vs 1.73pp as coded) and Facility CapEx's by ~1.4x (1.52pp vs 1.08pp) --
+  // confirmed by direct computation against ECON_DEFAULTS before this fix.
+  function rodaAtCapex(v, r, facCapex, compCapex){
+    var depreciationAnnual = (compCapex / r.gpuLifeYears) + (facCapex / BUILDING_LIFE_YEARS);
+    var ebitAtCapex = v.econRevenue - (r.opexAnnual + depreciationAnnual);
+    return rodaAt(facCapex, compCapex, ebitAtCapex);
+  }
+  function computeRodaSensitivity(v, r){
+    var drivers = [
+      { label: "Facility CapEx", low: rodaAtCapex(v, r, v.econFacCapex * 1.1, v.econCompCapex), high: rodaAtCapex(v, r, v.econFacCapex * 0.9, v.econCompCapex) },
+      { label: "Compute (GPU) CapEx", low: rodaAtCapex(v, r, v.econFacCapex, v.econCompCapex * 1.1), high: rodaAtCapex(v, r, v.econFacCapex, v.econCompCapex * 0.9) },
+      // Revenue is the genuinely independent typed input now that EBIT is derived, not
+      // typed -- perturb revenue and recompute EBIT from the same fixed operating +
+      // depreciation costs, rather than perturbing the already-computed EBIT directly.
+      // EBIT has operating leverage against revenue (fixed costs don't move with it), so
+      // perturbing EBIT itself would understate the real swing -- and it keeps this driver
+      // apples-to-apples with the others, which each hold everything but themselves fixed.
+      { label: "Site Revenue", low: rodaAt(v.econFacCapex, v.econCompCapex, (v.econRevenue * 0.9) - r.fixedCosts), high: rodaAt(v.econFacCapex, v.econCompCapex, (v.econRevenue * 1.1) - r.fixedCosts) },
+      // Higher PUE or a higher electricity rate both mean MORE opex, hence LOWER ebit/RODA --
+      // the ×1.1 (higher input) case maps to `low`, ×0.9 maps to `high`, matching the same
+      // "higher input -> lower RODA -> low" convention the CapEx drivers already use above.
+      // Verified against real ECON_DEFAULTS numbers before shipping, not just by formula-reading.
+      { label: "PUE (efficient)", low: rodaAtOpex(v, r, v.econPueE * 1.1, v.econRate), high: rodaAtOpex(v, r, v.econPueE * 0.9, v.econRate) },
+      { label: "Electricity rate", low: rodaAtOpex(v, r, v.econPueE, v.econRate * 1.1), high: rodaAtOpex(v, r, v.econPueE, v.econRate * 0.9) }
+    ];
+    drivers.forEach(function(d){ d.swing = Math.abs(d.high - d.low); });
+    drivers.sort(function(a, b){ return b.swing - a.swing; }); // widest swing on top (tornado convention)
+    return drivers;
+  }
+  function tornadoSVG(drivers, baseRoda){
+    var rowH = 34, padL = 6, padT = 10, padB = 20;
+    var w = 640, h = padT + drivers.length * rowH + padB;
+    var labelW = 150, valueW = 90, barZoneW = w - labelW - valueW;
+    var allVals = drivers.reduce(function(a, d){ return a.concat([d.low, d.high]); }, [baseRoda]);
+    var minV = Math.min.apply(null, allVals), maxV = Math.max.apply(null, allVals);
+    if (maxV === minV) { maxV = minV + 0.01; }
+    var xAt = function(v){ return labelW + ((v - minV) / (maxV - minV)) * barZoneW; };
+    var rows = drivers.map(function(d, i){
+      var y = padT + i * rowH;
+      var midY = y + rowH * 0.5;
+      var x1 = xAt(Math.min(d.low, d.high)), x2 = xAt(Math.max(d.low, d.high));
+      var barW = Math.max(x2 - x1, 2);
+      return '<text x="' + padL + '" y="' + (midY + 4).toFixed(1) + '" class="axislabel" text-anchor="start">' + d.label + '</text>' +
+        '<rect x="' + x1.toFixed(1) + '" y="' + (midY - 7).toFixed(1) + '" width="' + barW.toFixed(1) + '" height="14" rx="3" fill="rgb(var(--c-accent) / .55)"/>' +
+        '<text x="' + (labelW + barZoneW + 8) + '" y="' + (midY + 4).toFixed(1) + '" class="axislabel" text-anchor="start">' + fmtPct(d.low) + '–' + fmtPct(d.high) + '</text>';
+    }).join("");
+    var baseX = xAt(baseRoda);
+    var baseLine = '<line x1="' + baseX.toFixed(1) + '" x2="' + baseX.toFixed(1) + '" y1="' + padT + '" y2="' + (padT + drivers.length * rowH) + '" stroke="rgb(var(--c-text-secondary) / .5)" stroke-width="1" stroke-dasharray="2 3"/>';
+    return '<svg class="chart" viewBox="0 0 ' + w + ' ' + h + '" style="width:100%;height:auto" role="img" aria-label="RODA sensitivity to each driver, plus or minus ten percent">' + baseLine + rows + '</svg>';
+  }
+  function narrateTornado(drivers){
+    var top = drivers[0];
+    var swingPp = (top.swing * 100).toFixed(1);
+    // Generalized on drivers.length, not hardcoded to "three"/"two" -- this was literal text
+    // when the tornado only had 3 drivers; with 5 it would have been factually wrong, not just
+    // imprecise, so it's derived from the actual driver count now.
+    return '<div class="card insight"><span class="tag">In plain terms</span>' +
+      'Move any one of these ' + drivers.length + ' inputs by 10% and <b>' + top.label + '</b> swings the return the most — about ' +
+      '<b>' + swingPp + ' percentage points</b> of RODA, more than the other ' + (drivers.length - 1) + ' drivers on their own. ' +
+      'That\'s the number worth double-checking first if this estimate needs to hold up.</div>';
+  }
+  function renderTornado(v, r){
+    var drivers = computeRodaSensitivity(v, r);
+    document.getElementById("tornadoWrap").innerHTML = tornadoSVG(drivers, r.roda);
+    document.getElementById("tornadoInsight").innerHTML = narrateTornado(drivers);
+  }
+
+  // ---- deployment portfolio: a static, illustrative six-site snapshot -- NOT another
+  // live calculator (no inputs, no ECON_DEFAULTS entry), so it renders once and never
+  // re-renders on any slider/field change elsewhere on the page. Generic numbered site
+  // names and round synthetic figures, same "no employer, no real site" discipline as
+  // every other illustrative number on this page. computeCapexDeployed is the compute/
+  // GPU slice of capital ALREADY SPENT (capexDeployed), not of the total plan -- a site
+  // still in Planning hasn't shipped GPUs yet, so its idle-depreciation exposure is
+  // genuinely zero, not just unmeasured.
+  // plannedDurationMonths/monthsElapsed exist ONLY to build a real Planned Value baseline for
+  // EVM below (PV = monthsElapsed/plannedDurationMonths x capexPlanned) -- a genuine schedule
+  // assumption, deliberately independent of monthsBehindSchedule (which drives the unrelated,
+  // already-shipped siteCostOfDelay figure). constructionPctComplete is set ONLY on sites with
+  // zero commissioned capacity (currentMW=0) -- computeSiteEvm derives physical percent-complete
+  // from currentMW/targetMW directly for any site that's actually turned MW on, so there's no
+  // second, potentially-stale source of truth for Sites 01-03. Deliberately NOT equal to each
+  // site's capexDeployed/capexPlanned ratio (0.492/0.981/0.017 respectively) -- if it were, CPI
+  // would be tautologically ~1.00 by construction, defeating the point of the metric.
+  var PORTFOLIO_SITES = [
+    { name: "Site 01", stage: "Live", capexPlanned: 950000000, capexDeployed: 950000000, computeCapexDeployed: 580000000, targetMW: 60, currentMW: 54, monthsBehindSchedule: 0, plannedDurationMonths: 20, monthsElapsed: 17 },
+    { name: "Site 02", stage: "Live", capexPlanned: 700000000, capexDeployed: 700000000, computeCapexDeployed: 430000000, targetMW: 40, currentMW: 30, monthsBehindSchedule: 0, plannedDurationMonths: 16, monthsElapsed: 11 },
+    { name: "Site 03", stage: "Ramping", capexPlanned: 1100000000, capexDeployed: 980000000, computeCapexDeployed: 600000000, targetMW: 70, currentMW: 22, monthsBehindSchedule: 3, plannedDurationMonths: 24, monthsElapsed: 12 },
+    { name: "Site 04", stage: "Under construction", capexPlanned: 1300000000, capexDeployed: 640000000, computeCapexDeployed: 380000000, targetMW: 80, currentMW: 0, monthsBehindSchedule: 5, plannedDurationMonths: 20, monthsElapsed: 13, constructionPctComplete: 0.40 },
+    { name: "Site 05", stage: "Under construction", capexPlanned: 520000000, capexDeployed: 510000000, computeCapexDeployed: 300000000, targetMW: 30, currentMW: 0, monthsBehindSchedule: 0, plannedDurationMonths: 14, monthsElapsed: 13, constructionPctComplete: 0.92 },
+    { name: "Site 06", stage: "Planning", capexPlanned: 900000000, capexDeployed: 15000000, computeCapexDeployed: 0, targetMW: 55, currentMW: 0, monthsBehindSchedule: 0, plannedDurationMonths: 26, monthsElapsed: 1, constructionPctComplete: 0.04 }
+  ];
+  function siteCostOfDelay(site, gpuLifeYears){
+    // Same mechanism as the single-site "cost of a delayed ramp" section: GPU capital
+    // already spent depreciates on gpuLifeYears regardless of whether the site is live. This
+    // is now the SAME live, user-editable assumption Chapter 2's depreciation section reads
+    // (computeSiteEconomics guards it >0 already; guarded again here for defense in depth
+    // since this function is reusable/callable independent of that guard running first).
+    gpuLifeYears = gpuLifeYears > 0 ? gpuLifeYears : 1;
+    return site.monthsBehindSchedule > 0 ? (site.computeCapexDeployed / gpuLifeYears / 12) * site.monthsBehindSchedule : 0;
+  }
+  // ---- Earned Value Management, per site: Planned Value (PV, budgeted cost of work scheduled
+  // to date), Earned Value (EV, budgeted cost of work actually completed, measured by physical
+  // progress -- NOT by money spent), Actual Cost (AC, money actually spent). Everything else
+  // (CV, SV, CPI, SPI) derives from those three. ----
+  function computeSiteEvm(site){
+    var plannedPct = site.plannedDurationMonths > 0 ? Math.min(site.monthsElapsed / site.plannedDurationMonths, 1) : 0;
+    // Physical percent-complete: derived from real commissioned capacity for any site that has
+    // turned MW on (a live measure, not a second stored field that could silently disagree with
+    // currentMW/targetMW), falling back to the independent constructionPctComplete estimate only
+    // for sites with zero commissioned capacity so far. Guarded (targetMW>0, clamped to 1) the
+    // same way plannedPct above already is -- not reachable with today's PORTFOLIO_SITES (every
+    // site's currentMW <= targetMW), but a future site entered with currentMW > targetMW or a
+    // targetMW of 0 shouldn't be able to push EV past capexPlanned or divide by zero.
+    var pctComplete = site.targetMW > 0 && site.currentMW > 0 ? Math.min(site.currentMW / site.targetMW, 1) : (site.constructionPctComplete || 0);
+    var pv = plannedPct * site.capexPlanned;
+    var ev = pctComplete * site.capexPlanned;
+    var ac = site.capexDeployed;
+    var cv = ev - ac;
+    var sv = ev - pv;
+    // EVM ratios are unreliable this early in a project -- a near-zero PV denominator makes
+    // CPI/SPI noisy and precise-looking numbers actively misleading (Site 06 at ~4% planned-
+    // complete would otherwise show a 2.4x CPI from $21M of variance on a $15M base). Guarded
+    // the same way paybackYears/returnOnEquity/dscr/computeIRR already are on this page: an
+    // explicit "too early" beats a technically-correct-but-misleading number.
+    var mature = plannedPct >= 0.05;
+    return {
+      pv: pv, ev: ev, ac: ac, cv: cv, sv: sv,
+      cpi: (mature && ac > 0) ? ev / ac : null,
+      spi: (mature && pv > 0) ? ev / pv : null,
+      mature: mature, pctComplete: pctComplete
+    };
+  }
+  // ---- Cost Variance driver split: Compute (GPU) vs. Facility -- CV, not SV. AC already
+  // splits cleanly by category (computeCapexDeployed exists per site); the only gap was the
+  // PLANNED side, closed here with one constant. SV is deliberately NOT split: without a
+  // category-specific progress estimate (nothing tracks "compute is 40% done, facility is 90%
+  // done" separately), splitting SV by this same fixed ratio would just scale the whole-site SV
+  // by share/(1-share) for every site -- a constant multiple, not new information.
+  //
+  // Deliberately reads ECON_DEFAULTS (a fixed snapshot), NOT the live v.econCompCapex/
+  // econFacCapex from Chapter 2's calculator -- exploring a hypothetical site's mix in Chapter 2
+  // must not silently reshape what "typical compute/facility mix" means for this real static
+  // six-site portfolio. Contrast with gpuLifeYears (a genuine physical constant, correctly
+  // shared live across chapters two rounds ago): this is a dollar-mix ratio for one
+  // hypothetical site's build, which has no principled claim to represent six real sites' plans.
+  var PORTFOLIO_COMPUTE_SHARE = ECON_DEFAULTS.econCompCapex / (ECON_DEFAULTS.econCompCapex + ECON_DEFAULTS.econFacCapex);
+  function computeSiteCvSplit(site, evm){
+    var plannedCompute = site.capexPlanned * PORTFOLIO_COMPUTE_SHARE;
+    var plannedFacility = site.capexPlanned * (1 - PORTFOLIO_COMPUTE_SHARE);
+    var actualCompute = site.computeCapexDeployed;
+    var actualFacility = site.capexDeployed - site.computeCapexDeployed;
+    // Same blended pctComplete already used for the whole-site EV above -- not a second,
+    // independent progress estimate per category (that data doesn't exist).
+    var evCompute = evm.pctComplete * plannedCompute;
+    var evFacility = evm.pctComplete * plannedFacility;
+    return {
+      cvCompute: evCompute - actualCompute,
+      cvFacility: evFacility - actualFacility
+    };
+  }
+  function computePortfolio(gpuLifeYears){
+    var totalPlanned = 0, totalDeployed = 0, totalTargetMW = 0, totalCurrentMW = 0, totalDelayCost = 0, behind = [];
+    var totalPV = 0, totalEV = 0, totalAC = 0, worstCpiSite = null, worstSpiSite = null, bestCpiAchieved = null;
+    PORTFOLIO_SITES.forEach(function(s){
+      totalPlanned += s.capexPlanned;
+      totalDeployed += s.capexDeployed;
+      totalTargetMW += s.targetMW;
+      totalCurrentMW += s.currentMW;
+      var delay = siteCostOfDelay(s, gpuLifeYears);
+      totalDelayCost += delay;
+      if (s.monthsBehindSchedule > 0) behind.push(s.name);
+      var evm = computeSiteEvm(s);
+      totalPV += evm.pv; totalEV += evm.ev; totalAC += evm.ac;
+      if (evm.mature) {
+        if (!worstCpiSite || evm.cpi < worstCpiSite.cpi) worstCpiSite = { name: s.name, cpi: evm.cpi };
+        if (!worstSpiSite || evm.spi < worstSpiSite.spi) worstSpiSite = { name: s.name, spi: evm.spi };
+        if (bestCpiAchieved === null || evm.cpi > bestCpiAchieved) bestCpiAchieved = evm.cpi;
+      }
+    });
+    var bac = totalPlanned; // Budget At Completion -- the original total plan, unchanged by actuals
+    // Portfolio-level CPI/SPI: sum PV/EV/AC across all six sites FIRST, then divide -- never
+    // average the six sites' individual ratios (a common real-world EVM mistake this avoids).
+    var cpi = totalAC > 0 ? totalEV / totalAC : 0;
+    var spi = totalPV > 0 ? totalEV / totalPV : 0;
+    var eac = cpi > 0 ? totalAC + (bac - totalEV) / cpi : null; // "current cost trend continues" -- the standard EAC default
+    var vac = eac !== null ? bac - eac : null;
+    var etc = eac !== null ? eac - totalAC : null;
+    var tcpi = (bac - totalAC) !== 0 ? (bac - totalEV) / (bac - totalAC) : null;
+    return {
+      totalPlanned: totalPlanned, totalDeployed: totalDeployed,
+      pctDeployed: totalPlanned > 0 ? totalDeployed / totalPlanned : 0,
+      // How much capital is still needed to finish the portfolio -- floored at 0 so a site
+      // that's already spent past its own plan can't make the portfolio total look smaller.
+      remainingCapital: Math.max(totalPlanned - totalDeployed, 0),
+      totalTargetMW: totalTargetMW, totalCurrentMW: totalCurrentMW,
+      pctDelivered: totalTargetMW > 0 ? totalCurrentMW / totalTargetMW : 0,
+      totalDelayCost: totalDelayCost, behind: behind,
+      totalPV: totalPV, totalEV: totalEV, totalAC: totalAC, bac: bac,
+      cpi: cpi, spi: spi, eac: eac, vac: vac, etc: etc, tcpi: tcpi,
+      worstCpiSite: worstCpiSite, worstSpiSite: worstSpiSite, bestCpiAchieved: bestCpiAchieved
+    };
+  }
+  function portfolioStagePill(stage){
+    var cls = stage === "Live" ? "z-best" : "z-standard";
+    return '<span class="pill ' + cls + '"><span class="sw"></span>' + stage + '</span>';
+  }
+  function portfolioBar(label, current, target, fmt){
+    var pct = target > 0 ? Math.min(current / target, 1) : 0;
+    return '<div class="field" style="margin-top:10px">' +
+      '<div class="fl"><span>' + label + '</span><b>' + fmt(current) + ' / ' + fmt(target) + '</b></div>' +
+      '<div class="alloc-bar" style="background:rgb(var(--c-bg-primary))"><div class="alloc-seg" style="width:' + (pct * 100).toFixed(1) + '%; background:rgb(var(--c-accent))"></div></div>' +
+      '</div>';
+  }
+  // CPI/SPI target 1.0 (on plan), not "higher is always better without bound" like DSCR --
+  // >=1.0 (at/under budget or ahead of schedule) is favorable, 0.85-1.0 is a mild miss, <0.85
+  // is a real overrun/slip. Reuses the exact 3-tier .pill convention DSCR established, with its
+  // own explicit thresholds (not inherited from DSCR's 1.2/1.5, which target a different scale).
+  function evmPillClass(x){
+    if (x === null) return "z-standard";
+    return x >= 1.0 ? "z-best" : x >= 0.85 ? "z-standard" : "z-warning";
+  }
+  function renderPortfolioSites(gpuLifeYears){
+    var html = PORTFOLIO_SITES.map(function(s){
+      var delay = siteCostOfDelay(s, gpuLifeYears);
+      var note = s.monthsBehindSchedule > 0
+        ? '<div class="note" style="color:rgb(var(--c-danger))">' + s.monthsBehindSchedule + (s.monthsBehindSchedule === 1 ? " month" : " months") + ' behind schedule — about ' + fmtUSDCompact(delay) + ' in idle GPU depreciation so far</div>'
+        : '<div class="note">On track</div>';
+      var evm = computeSiteEvm(s);
+      var evmBlock;
+      if (!evm.mature) {
+        // Same "N/A beats a misleading number" guard this page uses everywhere else -- CPI/SPI
+        // math is genuinely noisy this early (a near-zero PV denominator), not just unavailable.
+        evmBlock = '<div class="field" style="margin-top:10px"><div class="fl"><span>Cost / schedule performance</span><b>Too early to read</b></div></div>';
+      } else {
+        var siteKey = s.name.replace(/\s+/g, "-");
+        var split = computeSiteCvSplit(s, evm);
+        var expanded = !!expandedPortfolioSites[siteKey];
+        evmBlock =
+          '<div class="field" style="margin-top:10px">' +
+          '<div class="fl"><span>Cost variance (CV)</span><b>' + fmtUSDCompact(evm.cv) + '</b></div>' +
+          '<div class="fl"><span>Schedule variance (SV)</span><b>' + fmtUSDCompact(evm.sv) + '</b></div>' +
+          '</div>' +
+          '<div style="display:flex; gap:8px; margin-top:8px">' +
+          '<span class="pill ' + evmPillClass(evm.cpi) + '"><span class="sw"></span>CPI ' + evm.cpi.toFixed(2) + '×</span>' +
+          '<span class="pill ' + evmPillClass(evm.spi) + '"><span class="sw"></span>SPI ' + evm.spi.toFixed(2) + '×</span>' +
+          '</div>' +
+          '<button class="expand-btn-site" type="button" data-site="' + siteKey + '" aria-expanded="' + expanded + '" aria-controls="breakdown-' + siteKey + '">' + (expanded ? "Hide cost breakdown ▴" : "Show cost breakdown ▾") + '</button>' +
+          '<div class="breakdown' + (expanded ? " show" : "") + '" id="breakdown-' + siteKey + '">' +
+          '<div class="field" style="margin-top:0"><div class="fl"><span>— Compute (GPU)</span><b>' + fmtUSDCompact(split.cvCompute) + '</b></div></div>' +
+          '<div class="field"><div class="fl"><span>— Facility</span><b>' + fmtUSDCompact(split.cvFacility) + '</b></div></div>' +
+          '</div>';
+      }
+      return '<div class="card tcard">' +
+        '<div class="top"><span class="cid">' + s.name + '</span>' + portfolioStagePill(s.stage) + '</div>' +
+        portfolioBar("Capital deployed", s.capexDeployed, s.capexPlanned, fmtUSDCompact) +
+        portfolioBar("Capacity live", s.currentMW, s.targetMW, function(n){ return n + " MW"; }) +
+        note + evmBlock + '</div>';
+    }).join("");
+    document.getElementById("portfolioSites").innerHTML = html;
+  }
+  function narratePortfolio(p){
+    var behindText = p.behind.length === 0
+      ? "every site is on schedule right now"
+      : p.behind.length + " of " + PORTFOLIO_SITES.length + " sites (" + p.behind.join(", ") + ") are running behind, together carrying about " + fmtUSDCompact(p.totalDelayCost) + " in idle GPU depreciation";
+    return '<div class="card insight"><span class="tag">In plain terms</span>' +
+      'Across the portfolio, <b>' + fmtPct(p.pctDeployed) + '</b> of planned capital (' + fmtUSDCompact(p.totalDeployed) + ' of ' + fmtUSDCompact(p.totalPlanned) + ') has actually been spent, ' +
+      'and <b>' + fmtPct(p.pctDelivered) + '</b> of the target capacity (' + p.totalCurrentMW + ' of ' + p.totalTargetMW + ' MW) is live and earning today — the rest is still being built. ' +
+      'Right now, <b>' + behindText + '</b>.</div>';
+  }
+  function narrateEvm(p){
+    // TCPI compared against the best CPI any site has actually hit so far -- not a hardcoded
+    // threshold -- so the "out of reach" claim is grounded in this portfolio's own data, not a
+    // guessed cutoff.
+    var tcpiText = (p.tcpi === null || p.bestCpiAchieved === null) ? "" :
+      (p.tcpi > p.bestCpiAchieved
+        ? 'Hitting the original budget from here would need the remaining work to run at a cost efficiency of <b>' + p.tcpi.toFixed(2) + '×</b> (TCPI) — above the best cost performance any site here has hit so far (<b>' + p.bestCpiAchieved.toFixed(2) + '×</b>), so treat the original budget as effectively out of reach.'
+        : 'The remaining work would need a cost efficiency of <b>' + p.tcpi.toFixed(2) + '×</b> (TCPI) to land on the original budget — within reach of what this portfolio has already achieved (best so far: <b>' + p.bestCpiAchieved.toFixed(2) + '×</b>).');
+    var vacText = p.vac === null ? "" : (p.vac < 0
+      ? 'about <b>' + fmtUSDCompact(Math.abs(p.vac)) + '</b> more than the original <b>' + fmtUSDCompact(p.bac) + '</b> budget'
+      : 'about <b>' + fmtUSDCompact(p.vac) + '</b> under the original <b>' + fmtUSDCompact(p.bac) + '</b> budget');
+    var axisText = (p.worstCpiSite && p.worstSpiSite)
+      ? (p.worstCpiSite.name === p.worstSpiSite.name
+          ? '<b>' + p.worstCpiSite.name + '</b> reads worst on both axes — the most over budget for what it\'s delivered (CPI ' + p.worstCpiSite.cpi.toFixed(2) + '×) AND the furthest behind on schedule in value-weighted terms (SPI ' + p.worstSpiSite.spi.toFixed(2) + '×).'
+          : '<b>' + p.worstCpiSite.name + '</b> carries the worst cost overrun (CPI ' + p.worstCpiSite.cpi.toFixed(2) + '×); <b>' + p.worstSpiSite.name + '</b> is furthest behind on schedule in value-weighted terms (SPI ' + p.worstSpiSite.spi.toFixed(2) + '×) — two different problems, not the same site failing at both.')
+      : "";
+    return '<div class="card insight"><span class="tag">In plain terms</span>' +
+      'Summed across all six sites — value delivered against value planned, not just money spent — this portfolio\'s blended cost performance is <b>' + p.cpi.toFixed(2) + '×</b> (CPI) and schedule performance is <b>' + p.spi.toFixed(2) + '×</b> (SPI): for every dollar spent, about <b>' + (p.cpi * 100).toFixed(0) + '¢</b> of planned value has actually been delivered. ' +
+      axisText + ' ' +
+      'At current cost trends, this portfolio is forecast to cost <b>' + fmtUSDCompact(p.eac) + '</b> to finish — ' + vacText + '. ' + tcpiText + '</div>';
+  }
+  function renderPortfolio(gpuLifeYears){
+    var p = computePortfolio(gpuLifeYears);
+    document.getElementById("portfolioCapitalVal").textContent = fmtUSDCompact(p.totalDeployed);
+    document.getElementById("portfolioCapitalSub").textContent = fmtPct(p.pctDeployed) + " deployed · " + fmtUSDCompact(p.remainingCapital) + " remaining";
+    document.getElementById("portfolioCapacityVal").textContent = fmtPct(p.pctDelivered);
+    document.getElementById("portfolioCapacitySub").textContent = p.totalCurrentMW + " of " + p.totalTargetMW + " MW live";
+    document.getElementById("portfolioBehindVal").textContent = p.behind.length + " of " + PORTFOLIO_SITES.length;
+    document.getElementById("portfolioBehindSub").textContent = p.behind.join(", ") || "none";
+    document.getElementById("portfolioDelayCostVal").textContent = fmtUSDCompact(p.totalDelayCost);
+    document.getElementById("portfolioDelayCostSub").textContent = p.behind.length > 0
+      ? "across " + p.behind.length + " behind-schedule site" + (p.behind.length === 1 ? "" : "s")
+      : "no sites behind schedule";
+    document.getElementById("portfolioCPIVal").textContent = p.cpi.toFixed(2) + "×";
+    document.getElementById("portfolioCPISub").textContent = fmtUSDCompact(p.totalEV) + " earned / " + fmtUSDCompact(p.totalAC) + " spent";
+    document.getElementById("portfolioSPIVal").textContent = p.spi.toFixed(2) + "×";
+    document.getElementById("portfolioSPISub").textContent = fmtUSDCompact(p.totalEV) + " earned / " + fmtUSDCompact(p.totalPV) + " planned";
+    document.getElementById("portfolioEACVal").textContent = p.eac === null ? "N/A" : fmtUSDCompact(p.eac);
+    document.getElementById("portfolioEACSub").textContent = "vs. " + fmtUSDCompact(p.bac) + " original budget";
+    document.getElementById("portfolioVACVal").textContent = p.vac === null ? "N/A" : fmtUSDCompact(p.vac);
+    document.getElementById("portfolioVACSub").textContent = p.vac === null ? "—" : (p.vac < 0 ? "projected over budget" : "projected under budget");
+    renderPortfolioSites(gpuLifeYears);
+    document.getElementById("portfolioInsight").innerHTML = narratePortfolio(p);
+    document.getElementById("portfolioEvmInsight").innerHTML = narrateEvm(p);
+  }
+  // NOTE: no standalone renderPortfolio() call here anymore -- it now needs a live
+  // v.gpuLifeYears, which doesn't exist until econIds are wired to their default values
+  // further down. It's called from inside renderSiteEconomics() instead (see below), the
+  // same "recompute every derived section together" cascade every other econ-driven section
+  // already goes through. This is a required ordering fix, not a stylistic move: calling it
+  // here (as it used to be) would read an unset/blank gpuLifeYears field and silently divide
+  // by 1 (this function's own defensive floor) instead of the real default of 5.
+
+  // ---- glossary: static reference content, no compute, no reactivity to any input on this
+  // page -- every example below is either (a) a REAL, currently-true number from the
+  // dbt-tested tenant section (safe to hardcode, since that data never changes), or (b) a
+  // clean, deliberately round HYPOTHETICAL number for the user-editable econ/portfolio
+  // sections, chosen to share no digits with any ECON_DEFAULTS/DEBT_DEFAULT/DELAY_DEFAULT
+  // value -- so dragging a slider elsewhere on the page can never make an example here look
+  // like a stale snapshot of "today's" numbers. `anchor` links to a real section id and
+  // relies on the existing global html{scroll-behavior:smooth}; omitted where no single
+  // section is a clean match.
+  var GLOSSARY = [
+    { group: "The basics", terms: [
+      { term: "Revenue", anchor: "kpiSection",
+        def: "Money billed to customers for the service actually provided.",
+        example: "Across all 3 tenants over the 16-day window in Chapter 1 above, total revenue is $981." },
+      { term: "Cost", anchor: "kpiSection",
+        def: "What it actually costs to serve that revenue — both what was directly used, and this tenant's fair share of capacity that was reserved but sat unused.",
+        example: "Total cost across all 3 tenants over that same window is $411." },
+      { term: "Gross margin", anchor: "kpiSection",
+        def: "Revenue minus cost, as a percentage of revenue — what's left over after paying for what was served.",
+        example: "Blended across all 3 tenants, gross margin above is 58.1%." },
+      { term: "EBIT", anchor: "econKpis",
+        def: "Earnings Before Interest and Tax — what's left after operating costs and depreciation, before accounting for how the capital itself was financed.",
+        example: "$10M in revenue, minus $6M in operating costs and $2M in depreciation, leaves $2M of EBIT." }
+    ]},
+    { group: "Overhead & cost accounting", terms: [
+      { term: "Idle capacity / idle overhead", anchor: "kpiSection",
+        def: "Capacity that's paid for whether it's used or not — GPUs sitting idle still cost money.",
+        example: "$34.59 of the $411 total tenant spend above came from idle overhead — capacity nobody used that day." },
+      { term: "Overhead absorption", anchor: null,
+        def: "The accounting term for spreading a shared or idle cost across the users who benefit from having that capacity available, instead of writing it off separately.",
+        example: "Rather than eating the idle-capacity cost itself, the cluster spreads it across all three tenants by how much each used the shared pool." },
+      { term: "Allocation (cost allocation)", anchor: null,
+        def: "Splitting a shared cost among multiple users, typically in proportion to how much each one actually used.",
+        example: "The tenants above split the idle-capacity bill 48% / 32% / 20% — not evenly, but by how much each sent to the cluster." },
+      { term: "Variance (budget vs. actual)", anchor: null,
+        def: "The gap between what was planned or targeted and what actually happened.",
+        example: "A 60% budgeted margin against a 52% actual margin is an 8-point unfavorable variance." }
+    ]},
+    { group: "Capital & investment", terms: [
+      { term: "CapEx vs. OpEx", anchor: "portfolioKpis",
+        def: "CapEx (capital expenditure) is the one-time cost to build or acquire something — the building, the GPUs. OpEx (operating expenditure) is the ongoing cost to run it — power, cooling, maintenance.",
+        example: "A $3B one-time build is CapEx; the roughly $40M/year electricity bill to run it is OpEx." },
+      { term: "Depreciation", anchor: null,
+        def: "Spreading a big purchase's cost over the years it stays useful, instead of counting it all on day one.",
+        example: "$450M of GPUs with a 6-year useful life depreciates $75M a year, straight-line." },
+      { term: "Payback period", anchor: "econKpis",
+        def: "How long it takes for the savings or return an upfront cost produces to earn that cost back.",
+        example: "A $10,000 upgrade that saves $2,500 a year pays for itself in 4 years." },
+      { term: "ROI / return on deployed assets (RODA)", anchor: "econKpis",
+        def: "For every dollar spent building and equipping something, how many cents come back as profit each year.",
+        example: "$100 invested that returns $20 a year in profit is a 20% return." },
+      { term: "Utilization", anchor: "econKpis",
+        def: "How much of the available capacity is actually being used right now — the unused rest still costs money.",
+        example: "18 of 24 MW actually active is 75% utilization." }
+    ]},
+    { group: "Financing", terms: [
+      { term: "Debt vs. equity financing", anchor: null,
+        def: "Two ways to fund a big purchase: borrow it (debt, carries a fixed interest cost) or raise it from investors (equity, carries a higher expected return since investors take on more risk than a lender).",
+        example: "Borrowing $1M at a fixed rate is debt; selling a stake in the project for $1M is equity." },
+      { term: "Cost of capital (blended)", anchor: null,
+        def: "The average cost of all the money used to fund something, weighted by how much came from debt versus equity.",
+        example: "50% debt at 6% blended with 50% equity at 14% works out to a 10% blended cost of capital." },
+      { term: "Leverage (accretive vs. dilutive)", anchor: null,
+        def: "Using debt to fund part of an investment, which can boost or hurt the return equity holders see depending on whether the asset earns more or less than the debt costs.",
+        example: "A project earning 12% on its assets, funded partly by debt costing 6%, boosts — is accretive to — the equity return. If that debt cost 15% instead, borrowing would work against equity — be dilutive." },
+      { term: "Interest expense", anchor: null,
+        def: "The yearly cost of borrowed money.",
+        example: "$400M borrowed at 6% costs $24M a year in interest, regardless of how the project itself performs." }
+    ]},
+    { group: "Data-center specific", terms: [
+      { term: "PUE (Power Usage Effectiveness)", anchor: "econKpis",
+        def: "For every 1 unit of power that actually reaches the servers, how many total units the whole building draws. 1.0 would mean zero overhead, which no real building hits — lower is better.",
+        example: "A PUE of 1.2 means for every 1 unit reaching the servers, the building draws 1.2 total — the extra 0.2 goes to cooling and overhead." },
+      { term: "Megawatt (MW) / deployed capacity", anchor: "portfolioKpis",
+        def: "A unit of power; data centers are sized by how many megawatts of IT equipment they can run.",
+        example: "A 100MW site can run about 8x the IT load of a 12MW site." },
+      { term: "Rack", anchor: null,
+        def: "A standardized frame that holds multiple servers or GPUs stacked together — data-center capacity is often planned and priced per rack.",
+        example: "A single rack might draw around 35kW of power and hold dozens of GPUs." }
+    ]},
+    { group: "Forecasting & planning", terms: [
+      { term: "Sensitivity analysis", anchor: null,
+        def: "Testing how much an outcome changes when you nudge ONE input at a time, holding everything else fixed.",
+        example: "Nudge an interest rate up 10% with everything else held constant, and see how much that alone moves the bottom line." },
+      { term: "Scenario analysis", anchor: null,
+        def: "Modeling a few different overall futures at once, rather than nudging one variable at a time.",
+        example: "Instead of nudging one number, model three whole futures — a strong year, a normal year, and a weak year — and see how far apart they land." }
+    ]},
+    // Unlike the dbt-tenant group above (whose examples are safe to hardcode because that
+    // data never changes) or the econ-section groups (whose examples are deliberately
+    // hypothetical), these worked examples are hand-derived from the CURRENT PORTFOLIO_SITES
+    // array -- Site 03's PV/EV/CV, and the portfolio-wide EAC/VAC -- values PORTFOLIO_SITES
+    // has already been edited multiple times this session (EVM fields, the compute/facility
+    // split). A whole-file stress test flagged this: if a future round changes Site 03's
+    // numbers or the portfolio totals, THIS BLOCK GOES STALE while the live KPI tiles above
+    // update correctly. Re-derive these examples (or re-verify them by hand) any time
+    // PORTFOLIO_SITES changes.
+    { group: "Earned Value Management (EVM)", terms: [
+      { term: "Planned Value (PV)", anchor: "portfolioKpis",
+        def: "The budgeted cost of the work that SHOULD be done by now, given the project's own planned schedule — a baseline, not an actual.",
+        example: "Site 03 is 12 months into a planned 24-month build on a $1,100M budget — it should be 50% through, so PV = $550.0M." },
+      { term: "Earned Value (EV)", anchor: "portfolioKpis",
+        def: "The budgeted cost of the work actually completed, measured by real physical progress — not by money spent. This is the part most people skip, and it's the whole point of EVM.",
+        example: "Site 03 has 22 of its 70 target MW actually live (31.4%) — EV = 31.4% × $1,100M = $345.7M." },
+      { term: "Actual Cost (AC)", anchor: "portfolioKpis",
+        def: "Money actually spent so far — the one number a simple budget-tracking system would normally show you on its own.",
+        example: "Site 03 has spent $980M of its $1,100M plan — AC = $980M." },
+      { term: "Cost Variance (CV)", anchor: "portfolioKpis",
+        def: "Earned Value minus Actual Cost. Negative means over budget for the work actually delivered; positive means under. Each site card below can break this down further into Compute (GPU) vs. Facility spend — an assumption-based split (this portfolio doesn't track a category-level plan per site), not a tracked actual.",
+        example: "Site 03: $345.7M earned − $980M spent = −$634.3M — badly over budget for what's actually been built." },
+      { term: "Schedule Variance (SV)", anchor: "portfolioKpis",
+        def: "Earned Value minus Planned Value. Negative means behind schedule in value terms; positive means ahead.",
+        example: "Site 03: $345.7M earned − $550.0M planned by now = −$204.3M behind." },
+      { term: "Cost Performance Index (CPI)", anchor: "portfolioKpis",
+        def: "Earned Value divided by Actual Cost — how many dollars of value came back for every dollar spent. Below 1.00× is a cost overrun.",
+        example: "Site 03: $345.7M ÷ $980M = 0.35× — about 35 cents of value for every dollar spent." },
+      { term: "Schedule Performance Index (SPI)", anchor: "portfolioKpis",
+        def: "Earned Value divided by Planned Value — how much value showed up compared to how much should have by now. Below 1.00× is behind schedule.",
+        example: "Site 03: $345.7M ÷ $550.0M = 0.63× — running behind the value the schedule called for." },
+      { term: "Estimate at Completion (EAC)", anchor: "portfolioKpis",
+        def: "A forecast of the total final cost, assuming the project keeps spending at its current cost efficiency (CPI) for whatever work is left.",
+        example: "This portfolio's blended CPI (0.73×) projects a final cost of about $7.5B against a $5.5B original budget." },
+      { term: "Variance at Completion (VAC)", anchor: "portfolioKpis",
+        def: "The original budget minus the forecast final cost (EAC). Negative means projected to finish over budget.",
+        example: "$5.5B budgeted − $7.5B forecast ≈ −$2.1B — this portfolio is currently tracking to finish about $2.1B over its original budget." }
+    ]}
+  ];
+  function renderGlossary(){
+    // Only the first group opens by default -- 6 groups all open at once would front-load
+    // the whole glossary as a wall of text on first paint, working against the "browsable
+    // reference" point of grouping it at all.
+    var html = GLOSSARY.map(function(g, gi){
+      var terms = g.terms.map(function(t){
+        var anchorHtml = t.anchor ? ' <a href="#' + t.anchor + '" style="font-size:12.5px">→ see it above</a>' : '';
+        return '<div style="margin-bottom:14px">' +
+          '<div><b style="color:rgb(var(--c-text-primary))">' + t.term + '</b>' + anchorHtml + '</div>' +
+          '<p style="margin:4px 0 0; font-size:13px; line-height:1.6; color:rgb(var(--c-text-secondary))">' + t.def + '</p>' +
+          '<p style="margin:4px 0 0; font-size:12.5px; line-height:1.5; color:rgb(var(--c-accent))">Example: ' + t.example + '</p>' +
+          '</div>';
+      }).join("");
+      return '<details class="igroup"' + (gi === 0 ? " open" : "") + '><summary>' + g.group + '</summary><div style="margin-top:4px">' + terms + '</div></details>';
+    }).join("");
+    document.getElementById("glossaryWrap").innerHTML = html;
+  }
+  renderGlossary();
+
+  econIds.forEach(function(id){
+    var el = document.getElementById(id);
+    el.value = ECON_DEFAULTS[id];
+    el.addEventListener("input", function(){ renderSiteEconomics(false); });
+  });
+  ECON_CURRENCY_IDS.forEach(function(id){
+    formatCurrencyField(id); // comma-format the initial value
+    document.getElementById(id).addEventListener("blur", function(){ formatCurrencyField(id); });
+  });
+  document.getElementById("econReset").addEventListener("click", function(){
+    econIds.forEach(function(id){ document.getElementById(id).value = ECON_DEFAULTS[id]; });
+    ECON_CURRENCY_IDS.forEach(formatCurrencyField);
+    document.getElementById("delaySlider").value = DELAY_DEFAULT; // not in econIds -- reset it explicitly
+    document.getElementById("debtSlider").value = DEBT_DEFAULT; // not in econIds -- reset it explicitly
+    renderSiteEconomics(true);
+  });
+  // delaySlider is its own control (mirrors the tenant section's margin-zone-threshold
+  // sliders), not one of the generic econIds -- but it feeds year 1 of the new IRR cash flow
+  // series too (the same "cost of delay" figure), so its handler must also refresh that panel,
+  // not just the depreciation section it originally only touched. computeCapitalStructure is
+  // called directly here (not renderCapitalStructure) since delay doesn't change anything the
+  // capital-structure CARD itself displays -- no need to re-render that DOM on every drag.
+  document.getElementById("delaySlider").addEventListener("input", function(){
+    var v = econValues();
+    var r = computeSiteEconomics(v);
+    renderDepreciation(v, r);
+    var debtPct = Number(document.getElementById("debtSlider").value) / 100;
+    var cs = computeCapitalStructure(v, r, debtPct);
+    renderIrr(v, r, cs);
+  });
+  // debtSlider is the same "own dedicated control" pattern -- capital structure needs both v
+  // and the computed r, and now the IRR panel needs the fresh cs this render produces too
+  // (its discount rate IS the blended cost of capital this slider directly controls).
+  document.getElementById("debtSlider").addEventListener("input", function(){
+    var v = econValues();
+    var r = computeSiteEconomics(v);
+    var cs = renderCapitalStructure(v, r);
+    renderIrr(v, r, cs);
+  });
+  renderSiteEconomics(true);
+  // Runs here, alongside the other synchronous initial renders -- NOT deferred until after
+  // the dbt fetch settles. renderPortfolio()/renderSiteEconomics(true) above already run (and
+  // their KPI tiles already finish their count-up animation) independent of that fetch, so
+  // gating the reveal system behind it would hide already-visible, already-animated content
+  // and pop it back in "pre-cooked" a moment later -- a real, visible glitch on first paint,
+  // not a hypothetical one. IntersectionObserver re-checks automatically as layout shifts
+  // while a target is still observed, so it doesn't need sections at their final height to
+  // work correctly -- worst case a still-loading skeleton section reveals a frame before its
+  // real dbt content lands, which is far less jarring than the hide-then-restore this avoids.
+  initScrollReveal();
+  initSidebarSpy();
+
+  function render(data){
+    // Declared here, at the top, not down near computeReconciliation() where it's actually
+    // used -- renderReconciliation(data) is called partway through this function, and a
+    // `var` declared textually BELOW its call site is still `undefined` at call time (the
+    // declaration hoists, the assignment doesn't run until execution reaches that line).
+    // Hit exactly this bug once already: Math.abs(x) <= undefined silently evaluates to
+    // false, and undefined.toFixed() throws -- which is why it moved up here.
+    var RECONCILE_TOLERANCE = 0.01;
+
+    document.getElementById("genAt").textContent = "Data as of " + data.generated_at.slice(0,10);
+    document.getElementById("rangeBadge").textContent =
+      data.summary.tenants.length + " tenants · " + data.summary.n_days + " days · synthetic data";
+
+    // ---- KPI strip ----
+    var s = data.summary;
+    var kpis = [
+      { lbl: "Total GPU spend", info: "totalSpend", raw: s.total_spend, fmt: fmtUSD, sub: s.date_range.start + " → " + s.date_range.end },
+      { lbl: "Idle overhead absorbed", info: "idleOverhead", raw: s.idle_cost_pct_of_spend, fmt: fmtPct, sub: fmtUSD(s.total_idle_cost) + " of total spend" },
+      { lbl: "Blended gross margin", info: "blendedMargin", raw: s.blended_gross_margin_pct, fmt: fmtPct, sub: "revenue " + fmtUSD(s.total_revenue) },
+      { lbl: "Tenants at risk", info: "tenantsAtRisk", val: s.tenants_in_warning.length + " of " + s.tenants.length, sub: s.tenants_in_warning.join(", ") || "none", warn: s.tenants_in_warning.length > 0 }
+    ];
+    var kpiHtml = kpis.map(function(k, i){
+      return '<div class="card kpi' + (k.warn ? ' warn' : '') + '">' +
+        '<button class="infobtn" type="button" data-info="' + k.info + '" aria-label="What is this?" aria-expanded="false">i</button>' +
+        '<div class="lbl">' + k.lbl + '</div>' +
+        '<div class="val tabular" id="kpiVal' + i + '">' + (k.val || "—") + '</div>' +
+        '<div class="sub">' + k.sub + '</div></div>';
+    }).join("");
+    document.getElementById("kpis").innerHTML = kpiHtml;
+    kpis.forEach(function(k, i){
+      if (k.fmt) animateValue(document.getElementById("kpiVal" + i), k.raw, k.fmt);
+    });
+
+    // ---- story callout ----
+    document.getElementById("storySection").innerHTML =
+      '<div class="card story">' +
+      '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>' +
+      '<p><span class="tag">Which tenant loses money</span><br/>' +
+      '<b>' + s.lowest_margin_tenant + '</b> is running at <b>' + fmtPct(s.lowest_margin_tenant_avg_pct) + '</b> average gross margin ' +
+      'across the ' + s.n_days + '-day window — its contract token rate doesn\'t cover its allocated share of idle ' +
+      'cluster capacity. Every other tenant absorbs the same overhead pool and stays profitable.</p></div>';
+
+    // ---- composition chart (stacked area: active + idle, by day) ----
+    renderComposition(data.cluster_costs);
+    document.getElementById("compositionInsight").innerHTML =
+      '<div class="card insight"><span class="tag">In plain terms</span>Idle capacity made up <b>' + fmtPct(s.idle_cost_pct_of_spend) +
+      '</b> of total spend over this period — ' + narrateIdleShare(s.idle_cost_pct_of_spend) + '.</div>';
+
+    // ---- 12-month rolling forecast (month 0 = real dbt-tested value, projection is
+    // illustrative -- reads the live blended_gross_margin_pct every render, never a
+    // hardcoded snapshot of it) ----
+    renderForecast(s.blended_gross_margin_pct);
+
+    // ---- data integrity check: two independent aggregations of the same fetched data,
+    // computed once -- both totals come straight from `data`, not reactive to any slider,
+    // same shape as the forecast call above. ----
+    renderReconciliation(data);
+
+    // ---- tenant scorecards + interactive thresholds ----
+    var byTenant = {};
+    data.tenant_costs.forEach(function(r){
+      (byTenant[r.customer_id] = byTenant[r.customer_id] || []).push(r);
+    });
+    Object.keys(byTenant).forEach(function(k){ byTenant[k].sort(function(a,b){ return a.usage_date < b.usage_date ? -1 : 1; }); });
+
+    // ---- the absorption key, visualized (static: allocation_ratio doesn't depend on the
+    // margin-zone thresholds, so this renders once and never re-renders on slider move) ----
+    renderAllocation(byTenant, Object.keys(byTenant).sort());
+
+    var expandedTenants = {}; // cid -> bool, survives renderTenants() re-renders on slider move
+    var warnSlider = document.getElementById("warnSlider");
+    var bestSlider = document.getElementById("bestSlider");
+    var warnVal = document.getElementById("warnVal");
+    var bestVal = document.getElementById("bestVal");
+    var defaults = { warn: data.thresholds.margin_warning_below, best: data.thresholds.margin_best_above };
+    warnSlider.value = Math.round(defaults.warn * 100);
+    bestSlider.value = Math.round(defaults.best * 100);
+
+    function currentThresholds(){
+      var w = Number(warnSlider.value) / 100;
+      var b = Number(bestSlider.value) / 100;
+      if (b <= w) b = w + 0.01; // keep the two boundaries from crossing
+      return { warn: w, best: b };
+    }
+
+    function renderTenants(){
+      var th = currentThresholds();
+      warnVal.textContent = fmtPct0(th.warn);
+      bestVal.textContent = fmtPct0(th.best);
+
+      var order = Object.keys(byTenant).sort();
+      var html = order.map(function(cid){
+        var rows = byTenant[cid];
+        var latest = rows[rows.length - 1];
+        var zone = zoneOf(latest.gross_margin_pct, th.warn, th.best);
+        var zoneClass = zone === "best" ? "z-best" : zone === "warning" ? "z-warning" : "z-standard";
+        var totalCost = rows.reduce(function(a,r){ return a + r.total_cost; }, 0);
+        var totalRev = rows.reduce(function(a,r){ return a + r.revenue; }, 0);
+        var totalDirect = rows.reduce(function(a,r){ return a + r.direct_cost; }, 0);
+        var totalIdle = rows.reduce(function(a,r){ return a + r.allocated_idle_cost; }, 0);
+        var spark = sparklineSVG(rows, th, zone, cid);
+        var expanded = !!expandedTenants[cid];
+        return '<div class="card tcard">' +
+          '<div class="top"><span class="cid">' + cid + '</span>' +
+          '<span class="pill ' + zoneClass + '"><span class="sw"></span>' + ZONE_LABEL[zone] + '</span></div>' +
+          '<div class="margin tabular" style="color:' + pillColorVar(zone) + '">' + fmtPct(latest.gross_margin_pct) + '</div>' +
+          '<div class="note">' + narrateTenantShort(zone) + '</div>' +
+          '<div class="stats"><span>Total cost<b class="tabular">' + fmtUSD(totalCost) + '</b></span>' +
+          '<span>Revenue<b class="tabular">' + fmtUSD(totalRev) + '</b></span></div>' +
+          '<div class="spark">' + spark + '</div>' +
+          '<button class="expand-btn" type="button" data-cid="' + cid + '" aria-expanded="' + expanded + '" aria-controls="breakdown-' + cid + '">' + (expanded ? "Hide breakdown ▴" : "Show breakdown ▾") + '</button>' +
+          '<div class="breakdown' + (expanded ? " show" : "") + '" id="breakdown-' + cid + '">' +
+          waterfallSVG(totalRev, totalDirect, totalIdle) + '</div></div>';
+      }).join("");
+      document.getElementById("tenants").innerHTML = html;
+      order.forEach(function(cid){ wireSparkHover(cid, byTenant[cid]); });
+      document.querySelectorAll(".expand-btn").forEach(function(btn){
+        btn.addEventListener("click", function(){
+          var cid = btn.getAttribute("data-cid");
+          expandedTenants[cid] = !expandedTenants[cid];
+          btn.textContent = expandedTenants[cid] ? "Hide breakdown ▴" : "Show breakdown ▾";
+          btn.setAttribute("aria-expanded", expandedTenants[cid]);
+          document.getElementById("breakdown-" + cid).classList.toggle("show", expandedTenants[cid]);
+        });
+      });
+      // "budget" = th.best (the same slider value re-colors the cards above), so this
+      // is deliberately hung off the SAME re-render call as the cards, not a parallel
+      // render path -- dragging either slider must move both.
+      renderVariance(byTenant, th);
+    }
+
+    // ---- budget-vs-actual margin variance: budget is th.best (real dbt_project.yml
+    // config, already wired to bestSlider), actual is each tenant's PERIOD-WEIGHTED
+    // AVERAGE margin -- not latest.gross_margin_pct (the card headline above uses latest,
+    // this uses the period average) -- because the dollar variance is period revenue x
+    // variance rate, and mixing a single-day rate with period revenue produces a wrong
+    // magnitude and can even flip which tenants look favorable/unfavorable.
+    function computeVariance(byTenant, th){
+      return Object.keys(byTenant).sort().map(function(cid){
+        var rows = byTenant[cid];
+        var totalRev = rows.reduce(function(a,r){ return a + r.revenue; }, 0);
+        var totalCost = rows.reduce(function(a,r){ return a + r.total_cost; }, 0);
+        var actualPct = totalRev > 0 ? (totalRev - totalCost) / totalRev : 0;
+        var variancePct = actualPct - th.best;
+        return { cid: cid, actualPct: actualPct, budgetPct: th.best, variancePct: variancePct, varianceDollars: variancePct * totalRev };
+      });
+    }
+    function varianceSVG(items){
+      // labelW widened from 60 to 80 alongside the .axislabel font-size bump (9.5->11px) --
+      // this label is the live, dbt-sourced tenant id (it.cid), not a fixed string, so there's
+      // no length guarantee; today's real ids (cust_a/b/c) fit comfortably even at 60, but
+      // widening removes the open-ended future risk at near-zero cost. w stays fixed, so this
+      // only reallocates space within the existing viewBox -- it doesn't change the SVG's
+      // render scale the way changing w itself would.
+      var rowH = 34, padT = 10, padB = 20, labelW = 80, valueW = 170;
+      var w = 640, h = padT + items.length * rowH + padB;
+      var barZoneW = w - labelW - valueW;
+      var maxAbs = Math.max.apply(null, items.map(function(i){ return Math.abs(i.variancePct); }).concat([0.01]));
+      var centerX = labelW + barZoneW / 2;
+      var scale = (barZoneW / 2) / maxAbs;
+      var rows = items.map(function(it, i){
+        var y = padT + i * rowH, midY = y + rowH * 0.5;
+        var barW = Math.max(Math.abs(it.variancePct) * scale, 2);
+        var x = it.variancePct >= 0 ? centerX : centerX - barW;
+        var rgb = it.variancePct >= 0 ? 'rgb(var(--c-success))' : 'rgb(var(--c-danger))';
+        var sign = it.variancePct >= 0 ? '+' : '−';
+        return '<text x="4" y="' + (midY + 4).toFixed(1) + '" class="axislabel" text-anchor="start">' + it.cid + '</text>' +
+          '<rect x="' + x.toFixed(1) + '" y="' + (midY - 7).toFixed(1) + '" width="' + barW.toFixed(1) + '" height="14" rx="3" fill="' + rgb + '"/>' +
+          '<text x="' + (labelW + barZoneW + 8) + '" y="' + (midY + 4).toFixed(1) + '" class="axislabel" text-anchor="start">' + sign + Math.abs(it.variancePct * 100).toFixed(1) + 'pp · ' + fmtUSDCompact(it.varianceDollars) + '</text>';
+      }).join("");
+      var centerLine = '<line x1="' + centerX.toFixed(1) + '" x2="' + centerX.toFixed(1) + '" y1="' + padT + '" y2="' + (padT + items.length * rowH) + '" stroke="rgb(var(--c-text-secondary) / .5)" stroke-width="1" stroke-dasharray="2 3"/>';
+      return '<svg class="chart" viewBox="0 0 ' + w + ' ' + h + '" style="width:100%;height:auto" role="img" aria-label="Budget vs actual margin variance by tenant">' + centerLine + rows + '</svg>';
+    }
+    function narrateVariance(items){
+      var favorableCount = items.filter(function(i){ return i.variancePct >= 0; }).length;
+      var worst = items.slice().sort(function(a,b){ return a.varianceDollars - b.varianceDollars; })[0];
+      var worstText = worst.variancePct < 0
+        ? '<b>' + worst.cid + '</b> carries the largest unfavorable variance — running <b>' + Math.abs(worst.variancePct * 100).toFixed(1) + ' points</b> below budget on average, about <b>' + fmtUSDCompact(Math.abs(worst.varianceDollars)) + '</b> short of what the best-in-class line would have earned over this window'
+        : 'every tenant is at or above the budget line right now';
+      return '<div class="card insight"><span class="tag">In plain terms</span>' +
+        favorableCount + ' of ' + items.length + ' tenants are running at or above the best-in-class budget line, on a whole-period average. ' + worstText + '.</div>';
+    }
+    function renderVariance(byTenant, th){
+      var items = computeVariance(byTenant, th);
+      document.getElementById("varianceWrap").innerHTML = varianceSVG(items);
+      document.getElementById("varianceInsight").innerHTML = narrateVariance(items);
+    }
+
+    function pillColorVar(zone){
+      return zone === "best" ? "rgb(var(--c-success))" : zone === "warning" ? "rgb(var(--c-danger))" : "rgb(var(--c-text-secondary))";
+    }
+
+    // ---- data integrity check: bottom-up (sum of every tenant-day's total_cost) vs.
+    // top-down (sum of every cluster-day's active_cost + idle_cost) -- two independent
+    // aggregations of the same underlying data that should land close to each other if
+    // tenant costs are genuinely built from the cluster-level split (they are). A named,
+    // stated tolerance -- not literal float equality -- since real floating-point sums over
+    // different row counts (tenant-day rows vs. cluster-day rows) never land bit-identical
+    // even when nothing is wrong; a fake "$0.00 exactly" claim would be less honest than a
+    // small, explained, within-tolerance gap. fmtUSD can't display this -- it rounds to 0
+    // decimals above $100, so both totals would print as the same "$411" and the whole
+    // point of the check would be invisible -- so this uses .toFixed(4) instead, just here.
+    // (RECONCILE_TOLERANCE itself is declared near the top of render(data), not here --
+    // see the comment there for why.)
+    function computeReconciliation(data){
+      var bottomUp = data.tenant_costs.reduce(function(a, r){ return a + r.total_cost; }, 0);
+      var topDown = data.cluster_costs.reduce(function(a, r){ return a + r.active_cost + r.idle_cost; }, 0);
+      var variance = bottomUp - topDown;
+      return {
+        bottomUp: bottomUp, topDown: topDown, variance: variance,
+        reconciled: Math.abs(variance) <= RECONCILE_TOLERANCE,
+        tenantRows: data.tenant_costs.length, clusterRows: data.cluster_costs.length
+      };
+    }
+    function narrateReconciliation(rc){
+      // Only the verb used to branch here, leaving the trailing clause unconditional --
+      // which meant a genuine failure (unreachable with today's static data, but the code
+      // must still be correct for it) would have rendered "...does NOT reconcile ... not a
+      // sign anything is actually wrong," directly contradicting itself and the red pill
+      // next to it. Same "invisible until the other branch actually runs" shape as the
+      // RECONCILE_TOLERANCE hoisting bug caught earlier -- branch the whole sentence.
+      var closing = rc.reconciled
+        ? 'well inside the <b>$' + RECONCILE_TOLERANCE.toFixed(2) + '</b> threshold this check holds itself to — the kind of sub-cent difference you\'d expect from rounding at two different levels of aggregation, not a sign anything is actually wrong.'
+        : 'outside the <b>$' + RECONCILE_TOLERANCE.toFixed(2) + '</b> threshold this check holds itself to — worth investigating before trusting the totals above.';
+      var statusWord = rc.reconciled ? "reconcile" : "do NOT reconcile";
+      return '<div class="card insight"><span class="tag">In plain terms</span>' +
+        'Adding up every tenant\'s own daily bill (' + rc.tenantRows + ' rows) gives <b>$' + rc.bottomUp.toFixed(4) + '</b>. Adding up the cluster\'s daily active-plus-idle cost (' + rc.clusterRows + ' rows) — the same number the "Total GPU spend" KPI at the very top of this page is actually built from — gives <b>$' + rc.topDown.toFixed(4) + '</b>. ' +
+        'The two ' + statusWord + ': a <b>$' + Math.abs(rc.variance).toFixed(4) + '</b> gap, ' + closing + '</div>';
+    }
+    function renderReconciliation(data){
+      var rc = computeReconciliation(data);
+      var pillClass = rc.reconciled ? "z-best" : "z-warning";
+      var pillLabel = rc.reconciled ? "Reconciled" : "Variance detected";
+      document.getElementById("reconciliationWrap").innerHTML =
+        '<div style="display:flex; flex-wrap:wrap; gap:20px; align-items:center">' +
+        '<div class="field" style="margin-top:0; flex:1; min-width:200px"><div class="fl"><span>Bottom-up (sum of tenant bills)</span><b class="tabular">$' + rc.bottomUp.toFixed(4) + '</b></div></div>' +
+        '<div class="field" style="margin-top:0; flex:1; min-width:200px"><div class="fl"><span>Top-down (sum of cluster cost)</span><b class="tabular">$' + rc.topDown.toFixed(4) + '</b></div></div>' +
+        '<span class="pill ' + pillClass + '"><span class="sw"></span>' + pillLabel + '</span>' +
+        '</div>';
+      document.getElementById("reconciliationInsight").innerHTML = narrateReconciliation(rc);
+    }
+
+    warnSlider.addEventListener("input", renderTenants);
+    bestSlider.addEventListener("input", renderTenants);
+    document.getElementById("resetBtn").addEventListener("click", function(){
+      warnSlider.value = Math.round(defaults.warn * 100);
+      bestSlider.value = Math.round(defaults.best * 100);
+      renderTenants();
+    });
+
+    renderTenants();
+  }
+
+  // ---- tiny dependency-free chart builders ----
+
+  function renderAllocation(byTenant, order){
+    var avgRatio = {};
+    order.forEach(function(cid){
+      var rows = byTenant[cid];
+      avgRatio[cid] = rows.reduce(function(a,r){ return a + r.allocation_ratio; }, 0) / rows.length;
+    });
+    var total = order.reduce(function(a,cid){ return a + avgRatio[cid]; }, 0) || 1;
+    // Fixed opacity steps of the accent hue, in tenant order -- not a per-tenant categorical
+    // palette (this chart is about usage share, a different dimension than the margin-zone
+    // status colors used elsewhere, so it deliberately doesn't compete with that system).
+    var steps = [1, 0.6, 0.32];
+    var segs = order.map(function(cid, i){
+      var pct = avgRatio[cid] / total;
+      return '<div class="alloc-seg" style="width:' + (pct * 100).toFixed(2) + '%; background:rgb(var(--c-accent) / ' + (steps[i] || 0.32) + ')" title="' + cid + ' ' + fmtPct0(pct) + '"></div>';
+    }).join("");
+    var legend = order.map(function(cid, i){
+      var pct = avgRatio[cid] / total;
+      return '<span><i style="background:rgb(var(--c-accent) / ' + (steps[i] || 0.32) + ')"></i>' + cid + ' <b>' + fmtPct0(pct) + '</b></span>';
+    }).join("");
+    document.getElementById("allocPanel").innerHTML =
+      '<div class="alloc-bar">' + segs + '</div><div class="alloc-legend">' + legend + '</div>';
+
+    var topCid = order.slice().sort(function(a,b){ return avgRatio[b] - avgRatio[a]; })[0];
+    var topPct = avgRatio[topCid] / total;
+    document.getElementById("allocationInsight").innerHTML =
+      '<div class="card insight"><span class="tag">In plain terms</span><b>' + topCid + '</b> sends the most traffic, so it picks up the largest ' +
+      'slice of the unused-capacity bill (<b>' + fmtPct0(topPct) + '</b>) — not because it\'s priced differently, simply because it uses the cluster the most.</div>';
+  }
+
+  function waterfallSVG(revenue, direct, idle){
+    var net = revenue - direct - idle;
+    var w = 320, h = 140, padT = 20, padB = 26;
+    var innerH = h - padT - padB;
+    var maxV = Math.max(revenue, 0), minV = Math.min(net, 0);
+    var range = (maxV - minV) || 1;
+    var yAt = function(v){ return padT + innerH - ((v - minV) / range) * innerH; };
+    var zeroY = yAt(0);
+    var slotW = w / 4, barW = slotW * 0.5;
+    var bars = [
+      { label: "Revenue", val: revenue, top: revenue, bottom: 0, color: "var(--c-accent)" },
+      { label: "Direct cost", val: -direct, top: revenue, bottom: revenue - direct, color: "var(--c-text-secondary)" },
+      { label: "Idle cost", val: -idle, top: revenue - direct, bottom: net, color: "var(--c-danger)" },
+      { label: "Net margin", val: net, top: Math.max(net, 0), bottom: Math.min(net, 0), color: net >= 0 ? "var(--c-success)" : "var(--c-danger)" }
+    ];
+    var parts = bars.map(function(b, i){
+      var x = slotW * i + (slotW - barW) / 2;
+      var yTop = yAt(Math.max(b.top, b.bottom)), yBot = yAt(Math.min(b.top, b.bottom));
+      var bh = Math.max(yBot - yTop, 2);
+      var rgb = 'rgb(' + b.color + ')'; // b.color is already "var(--c-x)" -- rgb(var(--c-x)) is the valid form
+      var sign = b.val > 0 ? "+" : b.val < 0 ? "−" : "";
+      return '<rect x="' + x.toFixed(1) + '" y="' + yTop.toFixed(1) + '" width="' + barW.toFixed(1) + '" height="' + bh.toFixed(1) + '" rx="3" fill="' + rgb + '"/>' +
+        '<text x="' + (x + barW / 2).toFixed(1) + '" y="' + (yTop - 5).toFixed(1) + '" text-anchor="middle" fill="' + rgb + '">' + sign + fmtUSD(Math.abs(b.val)) + '</text>' +
+        '<text x="' + (x + barW / 2).toFixed(1) + '" y="' + (h - 8) + '" text-anchor="middle" class="axislabel">' + b.label + '</text>';
+    }).join("");
+    var zeroLine = '<line x1="0" x2="' + w + '" y1="' + zeroY.toFixed(1) + '" y2="' + zeroY.toFixed(1) + '" stroke="rgb(var(--c-text-secondary) / .25)" stroke-width="1" stroke-dasharray="2 3"/>';
+    return '<svg class="chart waterfall" viewBox="0 0 ' + w + ' ' + h + '" style="width:100%;height:140px" role="img" aria-label="Revenue to margin breakdown">' + zeroLine + parts + '</svg>';
+  }
+
+  // Same 4-bar shape as waterfallSVG above (start, -cost, -cost, net) but kept as its own
+  // function rather than a generalization of it -- matches this file's existing precedent
+  // (depreciationSVG/tornadoSVG were both written as new siblings, not refactors of
+  // waterfallSVG, even though they're all "bar chart" shaped) and avoids regression risk
+  // to the already-shipped tenant breakdown chart for the sake of one new caller. Unlike
+  // waterfallSVG, this uses fmtUSDCompact -- site-level $ figures run into the hundreds of
+  // millions, not the tenant section's small dollar amounts.
+  function pnlWaterfallSVG(revenue, opex, depreciation){
+    var ebit = revenue - opex - depreciation;
+    var w = 320, h = 140, padT = 20, padB = 26;
+    var innerH = h - padT - padB;
+    var maxV = Math.max(revenue, 0), minV = Math.min(ebit, 0);
+    var range = (maxV - minV) || 1;
+    var yAt = function(v){ return padT + innerH - ((v - minV) / range) * innerH; };
+    var zeroY = yAt(0);
+    var slotW = w / 4, barW = slotW * 0.5;
+    var bars = [
+      { label: "Revenue", val: revenue, top: revenue, bottom: 0, color: "var(--c-accent)" },
+      // "OpEx" not "Operating cost" -- at the bumped .waterfall-text size (9->10px) the longer
+      // label measured a 1.7px gap to "Depreciation" next to it, uncomfortably close to
+      // overlapping under normal cross-browser font-rendering variance. "OpEx" is already an
+      // established, glossary-defined term on this page ("CapEx vs. OpEx"), not a new
+      // unexplained abbreviation, and its shorter width restores real margin.
+      { label: "OpEx", val: -opex, top: revenue, bottom: revenue - opex, color: "var(--c-text-secondary)" },
+      { label: "Depreciation", val: -depreciation, top: revenue - opex, bottom: ebit, color: "var(--c-danger)" },
+      { label: "EBIT", val: ebit, top: Math.max(ebit, 0), bottom: Math.min(ebit, 0), color: ebit >= 0 ? "var(--c-success)" : "var(--c-danger)" }
+    ];
+    var parts = bars.map(function(b, i){
+      var x = slotW * i + (slotW - barW) / 2;
+      var yTop = yAt(Math.max(b.top, b.bottom)), yBot = yAt(Math.min(b.top, b.bottom));
+      var bh = Math.max(yBot - yTop, 2);
+      var rgb = 'rgb(' + b.color + ')';
+      var sign = b.val > 0 ? "+" : b.val < 0 ? "−" : "";
+      return '<rect x="' + x.toFixed(1) + '" y="' + yTop.toFixed(1) + '" width="' + barW.toFixed(1) + '" height="' + bh.toFixed(1) + '" rx="3" fill="' + rgb + '"/>' +
+        '<text x="' + (x + barW / 2).toFixed(1) + '" y="' + (yTop - 5).toFixed(1) + '" text-anchor="middle" fill="' + rgb + '">' + sign + fmtUSDCompact(Math.abs(b.val)) + '</text>' +
+        '<text x="' + (x + barW / 2).toFixed(1) + '" y="' + (h - 8) + '" text-anchor="middle" class="axislabel">' + b.label + '</text>';
+    }).join("");
+    var zeroLine = '<line x1="0" x2="' + w + '" y1="' + zeroY.toFixed(1) + '" y2="' + zeroY.toFixed(1) + '" stroke="rgb(var(--c-text-secondary) / .25)" stroke-width="1" stroke-dasharray="2 3"/>';
+    return '<svg class="chart waterfall" viewBox="0 0 ' + w + ' ' + h + '" style="width:100%;height:140px" role="img" aria-label="Site-level P&amp;L, revenue to EBIT">' + zeroLine + parts + '</svg>';
+  }
+  function narratePnl(v, r){
+    return '<div class="card insight"><span class="tag">In plain terms</span>' +
+      'At <b>' + fmtUSDCompact(v.econRevenue) + '</b> in annual revenue, after <b>' + fmtUSDCompact(r.opexAnnual) + '</b> in power and cooling across ' + Math.round(r.activeRacks) + ' active racks and <b>' + fmtUSDCompact(r.depreciationAnnual) + '</b> in straight-line depreciation on the GPUs and building, this site nets <b>' + fmtUSDCompact(r.ebit) + '</b> in EBIT — the same number the return-on-assets figure above is built from, not a separately typed one.</div>';
+  }
+  function renderPnl(v, r){
+    document.getElementById("pnlWrap").innerHTML = pnlWaterfallSVG(v.econRevenue, r.opexAnnual, r.depreciationAnnual);
+    document.getElementById("pnlInsight").innerHTML = narratePnl(v, r);
+  }
+
+  // ---- capital structure: debt vs. equity financing mix, and the levered return that mix
+  // produces on top of the unlevered r.roda already computed above. ----
+  function computeCapitalStructure(v, r, debtPct){
+    var debtCapital = r.totalCapexBase * debtPct;
+    var equityCapital = r.totalCapexBase * (1 - debtPct);
+    var costOfDebt = v.debtInterestRate / 100;
+    var costOfEquity = v.equityHurdleRate / 100;
+    var annualInterestExpense = debtCapital * costOfDebt;
+    var netIncome = r.ebit - annualInterestExpense; // pretax -- kept as an internal figure only
+    var taxRate = v.taxRate / 100;
+    var netIncomeAfterTax = netIncome * (1 - taxRate);
+    // Illustrative, simplified blend -- no tax shield on the cost-of-debt leg (a real WACC
+    // would apply one, since the cash flows it discounts are after-tax too), no target-vs-
+    // actual-structure split -- not a rigorous WACC, same "simplified, says so" framing as the
+    // straight-line depreciation section above.
+    var weightedCostOfCapital = debtPct * costOfDebt + (1 - debtPct) * costOfEquity;
+    // Guarded to match r.roda's own fallback: with no capital base at all, both read 0, not
+    // "N/A" -- N/A is reserved for the different case of 100% debt financing (debtPct=1),
+    // where a real capital base exists but there's no equity slice left to measure a return on.
+    // Return on equity is AFTER-TAX -- what an equity holder actually keeps -- while RODA below
+    // stays pretax/unlevered exactly as before; the accretive/dilutive comparison further down
+    // is untouched by tax, since both sides of that comparison (RODA and cost of debt) are
+    // pretax on both sides already.
+    var returnOnEquity = equityCapital > 0 ? netIncomeAfterTax / equityCapital : (r.totalCapexBase > 0 ? null : 0);
+    // DSCR: pretax EBIT over interest-only debt service (no principal amortization modeled
+    // anywhere on this page -- a stated, standard simplification for early-stage project
+    // finance, not a hidden shortcut). `hasDebt` distinguishes "no debt at all" (debtPct = 0,
+    // genuinely N/A) from "debt exists but happens to be interest-free" (debtPct > 0,
+    // debtInterestRate = 0, coverage is technically infinite, not "no debt") -- these are
+    // different states and were conflated in an earlier draft of this check.
+    var hasDebt = debtPct > 0;
+    var dscr = !hasDebt ? null : (annualInterestExpense > 0 ? r.ebit / annualInterestExpense : Infinity);
+    var stressedCostOfDebt = costOfDebt + 0.02; // +200bps rate-stress scenario
+    var stressedInterestExpense = debtCapital * stressedCostOfDebt;
+    var stressedDscr = !hasDebt ? null : (stressedInterestExpense > 0 ? r.ebit / stressedInterestExpense : Infinity);
+    return {
+      debtCapital: debtCapital, equityCapital: equityCapital,
+      costOfDebt: costOfDebt, costOfEquity: costOfEquity,
+      annualInterestExpense: annualInterestExpense, netIncome: netIncome,
+      netIncomeAfterTax: netIncomeAfterTax, taxRate: taxRate,
+      weightedCostOfCapital: weightedCostOfCapital, returnOnEquity: returnOnEquity,
+      dscr: dscr, stressedDscr: stressedDscr, stressedCostOfDebt: stressedCostOfDebt
+    };
+  }
+  function narrateCapitalStructure(v, r, cs, debtPct){
+    var roeText = cs.returnOnEquity === null ? "N/A — no equity left in the mix to measure a return on" : fmtPct(cs.returnOnEquity);
+    // Leverage is accretive to equity exactly when the return on assets (RODA) beats the cost
+    // of the debt funding part of those assets -- compared against the cost of DEBT alone, not
+    // the blended cost of capital. (ROE = RODA + D/E x (RODA - cost of debt): the WACC doesn't
+    // appear in that identity at all, so comparing RODA to WACC here would answer a different
+    // question -- "does this site clear its overall cost of capital" -- not "does leverage help
+    // or hurt the equity return," which is what this section is actually about.) Both sides of
+    // this comparison stay pretax -- tax only enters the ROE figure itself, not this check.
+    var direction = r.roda > cs.costOfDebt
+      ? 'accretive to equity holders — the site earns more on its assets (' + fmtPct(r.roda) + ') than the debt costs (' + fmtPct(cs.costOfDebt) + '), so the spread flows through to equity'
+      : 'dilutive to equity holders — the debt costs more (' + fmtPct(cs.costOfDebt) + ') than the site earns on its assets (' + fmtPct(r.roda) + '), so leverage is working against equity here';
+    var dscrText;
+    if (cs.dscr === null) dscrText = "there's no debt in the mix right now, so no coverage question to ask.";
+    else if (cs.dscr === Infinity) dscrText = "at a 0% interest rate on the debt slice, coverage is effectively unlimited.";
+    else {
+      var dscrWord = cs.dscr < 1.2 ? "would not clear a typical lender's minimum covenant" : cs.dscr < 1.5 ? "clears a typical minimum, but with a thin cushion" : "comfortable, well clear of a typical minimum";
+      dscrText = 'EBIT covers the interest-only debt service <b>' + cs.dscr.toFixed(2) + '×</b> over — ' + dscrWord + '. ' +
+        'If the rate rose 200bps to <b>' + fmtPct(cs.stressedCostOfDebt) + '</b>, coverage would fall to <b>' + (cs.stressedDscr === Infinity ? "∞" : cs.stressedDscr.toFixed(2) + '×') + '</b>.';
+    }
+    return '<div class="card insight"><span class="tag">In plain terms</span>' +
+      'At <b>' + fmtPct0(debtPct) + '</b> debt-financed, this site\'s blended cost of capital runs about <b>' + fmtPct(cs.weightedCostOfCapital) + '</b> — a simplified blend, not a full WACC. ' +
+      'Leverage here is <b>' + direction + '</b>: the after-tax levered return on equity comes out to <b>' + roeText + '</b> (at a ' + fmtPct(cs.taxRate) + ' tax rate), versus <b>' + fmtPct(r.roda) + '</b> pretax unlevered. ' +
+      dscrText + '</div>';
+  }
+  function renderCapitalStructure(v, r){
+    var debtPct = Number(document.getElementById("debtSlider").value) / 100;
+    document.getElementById("debtVal").textContent = fmtPct0(debtPct);
+    var cs = computeCapitalStructure(v, r, debtPct);
+    var equityPct = 1 - debtPct;
+    var dscrLabel = cs.dscr === null ? "N/A (no debt)" : cs.dscr === Infinity ? "∞ (interest-free debt)" : cs.dscr.toFixed(2) + "×";
+    var dscrPillClass = cs.dscr === null ? "z-standard" : (cs.dscr === Infinity || cs.dscr >= 1.5) ? "z-best" : cs.dscr >= 1.2 ? "z-standard" : "z-warning";
+    var dscrPillLabel = cs.dscr === null ? "N/A" : cs.dscr === Infinity ? "Unlimited coverage" : cs.dscr < 1.2 ? "Below typical covenant" : cs.dscr < 1.5 ? "Thin cushion" : "Comfortable cushion";
+    // Two-segment reuse of the same .alloc-bar/.alloc-seg pattern the allocation-key chart and
+    // the portfolio progress bars already use -- debt/equity is a composition (two shares of
+    // one whole), the exact shape that CSS is for, not a new pattern.
+    document.getElementById("capitalStructureWrap").innerHTML =
+      '<div class="alloc-bar">' +
+      '<div class="alloc-seg" style="width:' + (debtPct * 100).toFixed(1) + '%; background:rgb(var(--c-accent) / 1)" title="Debt ' + fmtPct0(debtPct) + '"></div>' +
+      '<div class="alloc-seg" style="width:' + (equityPct * 100).toFixed(1) + '%; background:rgb(var(--c-accent) / .32)" title="Equity ' + fmtPct0(equityPct) + '"></div>' +
+      '</div>' +
+      '<div class="alloc-legend">' +
+      '<span><i style="background:rgb(var(--c-accent) / 1)"></i>Debt <b>' + fmtPct0(debtPct) + '</b> · ' + fmtUSDCompact(cs.debtCapital) + '</span>' +
+      '<span><i style="background:rgb(var(--c-accent) / .32)"></i>Equity <b>' + fmtPct0(equityPct) + '</b> · ' + fmtUSDCompact(cs.equityCapital) + '</span>' +
+      '</div>' +
+      '<div class="field" style="margin-top:14px"><div class="fl"><span>Blended cost of capital</span><b>' + fmtPct(cs.weightedCostOfCapital) + '</b></div></div>' +
+      '<div class="field"><div class="fl"><span>Return on equity (levered, after-tax)</span><b>' + (cs.returnOnEquity === null ? "N/A" : fmtPct(cs.returnOnEquity)) + '</b></div></div>' +
+      '<div class="field"><div class="fl"><span>Return on deployed assets (unlevered)</span><b>' + fmtPct(r.roda) + '</b></div></div>' +
+      '<div class="field"><div class="fl"><span>Debt service coverage (DSCR)' +
+        '<button class="infobtn inline" type="button" data-info="dscrInfo" aria-label="What is this?" aria-expanded="false" style="margin-left:4px">i</button>' +
+        '</span><b>' + dscrLabel + '</b></div>' +
+        '<span class="pill ' + dscrPillClass + '" style="margin-top:4px"><span class="sw"></span>' + dscrPillLabel + '</span></div>';
+    document.getElementById("capitalStructureInsight").innerHTML = narrateCapitalStructure(v, r, cs, debtPct);
+    return cs;
+  }
+
+  // ---- 10-year unlevered project IRR / NPV: everything above is a single year's snapshot;
+  // this carries the same assumptions out IRR_HORIZON_YEARS and discounts back to today.
+  // Deliberately UNLEVERED (project-level, not equity-level -- a real levered/equity IRR would
+  // need a debt amortization schedule, which nothing on this page models) and has NO terminal
+  // value (a genuinely conservative choice: no guess about year-11-onward, not a missing piece).
+  function npvAt(cashflows, rate){
+    var total = 0;
+    for (var t = 0; t < cashflows.length; t++){ total += cashflows[t] / Math.pow(1 + rate, t); }
+    return total;
+  }
+  function computeNPV(cashflows, rate){ return npvAt(cashflows, rate); }
+  // Grid-scan for the FIRST sign change, then bisect within that bracket -- NOT a same-sign
+  // check at just the two range endpoints. A refresh-year capex dip partway through the series
+  // can make NPV cross zero an even number of times inside [-50%, 100%] (confirmed by
+  // construction during review, with an edited low-revenue scenario), which an endpoints-only
+  // check would misread as "no root" even though one genuinely exists. Scanning in 1-point
+  // steps and bisecting the first bracket that flips sign is robust regardless of that shape,
+  // and reports the conventional (smallest-magnitude, most economically meaningful) root when
+  // more than one exists.
+  function computeIRR(cashflows){
+    var STEP = 0.01, LO = -0.5, HI = 1.0;
+    var prevRate = LO, prevNpv = npvAt(cashflows, LO);
+    for (var rate = LO + STEP; rate <= HI + 1e-9; rate += STEP){
+      var npv = npvAt(cashflows, rate);
+      if ((npv > 0) !== (prevNpv > 0)){
+        var lo = prevRate, hi = rate, npvLo = prevNpv;
+        for (var i = 0; i < 60; i++){
+          var mid = (lo + hi) / 2;
+          var npvMid = npvAt(cashflows, mid);
+          if (Math.abs(npvMid) < 1) return mid; // within $1 of zero NPV -- plenty of precision
+          if ((npvMid > 0) === (npvLo > 0)) { lo = mid; npvLo = npvMid; } else { hi = mid; }
+        }
+        return (lo + hi) / 2;
+      }
+      prevRate = rate; prevNpv = npv;
+    }
+    return null; // genuinely no sign change anywhere across the scanned range
+  }
+  function computeProjectCashFlows(v, r, cs){
+    var delayMonths = Number(document.getElementById("delaySlider").value);
+    var gpuMonthly = (v.econCompCapex / r.gpuLifeYears) / 12;
+    var costOfDelay = gpuMonthly * delayMonths; // same figure the depreciation section shows
+    // Unlevered after-tax free cash flow: NOPAT (after-tax EBIT) plus depreciation added back
+    // as non-cash -- the standard definition, and the natural place for the new tax-rate
+    // assumption to flow into a multi-year cash flow (see computeCapitalStructure's own
+    // after-tax ROE for the other place it's used).
+    var unleveredFcf = r.ebit * (1 - cs.taxRate) + r.depreciationAnnual;
+    var refreshInterval = Math.max(1, Math.round(r.gpuLifeYears));
+    var cashflows = [-r.totalCapexBase]; // year 0: full capex outlay
+    for (var yr = 1; yr <= IRR_HORIZON_YEARS; yr++){
+      var cf = unleveredFcf;
+      if (yr === 1) cf -= costOfDelay;
+      // A GPU refresh at the same nominal $ as the original compute CapEx (no price
+      // inflation/deflation modeled -- stated). Excluded at the horizon's own final year since
+      // there's no terminal value to recover a refresh spent right at the edge against.
+      if (yr < IRR_HORIZON_YEARS && yr % refreshInterval === 0) cf -= v.econCompCapex;
+      cashflows.push(cf);
+    }
+    return cashflows;
+  }
+  function narrateIrr(cs, npv, irr, rate){
+    // Verdict comes from ONE canonical signal (npv >= 0), not two independently-computed
+    // booleans (an NPV-based one and an IRR-vs-rate one) that could disagree with each other --
+    // IRR is reported alongside as a supporting number, not as a second source of the verdict.
+    var clears = npv >= 0;
+    var verdict = clears
+      ? 'this clears the bar — the ten-year value created is worth more than what it cost to fund, discounted back to today'
+      : "this doesn't clear the bar at these assumptions — the ten-year value created is worth less than what it cost to fund, discounted back to today";
+    var irrText = irr === null
+      ? "an IRR couldn't be found in a -50% to 100% range at these assumptions"
+      : 'an unlevered IRR of <b>' + fmtPct(irr) + '</b>';
+    return '<div class="card insight"><span class="tag">In plain terms</span>' +
+      'Carried out ' + IRR_HORIZON_YEARS + ' years — the initial build cost, a GPU refresh partway through its own useful life, and the cash this site generates after tax — ' +
+      'discounted at <b>' + fmtPct(rate) + '</b> (the blended cost of capital above), this works out to <b>' + fmtUSDCompact(npv) + '</b> of net present value and ' + irrText + '. ' +
+      'In plain terms, <b>' + verdict + '</b>. This is a project-level (unlevered) estimate with no terminal value assumed past year ' + IRR_HORIZON_YEARS + ' — both deliberately conservative choices, not missing pieces.</div>';
+  }
+  function renderIrr(v, r, cs){
+    var cashflows = computeProjectCashFlows(v, r, cs);
+    var rate = cs.weightedCostOfCapital;
+    var npv = computeNPV(cashflows, rate);
+    var irr = computeIRR(cashflows);
+    document.getElementById("irrNpvVal").textContent = fmtUSDCompact(npv);
+    document.getElementById("irrIrrVal").textContent = irr === null ? "N/A" : fmtPct(irr);
+    document.getElementById("irrIrrSub").textContent = irr === null ? "no root found in range" : "vs. " + fmtPct(rate) + " discount rate";
+    document.getElementById("irrInsight").innerHTML = narrateIrr(cs, npv, irr, rate);
+  }
+
+  function sparklineSVG(rows, th, zone, cid){
+    var values = rows.map(function(r){ return r.gross_margin_pct; });
+    var w = 220, h = 46, pad = 3;
+    var min = Math.min.apply(null, values.concat([th.warn]));
+    var max = Math.max.apply(null, values.concat([th.best]));
+    if (max === min) { max = min + 0.01; }
+    var xSpan = (values.length - 1) || 1; // guard n=1: avoids 0/0 -> NaN, single point lands at pad
+    var x = function(i){ return pad + (i / xSpan) * (w - pad * 2); };
+    var y = function(v){ return h - pad - ((v - min) / (max - min)) * (h - pad * 2); };
+    var pathD = values.map(function(v,i){ return (i === 0 ? "M" : "L") + x(i).toFixed(1) + "," + y(v).toFixed(1); }).join(" ");
+    var color = zone === "best" ? "var(--c-success)" : zone === "warning" ? "var(--c-danger)" : "var(--c-text-secondary)";
+    var lastX = x(values.length - 1), lastY = y(values[values.length - 1]);
+    var refWarn = y(th.warn), refBest = y(th.best);
+    var hoverDots = rows.map(function(r,i){
+      return '<circle data-i="' + i + '" cx="' + x(i).toFixed(1) + '" cy="' + y(r.gross_margin_pct).toFixed(1) + '" r="9" fill="transparent" style="cursor:crosshair"/>';
+    }).join("");
+    return '<svg class="chart" id="spark-' + cid + '" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none" style="width:100%;height:' + h + 'px" role="img" aria-label="Gross margin trend">' +
+      '<line x1="0" y1="' + refWarn.toFixed(1) + '" x2="' + w + '" y2="' + refWarn.toFixed(1) + '" stroke="rgb(var(--c-danger))" stroke-opacity=".35" stroke-width="1" stroke-dasharray="2 3"/>' +
+      '<line x1="0" y1="' + refBest.toFixed(1) + '" x2="' + w + '" y2="' + refBest.toFixed(1) + '" stroke="rgb(var(--c-success))" stroke-opacity=".35" stroke-width="1" stroke-dasharray="2 3"/>' +
+      '<path d="' + pathD + '" fill="none" stroke="rgb(' + color + ')" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' +
+      '<circle cx="' + lastX.toFixed(1) + '" cy="' + lastY.toFixed(1) + '" r="2.6" fill="rgb(' + color + ')"/>' +
+      hoverDots +
+      '</svg>';
+  }
+
+  function wireSparkHover(cid, rows){
+    var svg = document.getElementById("spark-" + cid);
+    var tip = document.getElementById("sparkTip");
+    if (!svg || !tip) return;
+    svg.querySelectorAll("circle[data-i]").forEach(function(dot){
+      dot.addEventListener("mouseenter", function(){
+        var r = rows[Number(dot.getAttribute("data-i"))];
+        tip.innerHTML =
+          '<div class="d">' + r.usage_date + '</div>' +
+          '<div class="r"><span>Margin</span><b class="tabular">' + fmtPct(r.gross_margin_pct) + '</b></div>';
+        tip.style.position = "fixed";
+        tip.classList.add("show");
+        var rect = dot.getBoundingClientRect();
+        var left = rect.left + rect.width / 2 - tip.offsetWidth / 2;
+        left = Math.max(4, Math.min(left, window.innerWidth - tip.offsetWidth - 4));
+        tip.style.left = left + "px";
+        tip.style.top = (rect.top - tip.offsetHeight - 8) + "px";
+      });
+      dot.addEventListener("mouseleave", function(){ tip.classList.remove("show"); });
+    });
+  }
+
+  function clamp01(x){ return Math.max(0, Math.min(1, x)); }
+  function computeForecast(anchorPct){
+    var months = [];
+    for (var m = 0; m <= FORECAST_MONTHS; m++) {
+      months.push({
+        m: m,
+        base: clamp01(anchorPct + FORECAST_DELTA.base * m),
+        upside: clamp01(anchorPct + FORECAST_DELTA.upside * m),
+        downside: clamp01(anchorPct + FORECAST_DELTA.downside * m)
+      });
+    }
+    return months;
+  }
+  function forecastSVG(months){
+    var wrap = document.getElementById("forecastWrap");
+    var W = 1000, H = 220, padL = 40, padR = 8, padT = 10, padB = 22;
+    var innerW = W - padL - padR, innerH = H - padT - padB;
+    var n = months.length;
+    var allVals = months.reduce(function(a, mo){ return a.concat([mo.base, mo.upside, mo.downside]); }, []);
+    var minV = Math.min.apply(null, allVals), maxV = Math.max.apply(null, allVals);
+    var pad = (maxV - minV) * 0.15 || 0.02;
+    minV = Math.max(0, minV - pad); maxV = Math.min(1, maxV + pad);
+    if (maxV === minV) { maxV = minV + 0.01; }
+    var xSpan = (n - 1) || 1;
+    var xAt = function(i){ return padL + (i / xSpan) * innerW; };
+    var yAt = function(v){ return padT + innerH - ((v - minV) / (maxV - minV)) * innerH; };
+
+    // fixed hue order, reused from elsewhere on this page, not invented here: accent =
+    // neutral/base value (same role it plays everywhere else -- gridlines, the composition
+    // chart's "Active" series), success/danger = the same good/bad status pair already
+    // used for margin-zone pills -- this is an ordered worse<-neutral->better axis, not an
+    // arbitrary categorical set, so reusing the status pair is consistent, not a clash.
+    var seriesDef = [
+      { key: "downside", color: "var(--c-danger)", label: "Downside" },
+      { key: "base", color: "var(--c-accent)", label: "Base" },
+      { key: "upside", color: "var(--c-success)", label: "Upside" }
+    ];
+    var paths = seriesDef.map(function(s){
+      var d = months.map(function(mo, i){ return (i === 0 ? "M" : "L") + xAt(i).toFixed(1) + "," + yAt(mo[s.key]).toFixed(1); }).join(" ");
+      return '<path d="' + d + '" fill="none" stroke="rgb(' + s.color + ')" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>';
+    }).join("");
+
+    var gridLines = [0, 0.25, 0.5, 0.75, 1].map(function(f){
+      var yy = padT + innerH * (1 - f);
+      var val = fmtPct0(minV + (maxV - minV) * f);
+      return '<line class="gridline" x1="' + padL + '" x2="' + (W - padR) + '" y1="' + yy.toFixed(1) + '" y2="' + yy.toFixed(1) + '"/>' +
+        '<text class="axislabel" x="' + (padL - 6) + '" y="' + (yy + 3).toFixed(1) + '" text-anchor="end">' + val + '</text>';
+    }).join("");
+
+    var labelIdx = [0, 3, 6, 9, 12].filter(function(i){ return i < n; });
+    var xLabels = labelIdx.map(function(i){
+      return '<text class="axislabel" x="' + xAt(i).toFixed(1) + '" y="' + (H - 4) + '" text-anchor="middle">' + (i === 0 ? "Now" : "M" + i) + '</text>';
+    }).join("");
+
+    var hoverDots = months.map(function(mo, i){
+      return '<circle data-i="' + i + '" cx="' + xAt(i).toFixed(1) + '" cy="' + yAt(mo.base).toFixed(1) + '" r="9" fill="transparent" style="cursor:crosshair"/>';
+    }).join("");
+
+    var svg = '<svg class="chart" id="forecastSvg" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" role="img" aria-label="12-month rolling forecast, three scenarios">' +
+      gridLines + paths +
+      '<line id="forecastCross" class="crosshair" x1="0" y1="' + padT + '" x2="0" y2="' + (padT + innerH) + '"/>' +
+      xLabels + hoverDots +
+      '</svg>' +
+      '<div class="tip" id="forecastTip"></div>';
+    wrap.innerHTML = svg;
+
+    var svgEl = document.getElementById("forecastSvg");
+    var tip = document.getElementById("forecastTip");
+    var cross = document.getElementById("forecastCross");
+    svgEl.querySelectorAll("circle[data-i]").forEach(function(dot){
+      dot.addEventListener("mouseenter", function(){
+        var i = Number(dot.getAttribute("data-i"));
+        var mo = months[i];
+        var pxRatio = wrap.clientWidth / W;
+        cross.setAttribute("x1", xAt(i).toFixed(1));
+        cross.setAttribute("x2", xAt(i).toFixed(1));
+        cross.classList.add("show");
+        tip.innerHTML =
+          '<div class="d">' + (i === 0 ? "Now" : "Month " + i) + '</div>' +
+          '<div class="r"><span><i style="background:rgb(var(--c-success))"></i> Upside</span><b class="tabular">' + fmtPct(mo.upside) + '</b></div>' +
+          '<div class="r"><span><i style="background:rgb(var(--c-accent))"></i> Base</span><b class="tabular">' + fmtPct(mo.base) + '</b></div>' +
+          '<div class="r"><span><i style="background:rgb(var(--c-danger))"></i> Downside</span><b class="tabular">' + fmtPct(mo.downside) + '</b></div>';
+        tip.classList.add("show");
+        var left = xAt(i) * pxRatio - tip.offsetWidth / 2;
+        left = Math.max(4, Math.min(left, wrap.clientWidth - tip.offsetWidth - 4));
+        tip.style.left = left + "px";
+        tip.style.top = "-8px";
+      });
+      dot.addEventListener("mouseleave", function(){
+        tip.classList.remove("show");
+        cross.classList.remove("show");
+      });
+    });
+  }
+  function narrateForecast(months, anchorPct){
+    var end = months[months.length - 1];
+    var spreadPp = (end.upside - end.downside) * 100;
+    return '<div class="card insight"><span class="tag">In plain terms</span>' +
+      'Starting from today\'s real <b>' + fmtPct(anchorPct) + '</b> blended margin, twelve months out the three illustrative tracks spread from ' +
+      '<b>' + fmtPct(end.downside) + '</b> (downside) to <b>' + fmtPct(end.upside) + '</b> (upside) — a <b>' + spreadPp.toFixed(1) + '-point range</b>, a reminder of how much a few points of monthly drift compounds over a year.</div>';
+  }
+  function renderForecast(anchorPct){
+    var months = computeForecast(anchorPct);
+    forecastSVG(months);
+    document.getElementById("forecastLegend").innerHTML =
+      '<span><i style="background:rgb(var(--c-success))"></i>Upside</span>' +
+      '<span><i style="background:rgb(var(--c-accent))"></i>Base</span>' +
+      '<span><i style="background:rgb(var(--c-danger))"></i>Downside</span>';
+    document.getElementById("forecastInsight").innerHTML = narrateForecast(months, anchorPct);
+  }
+
+  function renderComposition(days){
+    var wrap = document.getElementById("compositionWrap");
+    var W = 1000, H = 220, padL = 34, padR = 8, padT = 10, padB = 22;
+    var innerW = W - padL - padR, innerH = H - padT - padB;
+    var n = days.length;
+    var maxTotal = Math.max.apply(null, days.map(function(d){ return d.active_cost + d.idle_cost; }));
+    var niceMax = Math.ceil(maxTotal / 5) * 5 || 1;
+    var xSpan = (n - 1) || 1; // guard n=1: avoids 0/0 -> NaN, single point lands at padL
+
+    var xAt = function(i){ return padL + (i / xSpan) * innerW; };
+    var yAt = function(v){ return padT + innerH - (v / niceMax) * innerH; };
+
+    var activeTop = days.map(function(d,i){ return [xAt(i), yAt(d.active_cost)]; });
+    var totalTop = days.map(function(d,i){ return [xAt(i), yAt(d.active_cost + d.idle_cost)]; });
+
+    var baseline = padT + innerH;
+    var activeArea = "M" + padL + "," + baseline + " " +
+      activeTop.map(function(p){ return "L" + p[0].toFixed(1) + "," + p[1].toFixed(1); }).join(" ") +
+      " L" + xAt(n-1).toFixed(1) + "," + baseline + " Z";
+    var idleArea = "M" + padL + "," + activeTop[0][1].toFixed(1) + " " +
+      activeTop.map(function(p){ return "L" + p[0].toFixed(1) + "," + p[1].toFixed(1); }).join(" ") + " " +
+      totalTop.slice().reverse().map(function(p){ return "L" + p[0].toFixed(1) + "," + p[1].toFixed(1); }).join(" ") + " Z";
+
+    var gridLines = [0, 0.25, 0.5, 0.75, 1].map(function(f){
+      var yy = padT + innerH * (1 - f);
+      var val = (niceMax * f).toFixed(0);
+      return '<line class="gridline" x1="' + padL + '" x2="' + (W-padR) + '" y1="' + yy.toFixed(1) + '" y2="' + yy.toFixed(1) + '"/>' +
+        '<text class="axislabel" x="' + (padL - 6) + '" y="' + (yy + 3).toFixed(1) + '" text-anchor="end">$' + val + '</text>';
+    }).join("");
+
+    // sparse x-axis labels: first, middle, last
+    var labelIdx = [0, Math.floor((n-1)/2), n-1];
+    var xLabels = labelIdx.map(function(i){
+      return '<text class="axislabel" x="' + xAt(i).toFixed(1) + '" y="' + (H - 4) + '" text-anchor="middle">' + days[i].usage_date.slice(5) + '</text>';
+    }).join("");
+
+    var hoverDots = days.map(function(d,i){
+      return '<circle data-i="' + i + '" cx="' + xAt(i).toFixed(1) + '" cy="' + yAt(d.active_cost + d.idle_cost).toFixed(1) + '" r="9" fill="transparent" style="cursor:crosshair"/>';
+    }).join("");
+
+    var svg = '<svg class="chart" id="compSvg" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" role="img" aria-label="Daily active vs idle GPU cost">' +
+      gridLines +
+      '<path d="' + idleArea + '" fill="rgb(var(--c-text-secondary))" fill-opacity=".22"/>' +
+      '<path d="' + activeArea + '" fill="rgb(var(--c-accent))" fill-opacity=".30"/>' +
+      '<path d="' + totalTop.map(function(p,i){ return (i===0?"M":"L") + p[0].toFixed(1) + "," + p[1].toFixed(1); }).join(" ") + '" fill="none" stroke="rgb(var(--c-text-secondary))" stroke-width="1.5"/>' +
+      '<path d="' + activeTop.map(function(p,i){ return (i===0?"M":"L") + p[0].toFixed(1) + "," + p[1].toFixed(1); }).join(" ") + '" fill="none" stroke="rgb(var(--c-accent))" stroke-width="2"/>' +
+      '<line id="compCross" class="crosshair" x1="0" y1="' + padT + '" x2="0" y2="' + baseline + '"/>' +
+      xLabels + hoverDots +
+      '</svg>' +
+      '<div class="tip" id="compTip"></div>';
+    wrap.innerHTML = svg;
+
+    var svgEl = document.getElementById("compSvg");
+    var tip = document.getElementById("compTip");
+    var cross = document.getElementById("compCross");
+
+    svgEl.querySelectorAll("circle[data-i]").forEach(function(dot){
+      dot.addEventListener("mouseenter", function(){
+        var i = Number(dot.getAttribute("data-i"));
+        var d = days[i];
+        var pxRatio = wrap.clientWidth / W;
+        cross.setAttribute("x1", xAt(i).toFixed(1));
+        cross.setAttribute("x2", xAt(i).toFixed(1));
+        cross.classList.add("show");
+        tip.innerHTML =
+          '<div class="d">' + d.usage_date + '</div>' +
+          '<div class="r"><span><i style="background:rgb(var(--c-accent))"></i> Active</span><b class="tabular">' + fmtUSD(d.active_cost) + '</b></div>' +
+          '<div class="r"><span><i style="background:rgb(var(--c-text-secondary))"></i> Idle</span><b class="tabular">' + fmtUSD(d.idle_cost) + '</b></div>' +
+          '<div class="r" style="border-top:1px solid rgb(var(--c-accent)/.2); margin-top:4px; padding-top:4px"><span>Total</span><b class="tabular">' + fmtUSD(d.active_cost + d.idle_cost) + '</b></div>';
+        tip.classList.add("show");
+        var left = xAt(i) * pxRatio - tip.offsetWidth / 2;
+        left = Math.max(4, Math.min(left, wrap.clientWidth - tip.offsetWidth - 4));
+        tip.style.left = left + "px";
+        tip.style.top = "-8px";
+      });
+      dot.addEventListener("mouseleave", function(){
+        tip.classList.remove("show");
+        cross.classList.remove("show");
+      });
+    });
+  }
+
+  // ---- scroll-progress rail: rAF-throttled, no dependency on section reveal below ----
+  (function(){
+    var bar = document.getElementById("scrollProgress");
+    var ticking = false;
+    function update(){
+      var max = document.documentElement.scrollHeight - window.innerHeight;
+      var pct = max > 0 ? Math.min(window.scrollY / max, 1) * 100 : 0;
+      bar.style.width = pct + "%";
+      ticking = false;
+    }
+    window.addEventListener("scroll", function(){
+      if (!ticking) { requestAnimationFrame(update); ticking = true; }
+    }, { passive: true });
+    update();
+  })();
+
+  // ---- scroll-triggered section reveal: strictly additive, feature-detected, one-shot per
+  // section. If IntersectionObserver is missing OR prefers-reduced-motion is set, this never
+  // runs at all and every section stays in its normal, fully-visible base CSS state -- there is
+  // no code path that can leave a section stuck hidden. Called synchronously alongside the
+  // other initial renders (see the call site above, before the dbt fetch), NOT deferred until
+  // that fetch settles -- an earlier version waited for it, on the theory that sections should
+  // only be observed at their final rendered height, but renderPortfolio()/
+  // renderSiteEconomics(true) already run (and their KPI tiles already finish counting up)
+  // independent of that fetch, so deferring this hid already-visible, already-animated content
+  // and popped it back in a moment later on every load -- a real, visible glitch on first
+  // paint. IntersectionObserver re-checks automatically as layout shifts while a target stays
+  // observed, so it doesn't actually need the final height to begin with.
+  function initScrollReveal(){
+    if (!("IntersectionObserver" in window) || REDUCE_MOTION) return;
+    var sections = document.querySelectorAll("body > .wrap > section");
+    sections.forEach(function(s){ s.classList.add("reveal-init"); });
+    // Same-batch entries (e.g. a fast PageDown crossing several short, closely-stacked sections
+    // at once) get a small stagger instead of popping in simultaneously -- IntersectionObserver
+    // delivers everything newly-crossed in one callback, so the stagger has to happen here, not
+    // via rootMargin tuning (which can't distinguish "one section entered" from "five did").
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry, i){
+        if (!entry.isIntersecting) return;
+        var el = entry.target;
+        setTimeout(function(){ el.classList.add("reveal-visible"); }, i * 70);
+        io.unobserve(el);
+      });
+    }, { rootMargin: "0px 0px -10% 0px" });
+    sections.forEach(function(s){ io.observe(s); });
+  }
+
+  // ---- sidebar scroll-spy: a positional check, not an IntersectionObserver band. An
+  // isIntersecting band only lights up while one of the 9 linked sections is actually inside
+  // it -- the gaps between them (the forecast panel between varianceSection/reconciliationSection,
+  // the capital-structure/tornado panels between pnlSection/portfolioKpis, etc.) aren't
+  // observed at all, so scrolling through those left the PREVIOUS link stuck highlighted
+  // (caught by post-build review, not assumed safe). Walking "which target's top has crossed
+  // the ~40%-viewport line" instead guarantees exactly one active link at every scroll
+  // position, dead zones or not -- position is defined everywhere, an intersection band isn't.
+  // The first chapter link starts with class="active" in the static HTML itself -- an explicit
+  // choice for "what's highlighted before the user has scrolled anywhere," not an emergent
+  // side effect of observer timing. All target sections are static HTML (not dynamically
+  // rendered into existence later), so this can run synchronously right away like
+  // initScrollReveal -- no fetch-timing question here.
+  function initSidebarSpy(){
+    var nav = document.getElementById("sidebarNav");
+    if (!nav) return;
+    var links = nav.querySelectorAll("a[data-nav-target]");
+    var linkById = {};
+    links.forEach(function(a){ linkById[a.getAttribute("data-nav-target")] = a; });
+    var targets = Object.keys(linkById)
+      .map(function(id){ return document.getElementById(id); })
+      .filter(Boolean);
+    if (!targets.length) return;
+    function setActive(id){
+      links.forEach(function(a){ a.classList.remove("active"); });
+      var link = linkById[id];
+      if (link) link.classList.add("active");
+    }
+    var ticking = false;
+    function update(){
+      ticking = false;
+      var lineY = window.innerHeight * 0.4;
+      var current = targets[0];
+      for (var i = 0; i < targets.length; i++){
+        if (targets[i].getBoundingClientRect().top <= lineY) current = targets[i];
+        else break;
+      }
+      setActive(current.id);
+    }
+    function onScroll(){
+      if (!ticking){
+        ticking = true;
+        requestAnimationFrame(update);
+      }
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
+    update();
+  }
+
+  // ---- load data ----
+  fetch("./gpu_cost_dashboard_data.json")
+    .then(function(r){ if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+    .then(render)
+    .catch(function(err){
+      document.getElementById("kpis").innerHTML =
+        '<div class="card" style="grid-column:1/-1; padding:20px; color:rgb(var(--c-danger))">' +
+        'Could not load gpu_cost_dashboard_data.json (' + err.message + '). Run <code>python3 scripts/export_dashboard_data.py</code> in dbt_gpu_cost_attribution/ after <code>dbt build</code>.</div>';
+    });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+cost_center,period,budget_amount,actual_amount,price_driver,volume_driver,scope_driver,timing_driver,is_illustrative
+RF Payload NPI,2026-Q1,4800000,4900000,40000,30000,20000,10000,true
+RF Payload NPI,2026-Q2,5000000,5650000,180000,320000,100000,50000,true
+RF Payload NPI,2026-Q3,5200000,5350000,50000,40000,30000,30000,true

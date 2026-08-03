@@ -1,0 +1,213 @@
+name: 'leo_program_finance'
+version: '1.0.0'
+config-version: 2
+
+profile: 'leo_program_finance'
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+models:
+  leo_program_finance:
+    staging:
+      +materialized: view
+    marts:
+      +materialized: table
+
+seeds:
+  leo_program_finance:
+    raw_deployment_checkpoints:
+      +column_types:
+        as_of_date: date
+        cumulative_satellites: bigint
+        checkpoint_type: varchar
+        note: varchar
+        source: varchar
+        source_url: varchar
+    raw_deployment_rate:
+      +column_types:
+        metric_type: varchar
+        as_of_date: varchar
+        satellites_per_day: double
+        note: varchar
+        source: varchar
+        source_url: varchar
+    raw_fcc_milestones:
+      +column_types:
+        milestone_date: date
+        satellites_required: bigint
+        regulatory_basis: varchar
+        regulatory_consequence: varchar
+        waiver_requested: boolean
+        waiver_requested_date: date
+        waiver_requested_extension_months: integer
+        source: varchar
+        source_url: varchar
+    raw_program_cost_estimates:
+      +column_types:
+        as_of_date: date
+        metric_type: varchar
+        low_estimate_usd: bigint
+        high_estimate_usd: bigint
+        source_type: varchar
+        source: varchar
+        source_url: varchar
+    raw_unit_cost:
+      +column_types:
+        as_of_date: date
+        low_estimate_usd: bigint
+        high_estimate_usd: bigint
+        constellation_target: bigint
+        source: varchar
+        source_url: varchar
+    raw_makevsbuy_scenario:
+      +column_types:
+        scenario_id: integer
+        category_label: varchar
+        option_label: varchar
+        unit_cost_usd: double
+        annual_volume: bigint
+        is_illustrative: boolean
+        notes: varchar
+    raw_variance_demo:
+      +column_types:
+        cost_center: varchar
+        period: varchar
+        budget_amount: double
+        actual_amount: double
+        price_driver: double
+        volume_driver: double
+        scope_driver: double
+        timing_driver: double
+        is_illustrative: boolean
+    raw_launch_vehicle_events:
+      +column_types:
+        event_date: date
+        launch_vehicle: varchar
+        event_type: varchar
+        date_confidence: varchar
+        description: varchar
+        source: varchar
+        source_url: varchar
+    raw_supplier_concentration:
+      +column_types:
+        component_name: varchar
+        is_real_bottleneck: boolean
+        illustrative_supplier_count: integer
+        is_illustrative: boolean
+        notes: varchar
+        source: varchar
+        source_url: varchar
+    raw_safety_incidents:
+      +column_types:
+        incident_date: date
+        description: varchar
+        disputing_party: varchar
+        source: varchar
+        source_url: varchar
+    raw_d2d_regulatory_pipeline:
+      +column_types:
+        milestone_name: varchar
+        filing_date: date
+        satellites_requested: bigint
+        review_framework: varchar
+        related_transaction: varchar
+        related_transaction_close_year: integer
+        related_transaction_source: varchar
+        related_transaction_source_url: varchar
+        source: varchar
+        source_url: varchar
+    raw_workforce_signal:
+      +column_types:
+        as_of_date: date
+        open_positions_redmond: bigint
+        signal: varchar
+        source: varchar
+        source_url: varchar
+    raw_op1_op2_plan:
+      +column_types:
+        fiscal_year: integer
+        opex_usd: bigint
+        capex_usd: bigint
+        headcount: integer
+        is_illustrative: boolean
+        notes: varchar
+    raw_roi_payback_scenarios:
+      +column_types:
+        scenario_name: varchar
+        capex_usd: bigint
+        annual_benefit_usd: bigint
+        is_illustrative: boolean
+        notes: varchar
+    raw_operational_kpi_framework:
+      +column_types:
+        domain_order: integer
+        domain: varchar
+        kpi_name: varchar
+        definition: varchar
+        target_benchmark: varchar
+        frequency: varchar
+        strategic_objective: varchar
+        is_illustrative: boolean
+        notes: varchar
+    raw_cashflow_breakdown:
+      +column_types:
+        period: varchar
+        cost_type: varchar
+        category: varchar
+        subcategory: varchar
+        plan_amount_usd: bigint
+        actual_amount_usd: bigint
+        percent_complete: double
+        is_illustrative: boolean
+        notes: varchar
+    raw_cashflow_trend:
+      +column_types:
+        period: varchar
+        plan_amount_usd: bigint
+        actual_amount_usd: bigint
+        is_illustrative: boolean
+        notes: varchar
+    raw_pnl_assumptions:
+      +column_types:
+        period: varchar
+        revenue_usd: bigint
+        is_illustrative: boolean
+        notes: varchar
+    raw_90day_roadmap:
+      +column_types:
+        risk_name: varchar
+        domain: varchar
+        accountable_role: varchar
+        action: varchar
+        phase_start_day: integer
+        phase_end_day: integer
+        target_type: varchar
+        target_improvement_pct: double
+        target_qualify_count: integer
+        target_qualitative: varchar
+        rationale_note: varchar
+        finance_manager_tasks: varchar
+        finance_deliverable: varchar
+    raw_data_quality_routing:
+      +column_types:
+        category: varchar
+        description: varchar
+        routes_to: varchar
+        authority_note: varchar
+    raw_data_quality_incidents:
+      +column_types:
+        incident_date: date
+        category: varchar
+        title: varchar
+        root_cause: varchar
+        detection_method: varchar
+        regression_safeguard: varchar
+        commit_sha: varchar
+        commit_url: varchar

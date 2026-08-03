@@ -1,0 +1,4 @@
+scenario_name,capex_usd,annual_benefit_usd,is_illustrative,notes
+Ground Terminal Assembly Automation,8000000,3200000,true,"Illustrative generic capital-investment scenario -- not a real Amazon decision"
+Additional OISL Production Line,22000000,6500000,true,"Illustrative generic capital-investment scenario -- not a real Amazon decision"
+Redundant Rad-Hard Chip Qualification (dual-source),4500000,1100000,true,"Illustrative generic capital-investment scenario -- not a real Amazon decision"

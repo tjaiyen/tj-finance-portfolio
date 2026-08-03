@@ -38,3 +38,7 @@ Thumbs.db
 # Recruiter/interview backstage + internal agent instructions — keep OUT of the public repo (stress-test 2026-07-26)
 recruiter_package/
 AGENTS.md
+
+# impeccable design hook artifacts (local cache, never commit)
+.impeccable/
+.claude/

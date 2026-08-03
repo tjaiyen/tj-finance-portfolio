@@ -1,0 +1,737 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Leo Operations Map — dbt Leo Program Finance</title>
+<meta name="description" content="Interactive relational map of Amazon Leo's operating structure -- domains, risks, 90-day actions, and KPIs, drawn entirely from the existing dbt marts. Not affiliated with Amazon." />
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%239184d9'/%3E%3Crect x='12' y='12' width='8' height='8' rx='2' fill='%23161826'/%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* ---- tokens: ported from leo-program-finance.html's Nocturne reskin (same
+     variable names, same values) so this page reads as part of the same
+     portfolio, not a new visual language. See that file for the OKLCH
+     derivation notes on the light variant. */
+  :root{
+    --c-bg-primary:22 24 38; --c-bg-card:35 37 50; --c-bg-card2:63 66 77;
+    --c-accent:145 132 217; --c-accent2:167 161 219;
+    --c-text-primary:233 233 237; --c-text-secondary:147 151 171; --c-text-code:210 206 253;
+    --c-success:114 191 142; --c-warning:223 175 80; --c-danger:235 129 127; --c-line:145 132 217;
+  }
+  @media (prefers-color-scheme: light){
+    :root{
+      --c-bg-primary:243 245 254; --c-bg-card:255 255 255; --c-bg-card2:228 231 245;
+      --c-accent:99 84 165; --c-accent2:112 105 159;
+      --c-text-primary:41 43 49; --c-text-secondary:117 121 140; --c-text-code:77 61 140;
+      --c-success:43 122 77; --c-warning:149 104 0; --c-danger:177 78 78; --c-line:99 84 165;
+    }
+  }
+  :root[data-theme="dark"]{
+    --c-bg-primary:22 24 38; --c-bg-card:35 37 50; --c-bg-card2:63 66 77;
+    --c-accent:145 132 217; --c-accent2:167 161 219;
+    --c-text-primary:233 233 237; --c-text-secondary:147 151 171; --c-text-code:210 206 253;
+    --c-success:114 191 142; --c-warning:223 175 80; --c-danger:235 129 127; --c-line:145 132 217;
+  }
+  :root[data-theme="light"]{
+    --c-bg-primary:243 245 254; --c-bg-card:255 255 255; --c-bg-card2:228 231 245;
+    --c-accent:99 84 165; --c-accent2:112 105 159;
+    --c-text-primary:41 43 49; --c-text-secondary:117 121 140; --c-text-code:77 61 140;
+    --c-success:43 122 77; --c-warning:149 104 0; --c-danger:177 78 78; --c-line:99 84 165;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; min-height:100vh;
+    background:rgb(var(--c-bg-primary)); color:rgb(var(--c-text-primary));
+    font:14px/1.55 "Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,h4{font-weight:500}
+  code,.mono,.tabular{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+  a{color:rgb(var(--c-accent))}
+  .wrap{max-width:1200px; margin:0 auto; padding:0 20px 64px}
+
+  .bar{
+    position:sticky; top:0; z-index:5; backdrop-filter:blur(8px);
+    background:rgb(var(--c-bg-primary) / .86); border-bottom:1px solid rgb(var(--c-accent) / .18);
+  }
+  .bar-in{max-width:1200px; margin:0 auto; padding:14px 20px; display:flex; align-items:center; gap:14px; flex-wrap:wrap}
+  .brand{display:flex; align-items:center; gap:10px; font-weight:700; font-size:15px; letter-spacing:-.01em}
+  .brand .dot{width:9px; height:9px; border-radius:3px; background:conic-gradient(from 210deg, rgb(var(--c-accent)), rgb(var(--c-success)), rgb(var(--c-accent)))}
+  .brand small{display:block; font-weight:600; font-size:12.5px; letter-spacing:.14em; color:rgb(var(--c-text-secondary)); text-transform:uppercase; margin-top:1px}
+  .badge{
+    font:600 12.5px/1.2 ui-monospace,Menlo,monospace; letter-spacing:.02em;
+    border:1px solid rgb(var(--c-accent) / .35); background:rgb(var(--c-accent) / .09); color:rgb(var(--c-text-code));
+    border-radius:99px; padding:6px 11px;
+  }
+  .bar .right{margin-left:auto; display:flex; align-items:center; gap:8px}
+  .icobtn{
+    display:inline-flex; align-items:center; gap:6px; height:32px; padding:0 12px; border-radius:8px;
+    border:1px solid rgb(var(--c-accent) / .3); background:transparent; color:rgb(var(--c-text-secondary));
+    font:600 13px/1.3 inherit; cursor:pointer; transition:all .15s;
+  }
+  .icobtn:hover{color:rgb(var(--c-text-primary)); border-color:rgb(var(--c-accent) / .55)}
+  .icobtn.on{color:rgb(var(--c-accent)); border-color:rgb(var(--c-accent) / .6); background:rgb(var(--c-accent) / .1)}
+
+  .disclaimer{
+    background:rgb(var(--c-warning) / .1); border:1px solid rgb(var(--c-warning) / .4);
+    border-radius:10px; padding:14px 16px; margin:20px 0; font-size:13px; line-height:1.6;
+    color:rgb(var(--c-text-primary));
+  }
+  .disclaimer b{color:rgb(var(--c-warning))}
+
+  h1{font-size:24px; margin:26px 0 6px; letter-spacing:-.01em}
+  .lede{color:rgb(var(--c-text-secondary)); font-size:14.5px; max-width:78ch; margin:0 0 8px}
+  h2{font-size:16px; margin:0 0 4px; letter-spacing:-.01em}
+  .section{margin-top:32px}
+  .section-sub{color:rgb(var(--c-text-secondary)); font-size:13px; margin:0 0 14px; max-width:80ch}
+
+  .card{
+    background:rgb(var(--c-bg-card)); border:1px solid rgb(var(--c-accent) / .16);
+    border-radius:12px; padding:18px;
+  }
+
+  .status{display:inline-flex; align-items:center; gap:6px; font:700 12px/1 ui-monospace,Menlo,monospace; padding:5px 10px; border-radius:99px}
+  .status.ok{background:rgb(var(--c-success) / .12); color:rgb(var(--c-success)); border:1px solid rgb(var(--c-success) / .35)}
+  .status.risk{background:rgb(var(--c-danger) / .12); color:rgb(var(--c-danger)); border:1px solid rgb(var(--c-danger) / .35)}
+  .status.warn{background:rgb(var(--c-warning) / .12); color:rgb(var(--c-warning)); border:1px solid rgb(var(--c-warning) / .35)}
+  .status.muted{background:rgb(var(--c-text-secondary) / .10); color:rgb(var(--c-text-secondary)); border:1px solid rgb(var(--c-text-secondary) / .3)}
+
+  .src-tag{display:inline-flex; align-items:center; gap:6px; font:600 11px/1 ui-monospace,Menlo,monospace; padding:4px 9px; border-radius:99px; white-space:nowrap}
+  .src-tag.official{background:rgb(var(--c-success) / .12); color:rgb(var(--c-success)); border:1px solid rgb(var(--c-success) / .35)}
+  .src-tag.illustrative{background:rgb(var(--c-text-secondary) / .14); color:rgb(var(--c-text-secondary)); border:1px solid rgb(var(--c-text-secondary) / .35)}
+
+  .table-wrap{overflow-x:auto; -webkit-overflow-scrolling:touch; border-radius:8px}
+  table{width:100%; min-width:640px; border-collapse:collapse; font-size:13px}
+  th,td{text-align:left; padding:8px 10px; border-bottom:1px solid rgb(var(--c-accent) / .14); vertical-align:top}
+  th{color:rgb(var(--c-text-secondary)); font:600 11px/1.2 ui-monospace,Menlo,monospace; text-transform:uppercase; letter-spacing:.04em; white-space:nowrap}
+  tbody tr{transition:background-color .12s}
+  tbody tr:hover{background:rgb(var(--c-accent) / .05)}
+
+  .cite{font-size:12px; color:rgb(var(--c-text-secondary)); overflow-wrap:anywhere}
+  .cite a{color:rgb(var(--c-text-secondary)); text-decoration:underline}
+
+  footer{margin-top:40px; padding-top:24px; border-top:1px solid rgb(var(--c-accent) / .16)}
+
+  /* ---- shared floating detail popover -- identical pattern to .infopop on the main
+     dashboard (one DOM node, repositioned per click). */
+  .infopop{
+    display:none; position:fixed; z-index:20; max-width:320px; max-height:70vh; overflow-y:auto;
+    padding:14px 16px; border-radius:10px;
+    background:rgb(var(--c-bg-card2)); border:1px solid rgb(var(--c-accent) / .4); font-size:12.5px;
+    line-height:1.5; color:rgb(var(--c-text-primary)); box-shadow:0 8px 24px rgb(0 0 0 / .3);
+  }
+  .infopop.show{display:block}
+  .infopop h3{margin:0 0 8px; font-size:13.5px}
+  .infopop .field{margin:6px 0}
+  .infopop .field b{color:rgb(var(--c-accent)); font:700 10px/1 ui-monospace,Menlo,monospace; letter-spacing:.05em; text-transform:uppercase; display:block; margin-bottom:2px}
+  .infopop .closeBtn{position:absolute; top:8px; right:10px; background:none; border:none; color:rgb(var(--c-text-secondary)); cursor:pointer; font-size:15px; line-height:1}
+  .infopop ul{margin:2px 0 0; padding-left:16px}
+
+  @media (prefers-reduced-motion:reduce){
+    .mm-fade{ animation:none !important; opacity:1 !important }
+    .mm-pulse{ animation:none !important }
+  }
+
+  /* ---- controls row: search, expand/collapse, table-view toggle, zoom -- all plain
+     controls, no new dependency. */
+  .controls-row{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:14px 0}
+  .searchbox{position:relative; flex:1 1 220px; min-width:180px}
+  .searchbox input{
+    width:100%; height:34px; padding:0 12px; border-radius:8px;
+    border:1px solid rgb(var(--c-accent) / .3); background:rgb(var(--c-bg-card));
+    color:rgb(var(--c-text-primary)); font:13px inherit;
+  }
+  .searchbox input::placeholder{color:rgb(var(--c-text-secondary))}
+  .zoomrow{display:flex; align-items:center; gap:8px; color:rgb(var(--c-text-secondary)); font-size:12.5px}
+  .zoomrow input[type=range]{accent-color:rgb(var(--c-accent)); width:110px}
+
+  .maplegend{display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:rgb(var(--c-text-secondary)); margin:10px 0 6px}
+  .maplegend span{display:inline-flex; align-items:center; gap:6px}
+  .maplegend .sw{width:12px; height:12px; flex-shrink:0}
+
+  /* ---- the map canvas: a fixed-size scrollable box, never the page body, that can
+     grow sideways (comprehensive graph) without ever widening the page itself -- same
+     overflow-x containment principle as every other table on this project's dashboard. */
+  #mapWrap{
+    position:relative; overflow:auto; border-radius:12px; border:1px solid rgb(var(--c-accent) / .16);
+    background:rgb(var(--c-bg-card)); height:min(72vh,640px);
+  }
+  #opsMap{display:block; transform-origin:0 0}
+  .mm-edge{stroke:rgb(var(--c-text-secondary) / .35); stroke-width:1.4; fill:none; transition:stroke .15s, stroke-width .15s}
+  .mm-edge.hi{stroke:rgb(var(--c-accent)); stroke-width:2.6}
+  .mm-node{cursor:pointer}
+  .mm-node.dim{opacity:.16}
+  .mm-node.match .mm-shape{stroke:rgb(var(--c-accent2)); stroke-width:3}
+  .mm-shape{stroke-width:1.6; transition:opacity .15s}
+  .mm-domain .mm-shape{fill:rgb(var(--c-bg-card2)); stroke:rgb(var(--c-accent))}
+  .mm-domain.expanded .mm-shape{fill:rgb(var(--c-accent) / .16)}
+  .mm-risk .mm-shape.tier-critical{fill:rgb(var(--c-danger) / .16); stroke:rgb(var(--c-danger))}
+  .mm-risk .mm-shape.tier-high{fill:rgb(var(--c-danger) / .16); stroke:rgb(var(--c-danger))}
+  .mm-risk .mm-shape.tier-medium{fill:rgb(var(--c-warning) / .16); stroke:rgb(var(--c-warning))}
+  .mm-risk .mm-shape.tier-monitoring_only{fill:rgb(var(--c-text-secondary) / .14); stroke:rgb(var(--c-text-secondary))}
+  .mm-action .mm-shape{fill:rgb(var(--c-bg-card2)); stroke:rgb(var(--c-accent) / .6)}
+  .mm-kpi .mm-shape{fill:rgb(var(--c-bg-card2)); stroke:rgb(var(--c-success) / .6)}
+  .mm-leaf .mm-shape{fill:rgb(var(--c-bg-card2)); stroke:rgb(var(--c-text-secondary) / .5)}
+  .mm-label{fill:rgb(var(--c-text-primary)); font:600 10.5px/1.2 -apple-system,sans-serif; text-anchor:middle; pointer-events:none}
+  .mm-sublabel{fill:rgb(var(--c-text-secondary)); font:600 8.5px/1 ui-monospace,Menlo,monospace; text-anchor:middle; text-transform:uppercase; letter-spacing:.03em; pointer-events:none}
+  .mm-root .mm-shape{fill:rgb(var(--c-accent) / .22); stroke:rgb(var(--c-accent))}
+
+  @keyframes mmFadeIn{ from{opacity:0} to{opacity:1} }
+  .mm-fade{ animation:mmFadeIn .35s ease-out both }
+  @keyframes mmPulse{ 0%,100%{opacity:1} 50%{opacity:.4} }
+  .mm-pulse .mm-shape{ animation:mmPulse .8s ease-in-out 2 }
+
+  #tableview{display:none}
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <div class="bar-in">
+    <a class="brand" href="./" style="text-decoration:none; color:inherit" title="Back to portfolio"><span class="dot"></span><div>Leo Operations Map<small>dbt + DuckDB · illustrative</small></div></a>
+    <span class="badge" id="dataAsOf" title="Timestamp of the last dbt build + export, not a live feed"></span>
+    <div class="right">
+      <a class="icobtn" href="./leo-program-finance.html" title="Back to the full narrative dashboard">← Finance Dashboard</a>
+      <button class="icobtn" id="themeBtn" aria-pressed="false" title="Toggle theme">🌓 Theme</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <h1>The entire Leo operating structure, as one map</h1>
+  <p class="lede">Every domain, risk, 90-day action, and KPI already on the main dashboard, redrawn as one relational
+    graph so the connections between them -- not just the tables -- are the thing you're looking at. No new data:
+    every node below reads directly from the same exported marts as
+    <a href="./leo-program-finance.html">the narrative dashboard</a>.</p>
+
+  <div class="disclaimer">
+    <b>⚠ Not affiliated with, endorsed by, or built using any internal Amazon data.</b> Figures describing the real
+    program are sourced to public reporting (see each node's detail panel); anything else is explicitly labeled
+    <span class="src-tag illustrative" style="margin-left:2px">illustrative</span>.
+  </div>
+
+  <div id="loadErr" style="display:none; margin:20px 0; padding:14px; border:1px solid rgb(var(--c-danger) / .4); border-radius:10px; color:rgb(var(--c-danger)); font-size:13px"></div>
+
+  <div class="section">
+    <h2>How to read this map</h2>
+    <p class="section-sub">
+      Center = the program. The 11 spokes are every operating domain that appears anywhere across the dashboard's
+      marts -- <b>4</b> have both an owned risk-mitigation action and KPI tracking, <b>2</b> (Mission Assurance,
+      Regulatory Affairs) have a risk and action but no KPI-framework row, and <b>5</b> are KPI-tracked only with no
+      currently owned mitigation action. Click a domain to expand it; click any node for its full
+      who/what/when/where/why/how detail and to highlight its direct relationships.
+    </p>
+    <div class="maplegend" id="mapLegend"></div>
+    <div class="controls-row">
+      <div class="searchbox"><input type="text" id="searchInput" placeholder="Search domains, risks, actions, KPIs…" /></div>
+      <button class="icobtn" id="expandAllBtn">Expand all</button>
+      <button class="icobtn" id="collapseAllBtn">Collapse all</button>
+      <button class="icobtn" id="tableToggleBtn">📋 Table view</button>
+      <div class="zoomrow">Zoom <input type="range" id="zoomRange" min="60" max="160" value="100" /> <span id="zoomVal">100%</span></div>
+    </div>
+
+    <div id="mapWrap"><svg id="opsMap" xmlns="http://www.w3.org/2000/svg"></svg></div>
+
+    <div id="tableview">
+      <div class="table-wrap card" style="margin-top:14px"><table id="opsTable"></table></div>
+    </div>
+  </div>
+
+  <footer>
+    <p class="cite">Every node's detail panel cites its source mart directly; the underlying data, dbt models, and
+      tests live in <a href="https://github.com/tjaiyen/tj-finance-portfolio/tree/main/dbt_leo_program_finance">dbt_leo_program_finance/</a>
+      in this repo. Built with Claude Code.</p>
+  </footer>
+
+</div>
+
+<div class="infopop" id="infoPop"></div>
+
+<script>
+(function(){
+  "use strict";
+  var root = document.documentElement;
+  var themeBtn = document.getElementById("themeBtn");
+  var mq = window.matchMedia("(prefers-color-scheme: dark)");
+  function applyThemeLabel(){ themeBtn.setAttribute("aria-pressed", root.dataset.theme ? "true" : "false"); }
+  themeBtn.addEventListener("click", function(){
+    var current = root.dataset.theme || (mq.matches ? "dark" : "light");
+    root.dataset.theme = current === "dark" ? "light" : "dark";
+    applyThemeLabel();
+  });
+  applyThemeLabel();
+
+  function esc(s){ var d=document.createElement("div"); d.textContent=(s==null?"":String(s)); return d.innerHTML; }
+  function escAttr(s){
+    return String(s==null?"":s).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  }
+  function slug(s){ return String(s).toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/(^-|-$)/g,""); }
+  function fmtUSD(n){
+    if (n == null) return "n/a";
+    var abs = Math.abs(n), sign = n < 0 ? "-" : "";
+    if (abs >= 1e9) return sign + "$" + (abs/1e9).toFixed(2) + "B";
+    if (abs >= 1e6) return sign + "$" + (abs/1e6).toFixed(1) + "M";
+    return sign + "$" + abs.toLocaleString();
+  }
+
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // ---- exposure-tier -> visual tier class, identical mapping to
+  // tierPillMap/exposurePillMap on the main dashboard (never a new convention).
+  var TIER_CLASS = {critical:"tier-critical", high:"tier-high", medium:"tier-medium", monitoring_only:"tier-monitoring_only"};
+
+  var svg = document.getElementById("opsMap");
+  var mapWrap = document.getElementById("mapWrap");
+  var infoPop = document.getElementById("infoPop");
+
+  // Bigger canvas than the first version -- labels sit INSIDE their shapes
+  // (TJ's call, twice), which means shapes have to be sized to actually hold
+  // real text, and same-type siblings within one domain (e.g. Launch
+  // Operations' 2 risks) need enough room not to collide.
+  var CX = 720, CY = 720, R_DOMAIN = 250, R_CHILD_STEP = 205, TYPE_STAGGER = 60;
+  var model = null; // built once data loads
+  var searchQuery = "";
+  var highlightedNodeId = null;
+
+  fetch("./leo_finance_dashboard_data.json")
+    .then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
+    .then(init)
+    .catch(function(err){
+      document.getElementById("loadErr").style.display = "block";
+      document.getElementById("loadErr").innerHTML =
+        'Could not load leo_finance_dashboard_data.json (' + esc(err.message) + '). Run <code>python3 scripts/export_dashboard_data.py</code> in dbt_leo_program_finance/ after <code>dbt build</code>.';
+    });
+
+  function init(data){
+    var genAt = data.generated_at ? new Date(data.generated_at) : null;
+    document.getElementById("dataAsOf").textContent = genAt ? "Data as of " + genAt.toISOString().slice(0,10) : "";
+
+    model = buildModel(data);
+    renderLegend();
+    layout();
+    render();
+    renderTable();
+
+    document.getElementById("searchInput").addEventListener("input", function(e){
+      searchQuery = e.target.value.trim().toLowerCase();
+      if (searchQuery) model.domains.forEach(function(d){ if (domainMatches(d, searchQuery)) d.expanded = true; });
+      render();
+    });
+    document.getElementById("expandAllBtn").addEventListener("click", function(){
+      model.domains.forEach(function(d){ d.expanded = true; }); render();
+    });
+    document.getElementById("collapseAllBtn").addEventListener("click", function(){
+      model.domains.forEach(function(d){ d.expanded = false; }); highlightedNodeId = null; hidePop(); render();
+    });
+    var tableToggleBtn = document.getElementById("tableToggleBtn");
+    tableToggleBtn.addEventListener("click", function(){
+      var showingTable = document.getElementById("tableview").style.display === "block";
+      document.getElementById("tableview").style.display = showingTable ? "none" : "block";
+      mapWrap.style.display = showingTable ? "block" : "none";
+      document.querySelector(".controls-row").querySelectorAll(".zoomrow, .searchbox, #expandAllBtn, #collapseAllBtn").forEach(function(el){ /* no-op: controls still apply to map when reopened */ });
+      tableToggleBtn.classList.toggle("on", !showingTable);
+      tableToggleBtn.textContent = showingTable ? "📋 Table view" : "🗺 Map view";
+    });
+    var zoomRange = document.getElementById("zoomRange");
+    zoomRange.addEventListener("input", function(){
+      var pct = Number(zoomRange.value);
+      document.getElementById("zoomVal").textContent = pct + "%";
+      svg.style.transform = "scale(" + (pct/100) + ")";
+    });
+
+    mapWrap.addEventListener("click", function(e){
+      var g = e.target.closest("[data-node-id]");
+      if (!g){ highlightedNodeId = null; hidePop(); render(); return; }
+      var id = g.getAttribute("data-node-id");
+      var node = model.byId[id];
+      if (node.type === "domain"){
+        node.expanded = !node.expanded;
+        render();
+        return;
+      }
+      highlightedNodeId = id;
+      render();
+      showPop(node, e.clientX, e.clientY);
+    });
+  }
+
+  // ---- data model -------------------------------------------------------
+  // Every fact below is read from data.X -- domain names themselves are the
+  // union of roadmap_90day.domain and operational_kpi_framework.domain
+  // computed at runtime, never a hardcoded list.
+  function buildModel(data){
+    var domainNamesSet = {};
+    data.roadmap_90day.forEach(function(r){ domainNamesSet[r.domain] = true; });
+    data.operational_kpi_framework.forEach(function(r){ domainNamesSet[r.domain] = true; });
+    var domainNames = Object.keys(domainNamesSet).sort();
+
+    // Hand-picked grounding-fact source per domain -- an editorial choice of
+    // WHICH existing mart best grounds that domain, not a new fact. Domains
+    // with no dedicated supporting mart simply get none (honest gap).
+    var GROUNDING = {
+      "Finance": function(){
+        var e = data.evm_rollup, c = data.cost_escalation[data.cost_escalation.length-1];
+        return [
+          { label:"EVM rollup", what:"CPI " + e.cpi.toFixed(2) + " / SPI " + e.spi.toFixed(2), why:e.notes, source:"mart_evm_rollup" },
+          { label:"Cost escalation", what: fmtUSD(c.low_estimate_usd) + (c.high_estimate_usd!==c.low_estimate_usd? "–"+fmtUSD(c.high_estimate_usd):"") + " vs. prior estimate (" + c.as_of_date + ")", why:c.source, source:"mart_cost_escalation", url:c.source_url }
+        ];
+      },
+      "Launch Operations": function(){
+        var cg = data.capacity_gap, u = data.unlaunched_inventory;
+        return [
+          { label:"Capacity vs. realized rate", what: cg.realized_peak_per_day + "/day realized vs. " + cg.capacity_ceiling_per_day + "/day design ceiling (" + Math.round(cg.utilization_pct*100) + "% utilization)", why: cg.constraint_root_cause.replace(/_/g," "), source:"mart_deployment_capacity_gap", url:cg.source_url },
+          { label:"Deployed to date", what: u.deployed_count + " satellites as of " + u.latest_observed_date, why:"Latest observed checkpoint", source:"mart_unlaunched_inventory" }
+        ];
+      },
+      "Spacecraft Production": function(){
+        var ci = data.capitalized_inventory_rollforward[data.capitalized_inventory_rollforward.length-1];
+        return [
+          { label:"Unlaunched inventory value", what: fmtUSD(ci.modeled_capitalized_value_low_usd) + "–" + fmtUSD(ci.modeled_capitalized_value_high_usd) + " as of " + ci.as_of_date, why: ci.calculation_note, source:"mart_capitalized_inventory_rollforward" }
+        ];
+      },
+      "Vendor Management": function(){
+        var s = data.supplier_concentration.filter(function(r){ return r.is_real_bottleneck; })[0];
+        return s ? [{ label:"Bottleneck component", what: s.component_name + " (" + s.risk_tier.replace(/_/g," ") + ")", why: s.notes, source:"mart_supplier_concentration_risk", url:s.source_url }] : [];
+      },
+      "Mission Assurance": function(){
+        var s = data.safety_incidents[0];
+        return s ? [{ label:"Logged incident", what: s.incident_date + ": " + s.description, why:"Disputed by " + s.disputing_party, source:"mart_safety_coordination_incidents", url:s.source_url }] : [];
+      },
+      "Regulatory Affairs": function(){
+        var d = data.d2d_pipeline;
+        return [{ label:"D2D filing", what: Number(d.satellites_requested).toLocaleString() + "-satellite application filed " + d.filing_date, why: d.review_framework, source:"mart_d2d_regulatory_pipeline", url:d.source_url }];
+      }
+    };
+
+    var domains = domainNames.map(function(name){
+      var risks = data.roadmap_90day.filter(function(r){ return r.domain === name; });
+      var kpiRows = data.operational_kpi_framework.filter(function(r){ return r.domain === name; });
+      var groundingFn = GROUNDING[name];
+      var grounding = groundingFn ? groundingFn() : [];
+      return { id:"domain::"+slug(name), type:"domain", name:name, expanded:false, risks:risks, kpiRows:kpiRows, grounding:grounding };
+    });
+
+    // enrich each risk row with its risk_register detail (same join
+    // mart_90day_roadmap.sql already performs server-side, replayed here).
+    var riskByName = {};
+    data.risk_register.forEach(function(r){ riskByName[r.risk_name] = r; });
+
+    var byId = {};
+    var edges = [];
+    var domainAngleStep = (2*Math.PI) / domains.length;
+    domains.forEach(function(d, i){
+      d.angle = -Math.PI/2 + i*domainAngleStep;
+      d.who = d.risks.length ? Array.from(new Set(d.risks.map(function(r){ return r.accountable_role; }))).join(", ") : "No individually accountable role assigned -- KPI-tracked only";
+      d.detail = {
+        what: d.risks.length ? "Operating domain with an active 90-day risk-mitigation action." : "Operating domain tracked via the KPI framework; no owned mitigation action in the current 90-day plan.",
+        who: d.who,
+        when: d.risks.length ? d.risks.map(function(r){ return String(r.phase_start_date).slice(0,10) + "–" + String(r.phase_end_date).slice(0,10); }).join(" / ") : "n/a",
+        where: d.name,
+        why: d.risks.length ? "Named domain for " + d.risks.length + " register risk(s)." : (d.kpiRows.length ? d.kpiRows.length + " KPI(s) tracked here." : ""),
+        how: d.kpiRows.length ? d.kpiRows.length + " KPIs tracked (" + Array.from(new Set(d.kpiRows.map(function(r){ return r.frequency; }))).join(", ") + ")" : "n/a"
+      };
+      byId[d.id] = d;
+      edges.push({from:"root", to:d.id});
+
+      // primary (domain-direct) children: risks, kpi-summary, grounding leaves
+      var primary = [];
+      d.risks.forEach(function(r){
+        var reg = riskByName[r.risk_name] || {};
+        var riskNode = {
+          id:"risk::"+r.risk_name, type:"risk", parentId:d.id, domain:d.name,
+          name:r.risk_name.replace(/_/g," "), exposure_tier:r.exposure_tier,
+          detail:{
+            what: reg.description || r.category, who:"Category: "+r.category,
+            when:"n/a (see linked action for timing)", where:d.name,
+            why: r.rationale_note, how: r.target_description
+          }
+        };
+        byId[riskNode.id] = riskNode;
+        primary.push(riskNode);
+        edges.push({from:d.id, to:riskNode.id});
+
+        var actionNode = {
+          id:"action::"+r.risk_name, type:"action", parentId:riskNode.id, domain:d.name, subAngleOf:riskNode,
+          name:r.action, financeTasks:r.finance_manager_tasks.split(" | "), financeDeliverable:r.finance_deliverable,
+          detail:{
+            what:r.action, who:r.accountable_role, when:String(r.phase_start_date).slice(0,10)+" – "+String(r.phase_end_date).slice(0,10),
+            where:d.name, why:r.rationale_note, how:r.target_description
+          }
+        };
+        byId[actionNode.id] = actionNode;
+        edges.push({from:riskNode.id, to:actionNode.id});
+        riskNode.actionId = actionNode.id;
+      });
+      if (d.kpiRows.length){
+        var below = d.kpiRows.filter(function(r){ return r.status === "below"; }).length;
+        var noData = d.kpiRows.filter(function(r){ return r.status === "no_data"; }).length;
+        var kpiNode = {
+          id:"kpi::"+slug(d.name), type:"kpi", parentId:d.id, domain:d.name,
+          name: d.kpiRows.length + " KPIs",
+          detail:{
+            what: d.kpiRows.length + " KPIs tracked in " + d.name + " (" + below + " below target, " + noData + " no signal data yet)",
+            who:"Owned operationally by " + d.name + " (no individually named owner in this framework)",
+            when: Array.from(new Set(d.kpiRows.map(function(r){ return r.frequency; }))).join(", "),
+            where:d.name,
+            why: "Measures " + Array.from(new Set(d.kpiRows.map(function(r){ return r.strategic_objective; }))).length + " distinct strategic objective(s).",
+            how: d.kpiRows.slice(0,3).map(function(r){ return r.kpi_name + ": " + r.target_benchmark; }).join(" | "),
+            kpiRows: d.kpiRows
+          }
+        };
+        byId[kpiNode.id] = kpiNode;
+        primary.push(kpiNode);
+        edges.push({from:d.id, to:kpiNode.id});
+      }
+      d.grounding.forEach(function(g, gi){
+        var leafNode = {
+          id:"leaf::"+slug(d.name)+"::"+gi, type:"leaf", parentId:d.id, domain:d.name,
+          name:g.label,
+          detail:{ what:g.what, who:"n/a (grounding fact, not an accountability row)", when:"n/a", where:d.name, why:g.why, how:g.source + (g.url? " -- " + g.url : "") }
+        };
+        byId[leafNode.id] = leafNode;
+        primary.push(leafNode);
+        edges.push({from:d.id, to:leafNode.id});
+      });
+      d.primaryChildren = primary;
+    });
+
+    byId["root"] = { id:"root", type:"root", name:"Amazon Leo Program",
+      detail:{
+        what:"An independent, illustrative finance-instrumented model of Amazon's Leo (Kuiper) satellite broadband program.",
+        who:"Amazon (public reporting only -- not affiliated, endorsed, or built using internal data)",
+        when:"Ongoing constellation build-out against FCC milestone deadlines",
+        where:"Kirkland, WA production; low Earth orbit deployment",
+        why:"The governing question this whole project models: will the program hit its next FCC deadline, and what does that cost?",
+        how:"Tracked across " + domains.length + " operating domains, " + data.risk_register.length + " register risks, and this 90-day accountability plan."
+      }
+    };
+
+    return { domains:domains, byId:byId, edges:edges };
+  }
+
+  function domainMatches(d, q){
+    if (d.name.toLowerCase().indexOf(q) !== -1) return true;
+    if (d.primaryChildren.some(function(c){ return nodeMatches(c, q); })) return true;
+    return d.risks.some(function(r){ return r.action.toLowerCase().indexOf(q) !== -1; });
+  }
+  function nodeMatches(n, q){
+    if (n.name.toLowerCase().indexOf(q) !== -1) return true;
+    var det = n.detail || {};
+    return ["what","who","why","how"].some(function(k){ return det[k] && String(det[k]).toLowerCase().indexOf(q) !== -1; });
+  }
+
+  // ---- layout -------------------------------------------------------
+  function layout(){
+    model.domains.forEach(function(d){
+      d.x = CX + R_DOMAIN * Math.cos(d.angle);
+      d.y = CY + R_DOMAIN * Math.sin(d.angle);
+
+      var risks = d.primaryChildren.filter(function(c){ return c.type === "risk"; });
+      var others = d.primaryChildren.filter(function(c){ return c.type !== "risk"; });
+      var ordered = risks.concat(others);
+      var n = ordered.length;
+      var spreadHalfDeg = Math.min(16, n*3.5);
+      var typeSeen = {};
+      ordered.forEach(function(c, i){
+        var offsetDeg = n <= 1 ? 0 : (-spreadHalfDeg + i*(2*spreadHalfDeg/(n-1)));
+        c.angle = d.angle + offsetDeg * Math.PI/180;
+        // A domain can carry 2 of the same child type (Launch Operations has
+        // 2 risks; Finance and Launch Operations each have 2 grounding
+        // leaves) -- angle alone can't spread 2 same-size shapes far enough
+        // apart at a shared radius, so repeats of one type also step
+        // outward in radius, using the one dimension angle can't buy.
+        var typeIdx = typeSeen[c.type] || 0;
+        typeSeen[c.type] = typeIdx + 1;
+        c.radius = R_DOMAIN + R_CHILD_STEP + typeIdx*TYPE_STAGGER;
+        c.x = CX + c.radius * Math.cos(c.angle);
+        c.y = CY + c.radius * Math.sin(c.angle);
+        if (c.type === "risk" && c.actionId){
+          var a = model.byId[c.actionId];
+          a.angle = c.angle;
+          a.radius = c.radius + R_CHILD_STEP;
+          a.x = CX + a.radius * Math.cos(a.angle);
+          a.y = CY + a.radius * Math.sin(a.angle);
+        }
+      });
+    });
+  }
+
+  // ---- render -------------------------------------------------------
+  // Shapes are sized to actually hold their own label (real measurement:
+  // domain/risk/action words run 5.3-5.7px/char at these font sizes -- e.g.
+  // "Commercialization" alone is ~93px, "filing-readiness" ~86px), not the
+  // small icon-sized markers of the first pass. Text still centers ON the
+  // shape; only "Commercialization" (17 chars, far past any real second-
+  // longest domain word) still gets truncated -- see wrapLabel.
+  function shapePath(type, x, y){
+    var s = 26;
+    if (type === "root") return '<circle class="mm-shape" cx="'+x+'" cy="'+y+'" r="46"/>';
+    if (type === "domain") {
+      var pts = [];
+      for (var i=0;i<6;i++){ var a = Math.PI/6 + i*Math.PI/3; pts.push((x+s*1.6*Math.cos(a)).toFixed(1)+","+(y+s*1.6*Math.sin(a)).toFixed(1)); }
+      return '<polygon class="mm-shape" points="'+pts.join(" ")+'"/>';
+    }
+    if (type === "risk") return '<polygon class="mm-shape ' + (TIER_CLASS[arguments[3]]||"") + '" points="'+x+','+(y-38)+' '+(x+38)+','+y+' '+x+','+(y+38)+' '+(x-38)+','+y+'"/>'; // arguments[3] is the tier, passed as the 4th call arg
+    if (type === "action") return '<rect class="mm-shape" x="'+(x-44)+'" y="'+(y-19)+'" width="88" height="38" rx="8"/>';
+    if (type === "kpi") return '<circle class="mm-shape" cx="'+x+'" cy="'+y+'" r="22"/>';
+    return '<rect class="mm-shape" x="'+(x-32)+'" y="'+(y-15)+'" width="64" height="30" rx="6"/>'; // leaf
+  }
+
+  // A single word longer than the line budget can't be split at a space, so
+  // it's truncated with an ellipsis instead of being left to run past the
+  // shape -- the full name is always still one click away (detail popover)
+  // and in the table view, this only shortens the on-canvas mark.
+  function truncWord(w, max){ return w.length > max ? w.slice(0, Math.max(1,max-1)) + "…" : w; }
+  function wrapLabel(text, max){
+    var words = String(text).split(" ").map(function(w){ return truncWord(w, max); });
+    var lines = [], cur = "";
+    words.forEach(function(w){
+      // Only break BEFORE a word if cur already holds something -- otherwise a
+      // first word alone longer than max pushed an empty line (consuming a
+      // slice(0,2) slot) and silently dropped the real remainder.
+      if (cur && (cur+" "+w).length > max){ lines.push(cur); cur = w; } else cur = cur ? cur+" "+w : w;
+    });
+    if (cur) lines.push(cur);
+    return lines.slice(0,2);
+  }
+
+  function render(){
+    var visibleIds = {"root":true};
+    model.domains.forEach(function(d){ visibleIds[d.id]=true; if (d.expanded) d.primaryChildren.forEach(function(c){ visibleIds[c.id]=true; if(c.actionId) visibleIds[c.actionId]=true; }); });
+
+    function nodeClasses(n, extra){
+      var cls = "mm-node mm-"+n.type+" mm-fade";
+      if (n.expanded) cls += " expanded";
+      if (highlightedNodeId===n.id) cls += " match";
+      if (searchQuery && !nodeMatches(n, searchQuery) && n.type!=="domain") cls += " dim";
+      if (searchQuery && n.type==="domain" && !domainMatches(n, searchQuery)) cls += " dim";
+      if (n.exposure_tier==="critical" && !reduceMotion) cls += " mm-pulse";
+      return cls + (extra||"");
+    }
+
+    // Build the flat visible-node list once, in x/y-annotated form, so shapes
+    // and labels can be painted as two SEPARATE passes below -- every label
+    // ends up on top of every shape, regardless of node order. Text getting
+    // silently painted-over by a later node's shape (an earlier bug) is
+    // structurally impossible once labels are their own top-most layer.
+    var visibleNodes = [{ node: model.byId.root, x:CX, y:CY }];
+    model.domains.forEach(function(d){
+      visibleNodes.push({ node:d, x:d.x, y:d.y });
+      if (d.expanded) d.primaryChildren.forEach(function(c){
+        visibleNodes.push({ node:c, x:c.x, y:c.y });
+        if (c.actionId){ var a = model.byId[c.actionId]; visibleNodes.push({ node:a, x:a.x, y:a.y }); }
+      });
+    });
+
+    var edgeParts = [];
+    model.edges.forEach(function(e){
+      if (!visibleIds[e.from] || !visibleIds[e.to]) return;
+      var a = model.byId[e.from], b = model.byId[e.to];
+      var ax = a.id==="root"?CX:a.x, ay = a.id==="root"?CY:a.y;
+      var isHi = highlightedNodeId && (e.from===highlightedNodeId || e.to===highlightedNodeId);
+      edgeParts.push('<line class="mm-edge'+(isHi?" hi":"")+'" x1="'+ax+'" y1="'+ay+'" x2="'+b.x+'" y2="'+b.y+'"/>');
+    });
+
+    var shapeParts = visibleNodes.map(function(v){
+      var n = v.node;
+      var shape = n.type==="risk" ? shapePath("risk", v.x, v.y, n.exposure_tier) : shapePath(n.type, v.x, v.y);
+      return '<g class="'+nodeClasses(n)+'" data-node-id="'+n.id+'">'+shape+'</g>';
+    });
+
+    // Wrap width per type is calibrated to that type's actual shape width at
+    // the measured 5.3-5.7px/char for these fonts (domain hex ~72px wide,
+    // risk diamond ~76px, action rect ~88px, leaf rect ~64px) -- text sits
+    // centered ON the shape, the way TJ wants it, not as an outside caption.
+    var labelParts = visibleNodes.map(function(v){
+      var n = v.node, lines, lineHeight;
+      var labelCls = n.type==="root" || n.type==="domain" ? "mm-label" : "mm-sublabel";
+      if (n.type === "root"){ lines = ["Amazon","Leo"]; lineHeight = 13; }
+      else if (n.type === "domain"){ lines = wrapLabel(n.name, 11); lineHeight = 11; }
+      else if (n.type === "risk"){ lines = wrapLabel(n.name, 13); lineHeight = 10; }
+      else if (n.type === "action"){ lines = wrapLabel(n.name, 14); lineHeight = 10; }
+      else { lines = wrapLabel(n.name, 10); lineHeight = 10; } // kpi ("N KPIs") / leaf
+      var yStart = v.y - (lines.length-1)*lineHeight/2;
+      var txt = lines.map(function(l,i){ return '<text class="'+labelCls+'" x="'+v.x+'" y="'+(yStart+i*lineHeight)+'">'+esc(l)+'</text>'; }).join("");
+      return '<g class="'+nodeClasses(n)+'" data-node-id="'+n.id+'">'+txt+'</g>';
+    });
+
+    // viewBox large enough for the widest expanded state (bigger shapes +
+    // radial staggering push the reach further than the first version);
+    // page never scrolls sideways because #mapWrap owns overflow, not <body>.
+    svg.setAttribute("viewBox", "0 0 1440 1440");
+    svg.setAttribute("width", "1440");
+    svg.setAttribute("height", "1440");
+    svg.innerHTML = edgeParts.join("") + shapeParts.join("") + labelParts.join("");
+  }
+
+  // ---- detail popover -------------------------------------------------------
+  function fieldRow(label, val){
+    if (val == null || val === "") return "";
+    return '<div class="field"><b>'+esc(label)+'</b>'+esc(val)+'</div>';
+  }
+  function showPop(node, clientX, clientY){
+    var det = node.detail || {};
+    var html = '<button class="closeBtn" id="popClose" aria-label="Close">✕</button><h3>'+esc(node.name)+'</h3>';
+    if (node.type==="risk" && node.exposure_tier){
+      var pillClass = {critical:"risk",high:"risk",medium:"warn",monitoring_only:"muted"}[node.exposure_tier] || "muted";
+      html += '<span class="status '+pillClass+'">'+esc(node.exposure_tier.replace(/_/g," "))+'</span><div style="height:8px"></div>';
+    }
+    html += fieldRow("What", det.what) + fieldRow("Who", det.who) + fieldRow("When", det.when) + fieldRow("Where", det.where) + fieldRow("Why", det.why) + fieldRow("How", det.how);
+    if (node.financeTasks){
+      html += '<div class="field"><b>Finance Manager tasks</b><ul>' + node.financeTasks.map(function(t){ return "<li>"+esc(t)+"</li>"; }).join("") + '</ul></div>';
+      html += fieldRow("Finance deliverable", node.financeDeliverable);
+    }
+    if (det.kpiRows){
+      html += '<div class="field"><b>All '+det.kpiRows.length+' KPIs</b><ul>' + det.kpiRows.map(function(r){ return "<li>"+esc(r.kpi_name)+" -- "+esc(r.status.replace(/_/g," "))+"</li>"; }).join("") + '</ul></div>';
+    }
+    infoPop.innerHTML = html;
+    infoPop.classList.add("show");
+    document.getElementById("popClose").addEventListener("click", function(){ highlightedNodeId=null; hidePop(); render(); });
+    var pw = 320, vw = window.innerWidth, vh = window.innerHeight;
+    var left = Math.min(clientX + 14, vw - pw - 12);
+    var top = Math.min(clientY + 14, vh - 80);
+    infoPop.style.left = Math.max(12,left) + "px";
+    infoPop.style.top = Math.max(12,top) + "px";
+  }
+  function hidePop(){ infoPop.classList.remove("show"); }
+
+  // ---- legend -------------------------------------------------------
+  function renderLegend(){
+    document.getElementById("mapLegend").innerHTML =
+      '<span><span class="sw" style="background:rgb(var(--c-accent)/.3);border:1px solid rgb(var(--c-accent))"></span>Domain</span>' +
+      '<span><span class="sw" style="background:rgb(var(--c-danger)/.3);border:1px solid rgb(var(--c-danger))"></span>Risk -- critical/high</span>' +
+      '<span><span class="sw" style="background:rgb(var(--c-warning)/.3);border:1px solid rgb(var(--c-warning))"></span>Risk -- medium</span>' +
+      '<span><span class="sw" style="background:rgb(var(--c-text-secondary)/.2);border:1px solid rgb(var(--c-text-secondary))"></span>Risk -- monitoring only</span>' +
+      '<span><span class="sw" style="background:rgb(var(--c-bg-card2));border:1px solid rgb(var(--c-accent)/.6)"></span>90-day action</span>' +
+      '<span><span class="sw" style="background:rgb(var(--c-bg-card2));border:1px solid rgb(var(--c-success)/.6)"></span>KPI summary</span>' +
+      '<span><span class="sw" style="background:rgb(var(--c-bg-card2));border:1px solid rgb(var(--c-text-secondary)/.5)"></span>Grounding fact</span>';
+  }
+
+  // ---- accessible table view -------------------------------------------------------
+  function renderTable(){
+    var rows = [];
+    model.domains.forEach(function(d){
+      rows.push({domain:d.name, type:"Domain", label:d.name, who:d.detail.who, what:d.detail.what, when:d.detail.when, where:d.detail.where, why:d.detail.why, how:d.detail.how});
+      d.primaryChildren.forEach(function(c){
+        rows.push({domain:d.name, type:c.type, label:c.name, who:c.detail.who, what:c.detail.what, when:c.detail.when, where:c.detail.where, why:c.detail.why, how:c.detail.how});
+        if (c.actionId){
+          var a = model.byId[c.actionId];
+          rows.push({domain:d.name, type:"action", label:a.name, who:a.detail.who, what:a.detail.what, when:a.detail.when, where:a.detail.where, why:a.detail.why, how:a.detail.how});
+        }
+      });
+    });
+    var html = '<thead><tr><th>Domain</th><th>Type</th><th>Node</th><th>Who</th><th>What</th><th>When</th><th>Why</th><th>How</th></tr></thead><tbody>';
+    rows.forEach(function(r){
+      html += '<tr><td>'+esc(r.domain)+'</td><td>'+esc(r.type)+'</td><td>'+esc(r.label)+'</td><td>'+esc(r.who)+'</td><td>'+esc(r.what)+'</td><td>'+esc(r.when)+'</td><td>'+esc(r.why)+'</td><td>'+esc(r.how)+'</td></tr>';
+    });
+    html += '</tbody>';
+    document.getElementById("opsTable").innerHTML = html;
+  }
+})();
+</script>
+</body>
+</html>

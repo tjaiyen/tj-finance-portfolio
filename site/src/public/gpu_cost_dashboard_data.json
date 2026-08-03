@@ -1,0 +1,690 @@
+{
+  "project": "dbt_gpu_cost_attribution",
+  "generated_at": "2026-07-30T21:59:41.027036+00:00",
+  "thresholds": {
+    "margin_warning_below": 0.4,
+    "margin_best_above": 0.65
+  },
+  "tenant_costs": [
+    {
+      "usage_date": "2026-05-01",
+      "customer_id": "cust_a",
+      "tenant_tokens": 800000,
+      "allocation_ratio": 0.571429,
+      "revenue": 36.0,
+      "direct_cost": 11.8286,
+      "allocated_idle_cost": 2.8457,
+      "total_cost": 14.6743,
+      "gross_margin_pct": 0.5924,
+      "margin_zone": "standard"
+    },
+    {
+      "usage_date": "2026-05-01",
+      "customer_id": "cust_b",
+      "tenant_tokens": 400000,
+      "allocation_ratio": 0.285714,
+      "revenue": 23.0,
+      "direct_cost": 5.9143,
+      "allocated_idle_cost": 1.4229,
+      "total_cost": 7.3372,
+      "gross_margin_pct": 0.681,
+      "margin_zone": "best_in_class"
+    },
+    {
+      "usage_date": "2026-05-01",
+      "customer_id": "cust_c",
+      "tenant_tokens": 200000,
+      "allocation_ratio": 0.142857,
+      "revenue": 3.25,
+      "direct_cost": 2.9571,
+      "allocated_idle_cost": 0.7114,
+      "total_cost": 3.6685,
+      "gross_margin_pct": -0.1288,
+      "margin_zone": "warning"
+    },
+    {
+      "usage_date": "2026-05-02",
+      "customer_id": "cust_a",
+      "tenant_tokens": 650000,
+      "allocation_ratio": 0.448276,
+      "revenue": 29.0,
+      "direct_cost": 10.2386,
+      "allocated_idle_cost": 1.2731,
+      "total_cost": 11.5117,
+      "gross_margin_pct": 0.603,
+      "margin_zone": "standard"
+    },
+    {
+      "usage_date": "2026-05-02",
+      "customer_id": "cust_b",
+      "tenant_tokens": 520000,
+      "allocation_ratio": 0.358621,
+      "revenue": 29.6,
+      "direct_cost": 8.1909,
+      "allocated_idle_cost": 1.0185,
+      "total_cost": 9.2094,
+      "gross_margin_pct": 0.6889,
+      "margin_zone": "best_in_class"
+    },
+    {
+      "usage_date": "2026-05-02",
+      "customer_id": "cust_c",
+      "tenant_tokens": 280000,
+      "allocation_ratio": 0.193103,
+      "revenue": 4.6,
+      "direct_cost": 4.4105,
+      "allocated_idle_cost": 0.5484,
+      "total_cost": 4.9589,
+      "gross_margin_pct": -0.078,
+      "margin_zone": "warning"
+    },
+    {
+      "usage_date": "2026-05-03",
+      "customer_id": "cust_a",
+      "tenant_tokens": 602720,
+      "allocation_ratio": 0.432378,
+      "revenue": 27.141,
+      "direct_cost": 9.316,
+      "allocated_idle_cost": 1.7875,
+      "total_cost": 11.1035,
+      "gross_margin_pct": 0.5909,
+      "margin_zone": "standard"
+    },
+    {
+      "usage_date": "2026-05-03",
+      "customer_id": "cust_b",
+      "tenant_tokens": 497539,
+      "allocation_ratio": 0.356923,
+      "revenue": 28.8999,
+      "direct_cost": 7.6903,
+      "allocated_idle_cost": 1.4755,
+      "total_cost": 9.1658,
+      "gross_margin_pct": 0.6828,
+      "margin_zone": "best_in_class"
+    },
+    {
+      "usage_date": "2026-05-03",
+      "customer_id": "cust_c",
+      "tenant_tokens": 293708,
+      "allocation_ratio": 0.210699,
+      "revenue": 4.7658,
+      "direct_cost": 4.5397,
+      "allocated_idle_cost": 0.871,
+      "total_cost": 5.4107,
+      "gross_margin_pct": -0.1353,
+      "margin_zone": "warning"
+    },
+    {
+      "usage_date": "2026-05-04",
+      "customer_id": "cust_a",
+      "tenant_tokens": 622108,
+      "allocation_ratio": 0.462623,
+      "revenue": 27.806,
+      "direct_cost": 10.1911,
+      "allocated_idle_cost": 1.689,
+      "total_cost": 11.8801,
+      "gross_margin_pct": 0.5728,
+      "margin_zone": "standard"
+    },
+    {
+      "usage_date": "2026-05-04",
+      "customer_id": "cust_b",
+      "tenant_tokens": 446371,
+      "allocation_ratio": 0.331938,
+      "revenue": 26.1134,
+      "direct_cost": 7.3123,
+      "allocated_idle_cost": 1.2119,
+      "total_cost": 8.5242,
+      "gross_margin_pct": 0.6736,
+      "margin_zone": "best_in_class"
+    },
+    {
+      "usage_date": "2026-05-04",
+      "customer_id": "cust_c",
+      "tenant_tokens": 276262,
+      "allocation_ratio": 0.205439,
+      "revenue": 4.5276,
+      "direct_cost": 4.5256,
+      "allocated_idle_cost": 0.7501,
+      "total_cost": 5.2757,
+      "gross_margin_pct": -0.1652,
+      "margin_zone": "warning"
+    },
+    {
+      "usage_date": "2026-05-05",
+      "customer_id": "cust_a",
+      "tenant_tokens": 627919,
+      "allocation_ratio": 0.450527,
+      "revenue": 28.3195,
+      "direct_cost": 10.1112,
+      "allocated_idle_cost": 1.4584,
+      "total_cost": 11.5696,
+      "gross_margin_pct": 0.5915,
+      "margin_zone": "standard"
+    },
+    {
+      "usage_date": "2026-05-05",
+      "customer_id": "cust_b",
+      "tenant_tokens": 475929,
+      "allocation_ratio": 0.341476,
+      "revenue": 27.9088,
+      "direct_cost": 7.6637,
+      "allocated_idle_cost": 1.1054,
+      "total_cost": 8.7691,
+      "gross_margin_pct": 0.6858,
+      "margin_zone": "best_in_class"
+    },
+    {
+      "usage_date": "2026-05-05",
+      "customer_id": "cust_c",
+      "tenant_tokens": 289894,
+      "allocation_ratio": 0.207997,
+      "revenue": 4.7572,
+      "direct_cost": 4.6681,
+      "allocated_idle_cost": 0.6733,
+      "total_cost": 5.3414,
+      "gross_margin_pct": -0.1228,
+      "margin_zone": "warning"
+    },
+    {
+      "usage_date": "2026-05-06",
+      "customer_id": "cust_a",
+      "tenant_tokens": 649892,
+      "allocation_ratio": 0.470793,
+      "revenue": 29.203,
+      "direct_cost": 11.8235,
+      "allocated_idle_cost": 0.2665,
+      "total_cost": 12.09,
+      "gross_margin_pct": 0.586,
+      "margin_zone": "standard"
+    },
+    {
+      "usage_date": "2026-05-06",
+      "customer_id": "cust_b",
+      "tenant_tokens": 456641,
+      "allocation_ratio": 0.330799,
+      "revenue": 26.9148,
+      "direct_cost": 8.3077,
+      "allocated_idle_cost": 0.1872,
+      "total_cost": 8.4949,
+      "gross_margin_pct": 0.6844,
+      "margin_zone": "best_in_class"
+    },
+    {
+      "usage_date": "2026-05-06",
+      "customer_id": "cust_c",
+      "tenant_tokens": 273886,
+      "allocation_ratio": 0.198408,
+      "revenue": 4.5528,
+      "direct_cost": 4.9828,
+      "allocated_idle_cost": 0.1123,
+      "total_cost": 5.0951,
+      "gross_margin_pct": -0.1191,
+      "margin_zone": "warning"
+    },
+    {
+      "usage_date": "2026-05-07",
+      "customer_id": "cust_a",
+      "tenant_tokens": 721064,
+      "allocation_ratio": 0.510548,
+      "revenue": 32.3165,
+      "direct_cost": 13.1109,
+      "allocated_idle_cost": 0.0,
+      "total_cost": 13.1109,
+      "gross_margin_pct": 0.5943,
+      "margin_zone": "standard"
+    },
+    {
+      "usage_date": "2026-05-07",
+      "customer_id": "cust_b",
+      "tenant_tokens": 442013,
+      "allocation_ratio": 0.312967,
+      "revenue": 26.351,
+      "direct_cost": 8.037,
+      "allocated_idle_cost": 0.0,
+      "total_cost": 8.037,
+      "gross_margin_pct": 0.695,
+      "margin_zone": "best_in_class"
+    },
+    {
+      "usage_date": "2026-05-07",
+      "customer_id": "cust_c",
+      "tenant_tokens": 249256,
+      "allocation_ratio": 0.176485,
+      "revenue": 4.1569,
+      "direct_cost": 4.5321,
+      "allocated_idle_cost": 0.0,
+      "total_cost": 4.5321,
+      "gross_margin_pct": -0.0903,
+      "margin_zone": "warning"
+    },
+    {
+      "usage_date": "2026-05-08",
+      "customer_id": "cust_a",
+      "tenant_tokens": 729837,
+      "allocation_ratio": 0.500406,
+      "revenue": 32.9396,
+      "direct_cost": 11.5819,
+      "allocated_idle_cost": 1.2685,
+      "total_cost": 12.8504,
+      "gross_margin_pct": 0.6099,
+      "margin_zone": "standard"
+    },
+    {
+      "usage_date": "2026-05-08",
+      "customer_id": "cust_b",
+      "tenant_tokens": 462105,
+      "allocation_ratio": 0.316838,
+      "revenue": 27.0906,
+      "direct_cost": 7.3332,
+      "allocated_idle_cost": 0.8032,
+      "total_cost": 8.1364,
+      "gross_margin_pct": 0.6997,
+      "margin_zone": "best_in_class"
+    },
+    {
+      "usage_date": "2026-05-08",
+      "customer_id": "cust_c",
+      "tenant_tokens": 266548,
+      "allocation_ratio": 0.182756,
+      "revenue": 4.43,
+      "direct_cost": 4.2299,
+      "allocated_idle_cost": 0.4633,
+      "total_cost": 4.6932,
+      "gross_margin_pct": -0.0594,
+      "margin_zone": "warning"
+    },
+    {
+      "usage_date": "2026-05-09",
+      "customer_id": "cust_a",
+      "tenant_tokens": 742065,
+      "allocation_ratio": 0.506175,
+      "revenue": 33.5284,
+      "direct_cost": 12.4286,
+      "allocated_idle_cost": 0.57,
+      "total_cost": 12.9986,
+      "gross_margin_pct": 0.6123,
+      "margin_zone": "standard"
+    },
+    {
+      "usage_date": "2026-05-09",
+      "customer_id": "cust_b",
+      "tenant_tokens": 444594,
+      "allocation_ratio": 0.303265,
+      "revenue": 26.3825,
+      "direct_cost": 7.4464,
+      "allocated_idle_cost": 0.3415,
+      "total_cost": 7.7879,
+      "gross_margin_pct": 0.7048,
+      "margin_zone": "best_in_class"
+    },
+    {
+      "usage_date": "2026-05-09",
+      "customer_id": "cust_c",
+      "tenant_tokens": 279366,
+      "allocation_ratio": 0.19056,
+      "revenue": 4.5813,
+      "direct_cost": 4.679,
+      "allocated_idle_cost": 0.2146,
+      "total_cost": 4.8936,
+      "gross_margin_pct": -0.0682,
+      "margin_zone": "warning"
+    },
+    {
+      "usage_date": "2026-05-10",
+      "customer_id": "cust_a",
+      "tenant_tokens": 736159,
+      "allocation_ratio": 0.501175,
+      "revenue": 33.5773,
+      "direct_cost": 12.8,
+      "allocated_idle_cost": 0.0702,
+      "total_cost": 12.8702,
+      "gross_margin_pct": 0.6167,
+      "margin_zone": "standard"
+    },
+    {
+      "usage_date": "2026-05-10",
+      "customer_id": "cust_b",
+      "tenant_tokens": 453547,
+      "allocation_ratio": 0.308773,
+      "revenue": 26.9301,
+      "direct_cost": 7.8861,
+      "allocated_idle_cost": 0.0432,
+      "total_cost": 7.9293,
+      "gross_margin_pct": 0.7056,
+      "margin_zone": "best_in_class"
+    },
+    {
+      "usage_date": "2026-05-10",
+      "customer_id": "cust_c",
+      "tenant_tokens": 279161,
+      "allocation_ratio": 0.190052,
+      "revenue": 4.5669,
+      "direct_cost": 4.8539,
+      "allocated_idle_cost": 0.0266,
+      "total_cost": 4.8805,
+      "gross_margin_pct": -0.0687,
+      "margin_zone": "warning"
+    },
+    {
+      "usage_date": "2026-05-11",
+      "customer_id": "cust_a",
+      "tenant_tokens": 710432,
+      "allocation_ratio": 0.485527,
+      "revenue": 32.5264,
+      "direct_cost": 11.9925,
+      "allocated_idle_cost": 0.4758,
+      "total_cost": 12.4683,
+      "gross_margin_pct": 0.6167,
+      "margin_zone": "standard"
+    },
+    {
+      "usage_date": "2026-05-11",
+      "customer_id": "cust_b",
+      "tenant_tokens": 462965,
+      "allocation_ratio": 0.316402,
+      "revenue": 27.758,
+      "direct_cost": 7.8151,
+      "allocated_idle_cost": 0.3101,
+      "total_cost": 8.1252,
+      "gross_margin_pct": 0.7073,
+      "margin_zone": "best_in_class"
+    },
+    {
+      "usage_date": "2026-05-11",
+      "customer_id": "cust_c",
+      "tenant_tokens": 289822,
+      "allocation_ratio": 0.198072,
+      "revenue": 4.6997,
+      "direct_cost": 4.8924,
+      "allocated_idle_cost": 0.1941,
+      "total_cost": 5.0865,
+      "gross_margin_pct": -0.0823,
+      "margin_zone": "warning"
+    },
+    {
+      "usage_date": "2026-05-12",
+      "customer_id": "cust_a",
+      "tenant_tokens": 711759,
+      "allocation_ratio": 0.486014,
+      "revenue": 32.8351,
+      "direct_cost": 11.8174,
+      "allocated_idle_cost": 0.6634,
+      "total_cost": 12.4808,
+      "gross_margin_pct": 0.6199,
+      "margin_zone": "standard"
+    },
+    {
+      "usage_date": "2026-05-12",
+      "customer_id": "cust_b",
+      "tenant_tokens": 441274,
+      "allocation_ratio": 0.301317,
+      "revenue": 26.6828,
+      "direct_cost": 7.3265,
+      "allocated_idle_cost": 0.4113,
+      "total_cost": 7.7378,
+      "gross_margin_pct": 0.71,
+      "margin_zone": "best_in_class"
+    },
+    {
+      "usage_date": "2026-05-12",
+      "customer_id": "cust_c",
+      "tenant_tokens": 311451,
+      "allocation_ratio": 0.212669,
+      "revenue": 5.0562,
+      "direct_cost": 5.171,
+      "allocated_idle_cost": 0.2903,
+      "total_cost": 5.4613,
+      "gross_margin_pct": -0.0801,
+      "margin_zone": "warning"
+    },
+    {
+      "usage_date": "2026-05-13",
+      "customer_id": "cust_a",
+      "tenant_tokens": 697382,
+      "allocation_ratio": 0.502318,
+      "revenue": 31.9204,
+      "direct_cost": 12.5283,
+      "allocated_idle_cost": 0.3712,
+      "total_cost": 12.8995,
+      "gross_margin_pct": 0.5959,
+      "margin_zone": "standard"
+    },
+    {
+      "usage_date": "2026-05-13",
+      "customer_id": "cust_b",
+      "tenant_tokens": 394632,
+      "allocation_ratio": 0.28425,
+      "revenue": 23.9395,
+      "direct_cost": 7.0895,
+      "allocated_idle_cost": 0.2101,
+      "total_cost": 7.2996,
+      "gross_margin_pct": 0.6951,
+      "margin_zone": "best_in_class"
+    },
+    {
+      "usage_date": "2026-05-13",
+      "customer_id": "cust_c",
+      "tenant_tokens": 296315,
+      "allocation_ratio": 0.213433,
+      "revenue": 4.8692,
+      "direct_cost": 5.3232,
+      "allocated_idle_cost": 0.1577,
+      "total_cost": 5.4809,
+      "gross_margin_pct": -0.1256,
+      "margin_zone": "warning"
+    },
+    {
+      "usage_date": "2026-05-14",
+      "customer_id": "cust_a",
+      "tenant_tokens": 646444,
+      "allocation_ratio": 0.499091,
+      "revenue": 29.6525,
+      "direct_cost": 11.5155,
+      "allocated_idle_cost": 1.3011,
+      "total_cost": 12.8166,
+      "gross_margin_pct": 0.5678,
+      "margin_zone": "standard"
+    },
+    {
+      "usage_date": "2026-05-14",
+      "customer_id": "cust_b",
+      "tenant_tokens": 380684,
+      "allocation_ratio": 0.293909,
+      "revenue": 22.8751,
+      "direct_cost": 6.7814,
+      "allocated_idle_cost": 0.7662,
+      "total_cost": 7.5476,
+      "gross_margin_pct": 0.6701,
+      "margin_zone": "best_in_class"
+    },
+    {
+      "usage_date": "2026-05-14",
+      "customer_id": "cust_c",
+      "tenant_tokens": 268115,
+      "allocation_ratio": 0.207,
+      "revenue": 4.412,
+      "direct_cost": 4.7761,
+      "allocated_idle_cost": 0.5396,
+      "total_cost": 5.3157,
+      "gross_margin_pct": -0.2048,
+      "margin_zone": "warning"
+    },
+    {
+      "usage_date": "2026-05-15",
+      "customer_id": "cust_a",
+      "tenant_tokens": 585206,
+      "allocation_ratio": 0.463982,
+      "revenue": 26.8362,
+      "direct_cost": 10.7996,
+      "allocated_idle_cost": 1.1154,
+      "total_cost": 11.915,
+      "gross_margin_pct": 0.556,
+      "margin_zone": "standard"
+    },
+    {
+      "usage_date": "2026-05-15",
+      "customer_id": "cust_b",
+      "tenant_tokens": 412808,
+      "allocation_ratio": 0.327296,
+      "revenue": 24.894,
+      "direct_cost": 7.6181,
+      "allocated_idle_cost": 0.7868,
+      "total_cost": 8.4049,
+      "gross_margin_pct": 0.6624,
+      "margin_zone": "best_in_class"
+    },
+    {
+      "usage_date": "2026-05-15",
+      "customer_id": "cust_c",
+      "tenant_tokens": 263255,
+      "allocation_ratio": 0.208722,
+      "revenue": 4.3605,
+      "direct_cost": 4.8582,
+      "allocated_idle_cost": 0.5018,
+      "total_cost": 5.36,
+      "gross_margin_pct": -0.2292,
+      "margin_zone": "warning"
+    },
+    {
+      "usage_date": "2026-05-16",
+      "customer_id": "cust_a",
+      "tenant_tokens": 531164,
+      "allocation_ratio": 0.435543,
+      "revenue": 24.4291,
+      "direct_cost": 9.7531,
+      "allocated_idle_cost": 1.4316,
+      "total_cost": 11.1847,
+      "gross_margin_pct": 0.5422,
+      "margin_zone": "standard"
+    },
+    {
+      "usage_date": "2026-05-16",
+      "customer_id": "cust_b",
+      "tenant_tokens": 429530,
+      "allocation_ratio": 0.352205,
+      "revenue": 25.6439,
+      "direct_cost": 7.8869,
+      "allocated_idle_cost": 1.1577,
+      "total_cost": 9.0446,
+      "gross_margin_pct": 0.6473,
+      "margin_zone": "standard"
+    },
+    {
+      "usage_date": "2026-05-16",
+      "customer_id": "cust_c",
+      "tenant_tokens": 258850,
+      "allocation_ratio": 0.212251,
+      "revenue": 4.2593,
+      "direct_cost": 4.7529,
+      "allocated_idle_cost": 0.6977,
+      "total_cost": 5.4506,
+      "gross_margin_pct": -0.2797,
+      "margin_zone": "warning"
+    }
+  ],
+  "cluster_costs": [
+    {
+      "usage_date": "2026-05-01",
+      "active_cost": 20.7,
+      "idle_cost": 4.98
+    },
+    {
+      "usage_date": "2026-05-02",
+      "active_cost": 22.84,
+      "idle_cost": 2.84
+    },
+    {
+      "usage_date": "2026-05-03",
+      "active_cost": 21.546,
+      "idle_cost": 4.134
+    },
+    {
+      "usage_date": "2026-05-04",
+      "active_cost": 22.029,
+      "idle_cost": 3.651
+    },
+    {
+      "usage_date": "2026-05-05",
+      "active_cost": 22.443,
+      "idle_cost": 3.237
+    },
+    {
+      "usage_date": "2026-05-06",
+      "active_cost": 25.114,
+      "idle_cost": 0.566
+    },
+    {
+      "usage_date": "2026-05-07",
+      "active_cost": 25.68,
+      "idle_cost": 0.0
+    },
+    {
+      "usage_date": "2026-05-08",
+      "active_cost": 23.145,
+      "idle_cost": 2.535
+    },
+    {
+      "usage_date": "2026-05-09",
+      "active_cost": 24.554,
+      "idle_cost": 1.126
+    },
+    {
+      "usage_date": "2026-05-10",
+      "active_cost": 25.54,
+      "idle_cost": 0.14
+    },
+    {
+      "usage_date": "2026-05-11",
+      "active_cost": 24.7,
+      "idle_cost": 0.98
+    },
+    {
+      "usage_date": "2026-05-12",
+      "active_cost": 24.315,
+      "idle_cost": 1.365
+    },
+    {
+      "usage_date": "2026-05-13",
+      "active_cost": 24.941,
+      "idle_cost": 0.739
+    },
+    {
+      "usage_date": "2026-05-14",
+      "active_cost": 23.073,
+      "idle_cost": 2.607
+    },
+    {
+      "usage_date": "2026-05-15",
+      "active_cost": 23.276,
+      "idle_cost": 2.404
+    },
+    {
+      "usage_date": "2026-05-16",
+      "active_cost": 22.393,
+      "idle_cost": 3.287
+    }
+  ],
+  "summary": {
+    "date_range": {
+      "start": "2026-05-01",
+      "end": "2026-05-16"
+    },
+    "n_days": 16,
+    "tenants": [
+      "cust_a",
+      "cust_b",
+      "cust_c"
+    ],
+    "total_spend": 410.88,
+    "total_idle_cost": 34.59,
+    "total_revenue": 980.86,
+    "blended_gross_margin_pct": 0.5811,
+    "idle_cost_pct_of_spend": 0.0842,
+    "tenants_in_warning": [
+      "cust_c"
+    ],
+    "lowest_margin_tenant": "cust_c",
+    "lowest_margin_tenant_avg_pct": -0.1273
+  }
+}

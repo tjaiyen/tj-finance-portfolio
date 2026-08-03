@@ -1,0 +1,494 @@
+version: 2
+
+models:
+  - name: mart_milestone_risk
+    description: >
+      Projects whether each FCC satellite-count milestone is reachable from the latest
+      OBSERVED deployment checkpoint, using the realized_peak rate as the projection basis,
+      shown alongside Amazon's own stated projection for the same date where one exists, and
+      the actual disclosed waiver mechanics (priority-status loss, not license revocation).
+    columns:
+      - name: milestone_date
+        tests: [not_null, unique]
+      - name: status
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['on_track', 'at_risk']
+
+  - name: mart_deployment_capacity_gap
+    description: "Factory theoretical capacity vs. the best realized deployment rate on record."
+    columns:
+      - name: utilization_pct
+        tests: [not_null]
+
+  - name: mart_cost_escalation
+    description: >
+      Total-program cost estimates over time (source-typed) plus the latest confirmed
+      YoY cost headwind, kept as a distinct, non-blended metric type.
+    columns:
+      - name: metric_type
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['cumulative_total_program', 'yoy_incremental']
+      - name: source_type
+        tests: [not_null]
+
+  - name: mart_implied_scale_cost
+    description: "Derived unit_cost x constellation_target calculation, formula shown alongside the output."
+    columns:
+      - name: implied_scale_cost_low_usd
+        tests: [not_null]
+
+  - name: mart_makevsbuy_scenario
+    description: "Fully illustrative make-vs-buy TCO scenario."
+    columns:
+      - name: is_illustrative
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true]
+
+  - name: mart_variance_methodology_demo
+    description: "Synthetic price/volume/scope/timing variance decomposition demo."
+    columns:
+      - name: is_illustrative
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true]
+
+  - name: mart_launch_vehicle_reliability
+    description: "Launch vehicle event counts by family -- failures, delays, successes, and success-with-incident."
+    columns:
+      - name: launch_vehicle
+        tests: [not_null, unique]
+      - name: total_events
+        tests: [not_null]
+
+  - name: mart_unlaunched_inventory
+    description: >
+      MODELED RANGE of built-but-unlaunched satellites: an upper-bound scenario (constant
+      production at the sustained rate) and a lower-bound scenario (production throttled to
+      track the realized deployment pace) -- neither is a disclosed production figure. See
+      calculation_note.
+    columns:
+      - name: modeled_unlaunched_inventory_upper
+        tests: [not_null]
+      - name: modeled_unlaunched_inventory_lower
+        tests: [not_null]
+      - name: calculation_note
+        tests: [not_null]
+
+  - name: mart_supplier_concentration_risk
+    description: "Real bottleneck components with an illustrative supplier-concentration risk tier."
+    columns:
+      - name: component_name
+        tests: [not_null, unique]
+      - name: risk_tier
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['high_concentration_risk', 'medium_concentration_risk', 'low_concentration_risk']
+      - name: is_illustrative
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true]
+
+  - name: mart_safety_coordination_incidents
+    description: "Real, dated, sourced safety/coordination incident log."
+    columns:
+      - name: incident_date
+        tests: [not_null]
+
+  - name: mart_d2d_regulatory_pipeline
+    description: "The direct-to-device FCC filing. No expected-decision-window columns -- no public source discloses an FCC review timeline for this filing, so none is fabricated here."
+    columns:
+      - name: milestone_name
+        tests: [not_null, unique]
+      - name: related_transaction_source
+        tests: [not_null]
+
+  - name: mart_workforce_scaling_signal
+    description: "A single open-positions snapshot -- one data point, not a trend."
+    columns:
+      - name: signal
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['scaling_signal_not_distress']
+
+  - name: mart_op1_op2_plan
+    description: "Synthetic multi-year OpEx/CapEx/headcount roadmap with a computed YoY capex delta."
+    columns:
+      - name: fiscal_year
+        tests: [not_null, unique]
+      - name: is_illustrative
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true]
+
+  - name: mart_roi_payback_scenarios
+    description: "Synthetic capital-investment scenarios with computed payback_years and roi_pct."
+    columns:
+      - name: scenario_name
+        tests: [not_null, unique]
+      - name: payback_years
+        tests: [not_null]
+      - name: roi_pct
+        tests: [not_null]
+      - name: is_illustrative
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true]
+
+  - name: mart_operational_kpi_framework
+    description: >
+      A generic, industry-typical operational-KPI scorecard (54 KPIs across 9 domains --
+      Finance, Accounting, Spacecraft Production, Launch Operations, Logistics & Supply Chain,
+      Systems Engineering, Commercialization & Sales, Vendor Management, Inventory & Quality
+      Control) applied to this case. Target benchmarks are illustrative, not Amazon-disclosed.
+      Each row is checked against this project's own real marts where a comparable number
+      exists (status = meets/below); the rest honestly resolve to no_data rather than a
+      fabricated actual.
+    columns:
+      - name: kpi_name
+        tests: [not_null, unique]
+      - name: domain
+        tests: [not_null]
+      - name: status
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['meets', 'below', 'no_data']
+      - name: is_illustrative
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true]
+
+  - name: mart_cashflow_breakdown
+    description: >
+      Fully synthetic latest-period (2026-Q3) direct/indirect cash-flow breakdown, 22
+      subcategories, with computed variance and per-row EVM (ev_usd/cv_usd/sv_usd/cpi/spi,
+      where ev_usd = plan_amount_usd x percent_complete -- the one new illustrative input).
+    columns:
+      - name: subcategory
+        tests: [not_null, unique]
+      - name: cost_type
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['direct', 'indirect']
+      - name: ev_usd
+        tests: [not_null]
+      - name: cpi
+        tests: [not_null]
+      - name: spi
+        tests: [not_null]
+      - name: is_illustrative
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true]
+
+  - name: mart_evm_rollup
+    description: >
+      Program-level Earned Value Management roll-up (BAC/AC/EV/CV/SV/CPI/SPI, 3 EAC
+      methods, VAC, TCPI-to-EAC) over the same 22 subcategories as mart_cashflow_breakdown.
+      ac_exceeds_bac is true in this scenario, making tcpi_to_bac mathematically
+      negative/degenerate -- surfaced as the insight itself, not smoothed over.
+    columns:
+      - name: bac
+        tests: [not_null]
+      - name: eac_cpi
+        tests: [not_null]
+      - name: ac_exceeds_bac
+        tests: [not_null]
+      - name: is_illustrative
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true]
+
+  - name: mart_cashflow_trend
+    description: "Fully synthetic Plan/Forecast/Actual cash-flow trend; forecast for future periods is computed from the elapsed-period run-rate, never hardcoded."
+    columns:
+      - name: period
+        tests: [not_null, unique]
+      - name: forecast_amount_usd
+        tests: [not_null]
+      - name: is_illustrative
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true]
+
+  - name: mart_pnl_waterfall
+    description: "Illustrative Revenue - Direct COGS - Indirect OpEx = Margin bridge for the same latest period as mart_cashflow_breakdown."
+    columns:
+      - name: period
+        tests: [not_null, unique]
+      - name: operating_margin_usd
+        tests: [not_null]
+      - name: is_illustrative
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true]
+
+  - name: mart_program_risk_index
+    description: >
+      Rule-based Program Delivery Risk Index over 5 weighted signals (milestone
+      shortfall, launch reliability, cost escalation, supplier concentration,
+      safety incidents) -- most computed from this project's own real marts. A
+      tier (low/watch/elevated/critical), not a fabricated failure-probability.
+    columns:
+      - name: risk_tier
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['low', 'watch', 'elevated', 'critical']
+      - name: composite_score_pct
+        tests: [not_null]
+      - name: is_illustrative
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true]
+
+  - name: mart_operational_efficiency_trend
+    description: >
+      Real observed checkpoints/rates throughout; the modeled_* backlog columns extend
+      mart_unlaunched_inventory's exact methodology to every checkpoint (not just the
+      latest) so the range shows a trend, not a snapshot. interval_realized_rate_per_day
+      and interval_utilization_pct are pure arithmetic on real dates/counts, not modeled.
+      Only 3 real observed checkpoints exist -- see calculation_note.
+    columns:
+      - name: as_of_date
+        tests: [not_null, unique]
+      - name: modeled_backlog_upper
+        tests: [not_null]
+      - name: modeled_backlog_lower
+        tests: [not_null]
+      - name: interval_utilization_pct
+        tests: [not_null]
+      - name: calculation_note
+        tests: [not_null]
+
+  - name: mart_launch_disruption_timeline
+    description: "Real, dated per-event disruption log (failure/delay/success_with_incident) for the efficiency trend's overlay. has_exact_date is false for 2 events with no disclosed exact date."
+    columns:
+      - name: launch_vehicle
+        tests: [not_null]
+      - name: event_type
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['failure', 'delay', 'success_with_incident']
+      - name: has_exact_date
+        tests: [not_null]
+
+  - name: mart_risk_register
+    description: >
+      PMO-style risk register consolidating the risk signals scattered across
+      other marts: 5 rows reused from mart_program_risk_index's own composite
+      signals + 2 real risk factors this project tracks but deliberately does
+      not fold into that composite (capacity utilization gap, D2D regulatory
+      decision timing). Probability x impact -> a standard exposure-tier matrix.
+    columns:
+      - name: risk_name
+        tests: [not_null, unique]
+      - name: category
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['schedule', 'technical', 'cost', 'supply_chain', 'safety', 'regulatory']
+      - name: probability_tier
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['low', 'medium', 'high', 'not_assessed']
+      - name: impact_tier
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['low', 'medium', 'high', 'not_assessed']
+      - name: exposure_tier
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['low', 'medium', 'high', 'critical', 'monitoring_only']
+      - name: status
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['scored_in_composite', 'monitored_not_scored']
+      - name: is_illustrative
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true]
+
+  - name: mart_launch_reliability_trend
+    description: >
+      Running cumulative failure/delay/success counts and adverse-event rate
+      recomputed after each real dated launch event (sourced from
+      stg_launch_vehicle_events directly, not mart_launch_disruption_timeline,
+      because that mart deliberately excludes plain 'success' events). Shows
+      whether launch risk is worsening or easing over the observed period.
+    columns:
+      - name: event_date
+        tests: [not_null]
+      - name: event_type
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['failure', 'delay', 'success', 'success_with_incident']
+      - name: running_total_events
+        tests: [not_null]
+      - name: running_adverse_event_rate_pct
+        tests: [not_null]
+      - name: calculation_note
+        tests: [not_null]
+
+  - name: mart_capitalized_inventory_rollforward
+    description: >
+      Modeled dollar value of unlaunched satellite inventory at each real checkpoint
+      (mart_operational_efficiency_trend's backlog range x mart_implied_scale_cost's
+      unit-cost range), rolled forward beginning -> net change -> ending. The first
+      checkpoint's beginning/net-change columns are null by construction (no prior
+      period), not missing data.
+    columns:
+      - name: as_of_date
+        tests: [not_null, unique]
+      - name: modeled_capitalized_value_low_usd
+        tests: [not_null]
+      - name: modeled_capitalized_value_high_usd
+        tests: [not_null]
+      - name: calculation_note
+        tests: [not_null]
+
+  - name: mart_eac_sensitivity
+    description: >
+      Single-variable sensitivity on eac_composite (from mart_evm_rollup): CPI and
+      SPI each swept +/-10%/20% independently, the other held at its actual value.
+      Pure formula recomputation, no new inputs.
+    columns:
+      - name: driver
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['CPI', 'SPI']
+      - name: swing_pct
+        tests: [not_null]
+      - name: eac_composite_usd
+        tests: [not_null]
+      - name: is_illustrative
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true]
+
+  - name: mart_90day_roadmap
+    description: >
+      A proposed 90-day accountability plan, keyed to mart_risk_register's own risk_name --
+      generic role titles only, never a real named individual. Not an executed plan: every
+      target is a stated goal, never a fabricated completion status.
+    columns:
+      - name: roadmap_id
+        tests: [not_null, unique]
+      - name: risk_name
+        tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('mart_risk_register')
+                field: risk_name
+      - name: target_type
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['percent_improvement', 'qualify_count', 'threshold_zero_new', 'milestone_checkpoint', 'monitor_only']
+      - name: target_description
+        tests: [not_null]
+      - name: finance_manager_tasks
+        tests: [not_null]
+      - name: finance_deliverable
+        tests: [not_null]
+      - name: is_illustrative
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true]
+
+  - name: mart_data_quality_routing
+    description: >
+      Anomaly-category -> role routing table. Generic role titles only -- not a claim
+      about Amazon's real org chart. 4 of 5 categories are this project's own pipeline
+      concerns; the 5th reuses the domain ownership already established in the 90-day
+      roadmap.
+    columns:
+      - name: category
+        tests: [not_null, unique]
+      - name: routes_to
+        tests: [not_null]
+      - name: is_illustrative
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: [true]
+
+  - name: mart_data_quality_incidents
+    description: >
+      Real, dated history of this project's own data-quality incidents, cited to this
+      repo's own git commits -- not a live system, the actual record of two incidents
+      this project's own tests and a source audit already found and fixed.
+    columns:
+      - name: commit_sha
+        tests: [not_null, unique]
+      - name: incident_date
+        tests: [not_null]
+      - name: category
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('mart_data_quality_routing')
+                field: category
