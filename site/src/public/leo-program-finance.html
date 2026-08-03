@@ -1579,7 +1579,7 @@ class Component extends DCLogic {
   }
 }
 
-function __tpl(V, __h, __e, __g, __u){ with(__scope(V)){ return `<div data-leo-root="" style="min-height:100vh;background:radial-gradient(1200px 620px at 78% -8%, #1d2033 0%, #161826 62%);color:var(--color-text);font-family:var(--font-body);font-size:15px;line-height:1.55;padding-bottom:calc(36px + var(--leo-overlay-h, 16px))">
+function __tpl(V, __h, __e, __g, __u, __a){ with(__scope(V)){ return `<div data-leo-root="" style="min-height:100vh;background:radial-gradient(1200px 620px at 78% -8%, #1d2033 0%, #161826 62%);color:var(--color-text);font-family:var(--font-body);font-size:15px;line-height:1.55;padding-bottom:calc(36px + var(--leo-overlay-h, 16px))">
 
   <header style="position:sticky;top:0;z-index:60;background:color-mix(in srgb, #161826 88%, transparent);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--color-divider)">
     <div style="height:2px;background:#232532">
@@ -1860,7 +1860,7 @@ function __tpl(V, __h, __e, __g, __u){ with(__scope(V)){ return `<div data-leo-r
             <div style="font:500 14px/1.3 var(--font-body);color:${__e(function(){return cap.color})}">${__e(function(){return cap.cause})}</div>
           </div>
           <p style="margin:0;font-size:12px;line-height:1.6;color:var(--color-neutral-500);text-wrap:pretty">${__e(function(){return cap.note})}</p>
-          <div style="font:400 11.5px/1.5 var(--font-body);color:var(--color-neutral-600)">Source: <a href="${__u(function(){return cap.url})}" target="_blank" rel="noopener">${__e(function(){return cap.src})}</a></div>
+          <div style="font:400 11.5px/1.5 var(--font-body);color:var(--color-neutral-600)">Source: <a ${__a("href", function(){return cap.url})} target="_blank" rel="noopener">${__e(function(){return cap.src})}</a></div>
         </div>
       </div>
 
@@ -1924,7 +1924,7 @@ function __tpl(V, __h, __e, __g, __u){ with(__scope(V)){ return `<div data-leo-r
               <div style="font:500 10px/1 var(--font-body);letter-spacing:.09em;text-transform:uppercase;color:var(--color-neutral-600);margin-bottom:10px">Year-over-year headwind · separate metric</div>
               <div style="font:600 clamp(26px,3.2vw,36px)/1 var(--font-heading);letter-spacing:-.03em;font-variant-numeric:tabular-nums;color:oklch(0.72 0.13 22)" data-cu="">${__e(function(){return cost.yoy})}</div>
               <div style="font:400 12.5px/1.5 var(--font-body);color:var(--color-neutral-400);margin-top:8px">disclosed ${__e(function(){return cost.yoyDate})}. This is a single-year delta and is <strong style="color:var(--color-neutral-200);font-weight:500">never added</strong> to the cumulative estimate — doing so would double-count the same spend.</div>
-              <div style="font:400 11.5px/1.5 var(--font-body);color:var(--color-neutral-600);margin-top:10px">Source: <a href="${__u(function(){return cost.yoyUrl})}" target="_blank" rel="noopener">${__e(function(){return cost.yoySrc})}</a></div>
+              <div style="font:400 11.5px/1.5 var(--font-body);color:var(--color-neutral-600);margin-top:10px">Source: <a ${__a("href", function(){return cost.yoyUrl})} target="_blank" rel="noopener">${__e(function(){return cost.yoySrc})}</a></div>
             </div>
           `:""}
           <div style="background:var(--color-surface);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);padding:6px 20px 14px">
@@ -1936,7 +1936,7 @@ function __tpl(V, __h, __e, __g, __u){ with(__scope(V)){ return `<div data-leo-r
                   ${(__g(function(){return r.cumulative}))?`<span style="padding:1px 6px;border-radius:999px;font:500 9px/1.6 var(--font-body);letter-spacing:.05em;text-transform:uppercase;color:var(--color-accent-300);border:1px solid var(--color-accent-800)">cumulative total</span>`:""}
                   ${(__g(function(){return r.incremental}))?`<span style="padding:1px 6px;border-radius:999px;font:500 9px/1.6 var(--font-body);letter-spacing:.05em;text-transform:uppercase;color:oklch(0.78 0.125 82);border:1px solid color-mix(in srgb, oklch(0.78 0.125 82) 34%, transparent)">single-year delta</span>`:""}
                 </span>
-                <a href="${__u(function(){return r.url})}" target="_blank" rel="noopener" style="font:400 11px/1.4 var(--font-body);text-align:right">${__e(function(){return r.srcType})}</a>
+                <a ${__a("href", function(){return r.url})} target="_blank" rel="noopener" style="font:400 11px/1.4 var(--font-body);text-align:right">${__e(function(){return r.srcType})}</a>
               </div>
             `}).join("")}
           </div>
@@ -1978,7 +1978,7 @@ function __tpl(V, __h, __e, __g, __u){ with(__scope(V)){ return `<div data-leo-r
           implied     = unit_cost × target
         </div>
       </div>
-      <div style="margin-top:12px;font:400 11.5px/1.6 var(--font-body);color:var(--color-neutral-600);max-width:78ch">${__e(function(){return scale.note})} · Source: <a href="${__u(function(){return scale.url})}" target="_blank" rel="noopener">${__e(function(){return scale.src})}</a></div>
+      <div style="margin-top:12px;font:400 11.5px/1.6 var(--font-body);color:var(--color-neutral-600);max-width:78ch">${__e(function(){return scale.note})} · Source: <a ${__a("href", function(){return scale.url})} target="_blank" rel="noopener">${__e(function(){return scale.src})}</a></div>
     </section>
 
     <div id="ch2" data-screen-label="Chapter 2" data-reveal="" style="margin:0 0 clamp(28px,3.5vw,44px);padding:clamp(24px,3vw,38px) clamp(22px,3vw,34px);border-radius:var(--radius-lg);background:linear-gradient(132deg,var(--color-section) 0%,#1a1d3b 70%);box-shadow:var(--shadow-md);position:relative;overflow:hidden">
@@ -2562,7 +2562,7 @@ function __tpl(V, __h, __e, __g, __u){ with(__scope(V)){ return `<div data-leo-r
                   </div>
                   ${(__g(function(){return t.undated}))?`<div style="font:400 10.5px/1.4 var(--font-body);color:var(--color-neutral-500);margin-bottom:6px">${__e(function(){return t.conf})}</div>`:""}
                   <p style="margin:0;font-size:12.5px;line-height:1.6;color:var(--color-neutral-400);text-wrap:pretty">${__e(function(){return t.desc})}</p>
-                  <div style="margin-top:6px;font:400 11px/1.4 var(--font-body)"><a href="${__u(function(){return t.url})}" target="_blank" rel="noopener">${__e(function(){return t.src})}</a></div>
+                  <div style="margin-top:6px;font:400 11px/1.4 var(--font-body)"><a ${__a("href", function(){return t.url})} target="_blank" rel="noopener">${__e(function(){return t.src})}</a></div>
                 </div>
               </div>
             `}).join("")}
@@ -2736,7 +2736,7 @@ function __tpl(V, __h, __e, __g, __u){ with(__scope(V)){ return `<div data-leo-r
             </div>
             <p style="margin:0;font-size:12px;line-height:1.6;color:var(--color-neutral-500);text-wrap:pretty;flex:1 1 auto">${__e(function(){return s.notes})}</p>
             <div style="font:400 11px/1.4 var(--font-body)">
-              ${(__g(function(){return s.hasSrc}))?`<a href="${__u(function(){return s.url})}" target="_blank" rel="noopener">${__e(function(){return s.src})}</a>`:""}
+              ${(__g(function(){return s.hasSrc}))?`<a ${__a("href", function(){return s.url})} target="_blank" rel="noopener">${__e(function(){return s.src})}</a>`:""}
               ${(__g(function(){return s.noSrc}))?`<span style="display:inline-block;padding:3px 7px;border-radius:999px;font:500 10px/1 var(--font-body);letter-spacing:.05em;text-transform:uppercase;color:var(--color-neutral-400);border:1px solid var(--color-neutral-800)">no source · illustrative baseline</span>`:""}
             </div>
           </div>
@@ -2759,7 +2759,7 @@ function __tpl(V, __h, __e, __g, __u){ with(__scope(V)){ return `<div data-leo-r
                 <span style="font:500 12.5px/1 var(--font-body);color:var(--color-neutral-200)">${__e(function(){return s.date})}</span>
               </div>
               <p style="margin:0 0 10px;font-size:13px;line-height:1.6;color:var(--color-neutral-300);text-wrap:pretty">${__e(function(){return s.desc})}</p>
-              <div style="display:flex;gap:14px;flex-wrap:wrap;font:400 11.5px/1.4 var(--font-body);color:var(--color-neutral-600)"><span>Disputed by ${__e(function(){return s.party})}</span><a href="${__u(function(){return s.url})}" target="_blank" rel="noopener">${__e(function(){return s.src})}</a></div>
+              <div style="display:flex;gap:14px;flex-wrap:wrap;font:400 11.5px/1.4 var(--font-body);color:var(--color-neutral-600)"><span>Disputed by ${__e(function(){return s.party})}</span><a ${__a("href", function(){return s.url})} target="_blank" rel="noopener">${__e(function(){return s.src})}</a></div>
             </div>
           `}).join("")}
         </div>
@@ -2775,7 +2775,7 @@ function __tpl(V, __h, __e, __g, __u){ with(__scope(V)){ return `<div data-leo-r
             <div style="font:400 12.5px/1.5 var(--font-body);color:var(--color-neutral-400);margin-top:8px">open manufacturing positions in Redmond, ${__e(function(){return wf.date})}</div>
             <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--color-divider);display:flex;gap:10px;align-items:center;flex-wrap:wrap">
               <span style="padding:3px 8px;border-radius:999px;font:500 10px/1.5 var(--font-body);letter-spacing:.05em;text-transform:uppercase;color:oklch(0.74 0.105 155);border:1px solid oklch(0.74 0.105 155)">${__e(function(){return wf.sig})}</span>
-              <a href="${__u(function(){return wf.url})}" target="_blank" rel="noopener" style="font:400 11.5px/1.4 var(--font-body)">${__e(function(){return wf.src})}</a>
+              <a ${__a("href", function(){return wf.url})} target="_blank" rel="noopener" style="font:400 11.5px/1.4 var(--font-body)">${__e(function(){return wf.src})}</a>
             </div>
           </div>
         </div>
@@ -2798,7 +2798,7 @@ function __tpl(V, __h, __e, __g, __u){ with(__scope(V)){ return `<div data-leo-r
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:20px;margin-bottom:22px">
           <div><div style="font:500 10px/1 var(--font-body);letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-600);margin-bottom:8px">Satellites requested</div><div style="font:600 clamp(26px,3.2vw,36px)/1 var(--font-heading);letter-spacing:-.03em;font-variant-numeric:tabular-nums;color:var(--color-accent-200)" data-cu="">${__e(function(){return d2d.sats})}</div></div>
           <div><div style="font:500 10px/1 var(--font-body);letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-600);margin-bottom:8px">Filed</div><div style="font:500 15px/1.4 var(--font-body)">${__e(function(){return d2d.date})}</div><div style="font:400 11.5px/1.5 var(--font-body);color:var(--color-neutral-500);margin-top:4px">${__e(function(){return d2d.fw})}</div></div>
-          <div><div style="font:500 10px/1 var(--font-body);letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-600);margin-bottom:8px">Tied transaction</div><div style="font:500 13.5px/1.45 var(--font-body)">${__e(function(){return d2d.tx})}</div><div style="font:400 11.5px/1.5 var(--font-body);color:var(--color-neutral-500);margin-top:4px">expected close ${__e(function(){return d2d.yr})} · <a href="${__u(function(){return d2d.txUrl})}" target="_blank" rel="noopener">${__e(function(){return d2d.txSrc})}</a></div></div>
+          <div><div style="font:500 10px/1 var(--font-body);letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-600);margin-bottom:8px">Tied transaction</div><div style="font:500 13.5px/1.45 var(--font-body)">${__e(function(){return d2d.tx})}</div><div style="font:400 11.5px/1.5 var(--font-body);color:var(--color-neutral-500);margin-top:4px">expected close ${__e(function(){return d2d.yr})} · <a ${__a("href", function(){return d2d.txUrl})} target="_blank" rel="noopener">${__e(function(){return d2d.txSrc})}</a></div></div>
         </div>
         <div style="padding-top:20px;border-top:1px solid var(--color-divider)">
           <div style="font:500 10px/1 var(--font-body);letter-spacing:.08em;text-transform:uppercase;color:var(--color-neutral-600);margin-bottom:12px">Scale against the core constellation</div>
@@ -2809,7 +2809,7 @@ function __tpl(V, __h, __e, __g, __u){ with(__scope(V)){ return `<div data-leo-r
           <div style="display:flex;gap:18px;flex-wrap:wrap;margin-top:9px;font:400 11.5px/1 var(--font-body);color:var(--color-neutral-500)">
             <span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:#3f424d;margin-right:5px;vertical-align:-1px"></span>Core constellation ${__e(function(){return d2d.core})}</span>
             <span><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:var(--color-accent);margin-right:5px;vertical-align:-1px"></span>D2D request ${__e(function(){return d2d.sats})}</span>
-            <a href="${__u(function(){return d2d.url})}" target="_blank" rel="noopener" style="margin-left:auto;font-size:11.5px">${__e(function(){return d2d.src})}</a>
+            <a ${__a("href", function(){return d2d.url})} target="_blank" rel="noopener" style="margin-left:auto;font-size:11.5px">${__e(function(){return d2d.src})}</a>
           </div>
         </div>
       </div>
@@ -3161,7 +3161,7 @@ function __tpl(V, __h, __e, __g, __u){ with(__scope(V)){ return `<div data-leo-r
                 <div style="display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;margin-bottom:8px">
                   <span style="font:400 11.5px/1.3 var(--font-body);color:var(--color-neutral-500)">${__e(function(){return r.date})}</span>
                   <span style="font:400 10.5px/1.3 var(--font-body);color:var(--color-neutral-600)">${__e(function(){return r.cat})}</span>
-                  <a href="${__u(function(){return r.url})}" target="_blank" rel="noopener" style="margin-left:auto;font-family:ui-monospace,monospace;font-size:11px">${__e(function(){return r.sha})}</a>
+                  <a ${__a("href", function(){return r.url})} target="_blank" rel="noopener" style="margin-left:auto;font-family:ui-monospace,monospace;font-size:11px">${__e(function(){return r.sha})}</a>
                 </div>
                 <div style="font:500 12.5px/1.45 var(--font-body);color:var(--color-neutral-100);margin-bottom:9px;text-wrap:pretty">${__e(function(){return r.title})}</div>
                 <div style="display:grid;gap:6px;font-size:12px;line-height:1.55;color:var(--color-neutral-400)">
@@ -3282,12 +3282,14 @@ DCLogic.prototype.setState = function(patch, cb){
 
 function __scope(V){
   return new Proxy(V, {
-    // Claim only names the render values actually define. Claiming everything
-    // made the globals unreachable: Math.round(x) in a template expression
-    // resolved Math to undefined, threw, and __g swallowed it into ''. The
-    // helper exclusions are belt-and-braces -- they are never keys of V.
+    // Own keys only. `k in t` walks the prototype chain (claiming constructor,
+    // toString, ...) and, worse, lets the 100-odd names renderVals() omits on its
+    // pre-data early return escape to the GLOBAL scope. hasOwnProperty keeps the
+    // boundary exactly at what V defines, while still leaving real globals
+    // (Math, JSON) reachable for a future template expression.
     has: function(t, k){
-      return k in t && k !== '__h' && k !== '__e' && k !== '__g' && k !== '__u';
+      return Object.prototype.hasOwnProperty.call(t, k)
+        && k !== '__h' && k !== '__e' && k !== '__g' && k !== '__u' && k !== '__a';
     },
     get: function(t, k){ return k === Symbol.unscopables ? undefined : t[k]; }
   });
@@ -3303,17 +3305,20 @@ function __scope(V){
 // data-in is set imperatively by reveal() and never emitted by the template, so
 // it is preserved rather than diffed away -- otherwise every patch would strip
 // it and restart the CSS animations it gates.
-// id is the mount host's own, set in the page shell and never emitted by the
+var PRESERVE_ATTRS = { 'data-in': 1 };
+// id is the mount HOST's own, set in the page shell and never emitted by the
 // template -- without this the first patch strips it and #leo-app stops
-// resolving for CSS, deep links and tests.
-var PRESERVE_ATTRS = { 'data-in': 1, 'id': 1 };
+// resolving for CSS, deep links and tests. Root only: a descendant that
+// legitimately drops its id should lose it.
+var PRESERVE_ROOT_ATTRS = { 'id': 1 };
 
-function morph(oldEl, newEl){
+function morph(oldEl, newEl, isRoot){
   // attributes
   var oldAttrs = oldEl.attributes, i, a;
   for (i = oldAttrs.length - 1; i >= 0; i--){
     a = oldAttrs[i].name;
-    if (!newEl.hasAttribute(a) && !PRESERVE_ATTRS[a]) oldEl.removeAttribute(a);
+    if (!newEl.hasAttribute(a) && !PRESERVE_ATTRS[a]
+        && !(isRoot && PRESERVE_ROOT_ATTRS[a])) oldEl.removeAttribute(a);
   }
   for (i = 0; i < newEl.attributes.length; i++){
     a = newEl.attributes[i];
@@ -3336,7 +3341,7 @@ function morph(oldEl, newEl){
     } else if (o.nodeType === 3){
       if (o.nodeValue !== n.nodeValue) o.nodeValue = n.nodeValue;
     } else if (o.nodeType === 1){
-      morph(o, n);
+      morph(o, n, false);
     }
     o = oNext; n = nNext;
   }
@@ -3359,6 +3364,13 @@ function __e(thunk){
 // fragments pass; anything carrying a scheme that is not http(s) renders as
 // an empty href. Control characters are stripped first because browsers
 // ignore them inside a URL, so java\nscript: would otherwise slip through.
+// An <a> whose data has no URL used to render href="", which resolves to the
+// current page -- with target="_blank" that opened a second copy of the page in
+// a new tab. Emitting the whole attribute or nothing makes it inert instead.
+function __a(name, thunk){
+  var v = __u(thunk);
+  return v ? name + '="' + v + '"' : '';
+}
 function __u(thunk){
   var v = __g(thunk);
   if (typeof v !== 'string') return '';
@@ -3377,14 +3389,51 @@ function __u(thunk){
   });
   var first = true;
   inst.__render = function(){
-    __handlers = [];
-    var V = inst.renderVals();
-    var html = __tpl(V, __h, __e, __g, __u);
+    // Build into a LOCAL handler array and publish it only once the whole
+    // template has rendered. The old code cleared __handlers first, so a throw
+    // anywhere in renderVals()/__tpl left the page looking fully loaded and
+    // completely inert: every data-ev-* index pointed into an empty array, no
+    // control responded, and no banner appeared -- hasErr only covers a failed
+    // fetch or JSON parse, not a failed render.
+    var local = [], V, html;
+    try {
+      V = inst.renderVals();
+      html = __tpl(V, function(fn){ local.push(fn); return local.length - 1; },
+                   __e, __g, __u, __a);
+    } catch (e) {
+      if (!inst.state.err) {
+        // clearing d sends renderVals down its early-exit path, so the error
+        // banner can actually render instead of re-entering the same throw
+        inst.setState({ d: null, err: 'render failed: ' + String(e && e.message || e) });
+      }
+      return;
+    }
+    __handlers = local;
+    // A control that removes itself on activation (the KPI "Clear" button, the
+    // last pinned chip) used to drop focus to <body>, restarting Tab from the
+    // top of the document. Remember the path to the focused node first, then
+    // land on the nearest ancestor that survived the patch.
+    var active = document.activeElement, path = [];
+    if (active && host.contains(active)) {
+      for (var n = active; n && n !== document.body; n = n.parentElement) path.push(n);
+    }
     if (first){ host.innerHTML = html; first = false; }
     else {
       var next = document.createElement('div');
       next.innerHTML = html;
-      morph(host, next);
+      morph(host, next, true);
+      if (path.length && document.activeElement === document.body) {
+        for (var i = 0; i < path.length; i++) {
+          if (path[i].isConnected) {
+            if (!path[i].hasAttribute('tabindex')
+                && !/^(A|BUTTON|INPUT|SELECT|TEXTAREA)$/.test(path[i].tagName)) {
+              path[i].setAttribute('tabindex', '-1');
+            }
+            path[i].focus();
+            break;
+          }
+        }
+      }
     }
     if (inst.componentDidUpdate) inst.componentDidUpdate();
   };

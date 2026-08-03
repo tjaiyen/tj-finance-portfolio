@@ -77,8 +77,10 @@ rejects('HTML comment would still compile its contents',
 
 print('acceptances (the dialect still works):')
 accepts('plain interpolation', '<p>{{ a.b }}</p>', '__e(function(){return a.b})')
-accepts('href routes through the URL allowlist', '<a href="{{ r.url }}">x</a>',
-        '__u(function(){return r.url})')
+accepts('href is emitted whole-or-not-at-all, via the URL allowlist',
+        '<a href="{{ r.url }}">x</a>', '${__a("href", function(){return r.url})}')
+accepts('a literal href is left alone', '<a href="leo-operations-map.html">x</a>',
+        'href="leo-operations-map.html"')
 accepts('non-href attribute uses the plain escaper', '<img alt="{{ r.alt }}">',
         '__e(function(){return r.alt})')
 accepts('sc-for', '<sc-for list="{{ rows }}" as="r">{{ r.x }}</sc-for>', '.map(function(r,r_i)')

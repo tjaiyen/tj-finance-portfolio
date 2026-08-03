@@ -152,6 +152,14 @@ def rewrite_tag(tag_src: str) -> str:
                 hover_rules[v] = cls
             classes.append(cls)
             continue
+        if k == 'href':
+            e = expr_of(v)
+            if e is not None:
+                # whole-attribute or nothing: an empty href="" resolves to the
+                # current page, so a row with no source URL plus target="_blank"
+                # opened a second copy of the page in a new tab
+                out_attrs.append('${__a("href", function(){return %s})}' % e)
+                continue
         out_attrs.append('%s="%s"' % (k, interp(v, '__u' if k == 'href' else '__e')))
 
     for ev, fn in handlers:

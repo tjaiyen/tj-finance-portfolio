@@ -173,6 +173,20 @@ fresh-context reviewer. Every gate below is now covered by `python3 tools/leo-mi
 | 11 | MED | `find_close` **and** the `compile_frag` dispatch matched the literal `<sc-if`, so `<sc-iffy>` counted as a nested tag | `<sc-if value="{{a}}"><sc-iffy>x</sc-iffy>Y</sc-if>` → `unclosed <sc-if>` | fixed in both places — the first fix touched only `find_close` and the test caught it |
 | 12 | LOW | HTML comments compile as markup; `{{ }}` inside one still evaluates every render | `<!-- <div class="{{x}}">c</div> -->` | fixed: rejected (the dialect has no comment support) |
 
+Second pass, over the emitted shim (`morph`, the event model, the deviation layer). All eight
+were reproduced live in a browser, not read off the source:
+
+| # | Sev | Defect | Trigger | Status |
+|---|---|---|---|---|
+| 13 | **CRIT** | A render-time throw left the page **looking loaded and completely inert** — `__handlers` was cleared *before* `renderVals()`, so all 34 `data-ev-*` indices pointed into an empty array, and no banner appeared (`hasErr` only covered a failed fetch/parse, not a failed render) | drop `d2d_pipeline` from the marts JSON → 0 KPI rows, every figure blank, clicking "Plain English" does nothing, no error shown | fixed: build into a local handler array, publish only on success, `catch` → clears `d` and sets `err` so the banner renders. Verified: banner shows, toggles respond |
+| 14 | HIGH | **Tour footer keyboard trap.** Three sibling `sc-if`s (Back/Next/Finish) change the child count, and the positional diff realigns them: the node you focused as "Next" becomes "Back" | Tab to Next, Enter, Enter → you go *backwards*, oscillating between steps 1 and 2 forever | **NOT FIXED** — needs a keyed diff or unconditional buttons toggled with `hidden` |
+| 15 | MED | A shrinking list retargets the control under focus; `PRESERVE_ATTRS['data-in']` pins the reveal flag to the *position*, not the row | unpin the first of three chips → focus stays on a node now showing a different pin; a second Enter removes something you never chose | **NOT FIXED** — same keyed-diff fix |
+| 16 | MED | A control that removes itself on activation dropped focus to `<body>`, restarting Tab from the top of a 4,200-line document | KPI filter → focus "Clear" → activate | fixed: record the ancestor path before the patch, land on the nearest survivor. Verified: `BODY` → `DIV (restored)` |
+| 17 | MED | A **loudly failed build still rewrote the output tree** — fonts and `inter.css` were written before the first guard ran, leaving HTML at the previous build | mutate the Glossary style → `SystemExit`, but 8 font files written | fixed: writes buffered until every guard passes. Verified: failed build now leaves the directory empty |
+| 18 | LOW | `PRESERVE_ATTRS['id']` was applied at every recursion level, not just the mount host, so any descendant that legitimately drops an `id` keeps a stale one | not reachable today (all 37 ids are unconditional) | fixed: root-scoped |
+| 19 | LOW | My `__scope` widening used `k in t`, which walks the prototype chain **and** lets the ~102 names `renderVals()` omits on its pre-data early return escape to the global scope | latent — 0 collisions today | fixed: `hasOwnProperty`, own keys only. Keeps real globals reachable, closes the leak |
+| 20 | LOW | An anchor whose data has no URL rendered `href=""`, which resolves to the current page — with `target="_blank"` that **opened a second copy of the page in a new tab** | a null `source_url` on any launch-disruption row | fixed: `href` is now emitted whole-or-not-at-all via `__a()`. Verified: null/empty/`javascript:` all emit no attribute |
+
 **Predictions that were contradicted — dropped, not talked into findings:**
 
 - *"The `__scope` fix leaks unknown names to `window`."* It does not, here: **0 of 142** template
@@ -189,6 +203,26 @@ page **0 geometry diffs across 2,564 elements** vs the pre-fix build · console 
 25 anchors, 0 emptied · `aria-pressed`/`aria-sort` flip on stable nodes · `data-in` stable at 36 ·
 KPI re-sort produces 54 correctly-ordered rows with no ragged or blank cells · map still loads Inter
 from `fonts/inter.css` with no CDN.
+
+## 7. Open: `morph` needs a keyed diff (findings 14 & 15)
+
+The renderer diffs children strictly by position. That is correct for text-only updates — the KPI
+re-sort produces 54 correctly-ordered rows — but wrong whenever the *number* or *order* of sibling
+elements changes. Two live consequences, both measured:
+
+- The tour footer becomes a keyboard trap: Back/Next/Finish are three independent `sc-if`s, so
+  advancing a step shifts the row and the node you focused as "Next" now renders "Back".
+- Unpinning from the pinned-summary bar leaves focus on a node that now holds a *different* pin,
+  and `data-in` stays pinned to the position rather than the row.
+
+**Fix:** emit a `data-k` key on conditional siblings and on `sc-for` bodies (`logic.js` already
+computes a `key` for every row — `'k'+i`, `'sp'+i` — it is simply never rendered), then in `morph`
+index `newEl.children` by key before falling back to position. Cheaper interim fix for the tour
+alone: render all three buttons unconditionally and toggle `hidden`, which removes the sibling-count
+change entirely.
+
+Not attempted here: it is a change to the reconciliation model, and it wants its own verification
+pass rather than being bolted onto a stress-test round.
 
 ## Accepted limitations
 
