@@ -28,6 +28,7 @@
     --c-accent:145 132 217; --c-accent2:167 161 219;
     --c-text-primary:233 233 237; --c-text-secondary:147 151 171; --c-text-tertiary:178 182 202; --c-text-code:210 206 253;
     --c-success:114 191 142; --c-warning:223 175 80; --c-danger:235 129 127; --c-line:145 132 217;
+    --c-chart-1:181 171 252; --c-chart-3:107 94 170; --c-chart-muted:117 121 140; --c-grid:43 46 60;
 
     /* ---- Nocturne spacing/radius/shadow scale -- same handoff source as the
        color tokens above. No light/dark variants: these don't change by theme,
@@ -47,6 +48,7 @@
       --c-accent:99 84 165; --c-accent2:112 105 159;
       --c-text-primary:41 43 49; --c-text-secondary:117 121 140; --c-text-tertiary:143 147 163; --c-text-code:77 61 140;
       --c-success:43 122 77; --c-warning:149 104 0; --c-danger:177 78 78; --c-line:99 84 165;
+      --c-chart-1:74 63 122; --c-chart-3:141 130 187; --c-chart-muted:86 90 107; --c-grid:219 223 238;
     }
   }
   :root[data-theme="dark"]{
@@ -54,12 +56,14 @@
     --c-accent:145 132 217; --c-accent2:167 161 219;
     --c-text-primary:233 233 237; --c-text-secondary:147 151 171; --c-text-tertiary:178 182 202; --c-text-code:210 206 253;
     --c-success:114 191 142; --c-warning:223 175 80; --c-danger:235 129 127; --c-line:145 132 217;
+    --c-chart-1:181 171 252; --c-chart-3:107 94 170; --c-chart-muted:117 121 140; --c-grid:43 46 60;
   }
   :root[data-theme="light"]{
     --c-bg-primary:243 245 254; --c-bg-card:255 255 255; --c-bg-card2:228 231 245;
     --c-accent:99 84 165; --c-accent2:112 105 159;
     --c-text-primary:41 43 49; --c-text-secondary:117 121 140; --c-text-tertiary:143 147 163; --c-text-code:77 61 140;
     --c-success:43 122 77; --c-warning:149 104 0; --c-danger:177 78 78; --c-line:99 84 165;
+    --c-chart-1:74 63 122; --c-chart-3:141 130 187; --c-chart-muted:86 90 107; --c-grid:219 223 238;
   }
   *{box-sizing:border-box}
   html{scroll-behavior:smooth}
@@ -129,8 +133,8 @@
     background:rgb(var(--c-bg-card)); box-shadow:var(--c-shadow-sm);
     border-radius:var(--c-radius-lg); padding:var(--c-space-8);
   }
-  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:var(--c-space-6)}
-  .grid3{display:grid; grid-template-columns:repeat(3,1fr); gap:var(--c-space-6)}
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+  .grid3{display:grid; grid-template-columns:repeat(3,1fr); gap:14px}
   @media (max-width:720px){ .grid2,.grid3{grid-template-columns:1fr} }
 
   .status{display:inline-flex; align-items:center; gap:var(--c-space-2); font:700 12px/1 ui-monospace,Menlo,monospace; padding:3px 10px; border-radius:99px}
@@ -450,7 +454,7 @@
   .chart-legend{display:flex; gap:var(--c-space-6); flex-wrap:wrap; font-size:12px; color:rgb(var(--c-text-secondary)); margin-top:var(--c-space-2)}
   .chart-legend span{display:inline-flex; align-items:center; gap:var(--c-space-2)}
   .chart-legend .sw{width:9px; height:9px; border-radius:var(--c-radius-sm); flex-shrink:0}
-  .chart-grid2{display:grid; grid-template-columns:1fr 1fr; gap:var(--c-space-6)}
+  .chart-grid2{display:grid; grid-template-columns:1fr 1fr; gap:14px}
   @media (max-width:720px){ .chart-grid2{grid-template-columns:1fr} }
 
   /* ---- LP application tags -- ties each finding back to the specific Leadership
@@ -652,7 +656,7 @@
       <div class="card">
         <div class="kpi label">OpEx vs. CapEx by year</div>
         <div class="chartbox" id="opexCapexChart"></div>
-        <div class="chart-legend"><span><span class="sw" style="background:rgb(var(--c-accent))"></span>OpEx</span><span><span class="sw" style="background:rgb(var(--c-warning))"></span>CapEx</span></div>
+        <div class="chart-legend"><span><span class="sw" style="background:rgb(var(--c-chart-1))"></span>OpEx</span><span><span class="sw" style="background:rgb(var(--c-chart-3))"></span>CapEx</span></div>
       </div>
       <div class="card">
         <div class="kpi label">Headcount by year</div>
@@ -685,7 +689,7 @@
     <p class="section-sub">Price / volume / scope / timing drivers reconcile exactly to the total variance every quarter — a governance test, not just a display claim. The Q4 bar is a simple <em>client-computed</em> projection (average of Q1–Q3 variance % applied to Q4's budget), not a disclosed number — same "computed live in your browser, not sourced from data" pattern used elsewhere on this page.
     <button class="infoicon" data-tip="The JD's own words: 'monthly close, variance analysis, and forecasting with action-oriented commentary.'">i</button></p>
     <div class="card"><div class="chartbox" id="varianceChart"></div>
-      <div class="chart-legend"><span><span class="sw" style="background:rgb(var(--c-accent))"></span>Budget</span><span><span class="sw" style="background:rgb(var(--c-warning))"></span>Actual</span></div>
+      <div class="chart-legend"><span><span class="sw" style="background:rgb(var(--c-chart-3))"></span>Budget</span><span><span class="sw" style="background:rgb(var(--c-chart-1))"></span>Actual</span></div>
     </div>
     <div class="card table-wrap" style="margin-top:12px"><table id="varianceTable"></table></div>
     <div class="plain plain-gated" id="plainVariance"></div>
@@ -697,7 +701,7 @@
     <p class="section-sub">Plan vs. Forecast vs. Actual cash burn, broken into direct and indirect cost pools across 7 categories and 22 subcategories — the multi-level cost breakdown a Finance Manager would actually walk a program with. The table below also carries Earned Value (EV), CPI, and SPI per subcategory — the same Plan/Actual columns, one more analytical lens, not a second dataset.
     <button class="infoicon" data-tip="Forecast = actual-to-date + (remaining periods x the same run-rate observed so far) -- the identical checkpoint-plus-remaining-times-rate formula already used for the milestone projection above, just applied to cash. EV = Plan x percent_complete, the one new illustrative input feeding CPI/SPI.">i</button></p>
     <div class="card"><div class="chartbox" id="cashflowTrendChart"></div>
-      <div class="chart-legend"><span><span class="sw" style="background:rgb(var(--c-text-secondary))"></span>Plan</span><span><span class="sw" style="background:rgb(var(--c-accent))"></span>Forecast</span><span><span class="sw" style="background:rgb(var(--c-success))"></span>Actual</span></div>
+      <div class="chart-legend"><span><span class="sw" style="background:rgb(var(--c-chart-muted))"></span>Plan</span><span><span class="sw" style="background:rgb(var(--c-warning))"></span>Forecast</span><span><span class="sw" style="background:rgb(var(--c-accent))"></span>Actual</span></div>
     </div>
     <div class="plain plain-gated" id="plainCashflowTrend"></div>
     <div class="table-wrap card" style="margin-top:14px"><table id="cashflowBreakdownTable"></table></div>
@@ -780,7 +784,7 @@
       <div class="card">
         <div class="kpi label">Modeled backlog range vs. actual deployed</div>
         <div class="chartbox" id="backlogTrendChart"></div>
-        <div class="chart-legend"><span><span class="sw" style="background:rgb(var(--c-success))"></span>Actual deployed</span><span><span class="sw" style="background:rgb(var(--c-warning))"></span>Upper bound</span><span><span class="sw" style="background:rgb(var(--c-accent))"></span>Lower bound</span></div>
+        <div class="chart-legend"><span><span class="sw" style="background:rgb(var(--c-accent))"></span>Actual deployed</span><span><span class="sw" style="background:rgb(var(--c-warning))"></span>Upper bound</span><span><span class="sw" style="background:rgb(var(--c-chart-muted))"></span>Lower bound</span></div>
       </div>
     </div>
     <div class="plain plain-gated" id="plainEfficiencyTrend"></div>
@@ -1221,14 +1225,14 @@
     var svg = '<svg viewBox="0 0 '+w+' '+h+'" xmlns="http://www.w3.org/2000/svg">';
     [0,0.5,1].forEach(function(f){
       var y = padT + innerH*(1-f);
-      svg += '<line x1="'+padL+'" y1="'+y+'" x2="'+(w-padR)+'" y2="'+y+'" stroke="currentColor" stroke-opacity="0.10" />';
-      svg += '<text x="'+(padL-6)+'" y="'+(y+4)+'" text-anchor="end" font-size="10" fill="currentColor" fill-opacity="0.6">'+fmtFn(maxV*f)+'</text>';
+      svg += '<line x1="'+padL+'" y1="'+y+'" x2="'+(w-padR)+'" y2="'+y+'" style="stroke:rgb(var(--c-grid))" />';
+      svg += '<text x="'+(padL-6)+'" y="'+(y+4)+'" text-anchor="end" font-size="10" style="fill:rgb(var(--c-chart-muted))">'+fmtFn(maxV*f)+'</text>';
     });
     categories.forEach(function(cat,i){
       var bh = (values[i]/maxV)*innerH;
       var x = padL + i*groupW + (groupW-barW)/2;
-      svg += '<rect x="'+x+'" y="'+(padT+innerH-bh)+'" width="'+barW+'" height="'+bh+'" rx="3" style="fill:'+color+'"><title>'+esc(String(cat))+': '+fmtFn(values[i])+'</title></rect>';
-      svg += '<text x="'+(x+barW/2)+'" y="'+(h-8)+'" text-anchor="middle" font-size="10" fill="currentColor" fill-opacity="0.7">'+esc(String(cat))+'</text>';
+      svg += '<rect x="'+x+'" y="'+(padT+innerH-bh)+'" width="'+barW+'" height="'+bh+'" rx="2" style="fill:'+color+'"><title>'+esc(String(cat))+': '+fmtFn(values[i])+'</title></rect>';
+      svg += '<text x="'+(x+barW/2)+'" y="'+(h-8)+'" text-anchor="middle" font-size="11" font-weight="500" style="fill:rgb(var(--c-text-secondary))">'+esc(String(cat))+'</text>';
     });
     svg += '</svg>';
     return svg;
@@ -1242,16 +1246,16 @@
     var svg = '<svg viewBox="0 0 '+w+' '+h+'" xmlns="http://www.w3.org/2000/svg">';
     [0,0.5,1].forEach(function(f){
       var y = padT + innerH*(1-f);
-      svg += '<line x1="'+padL+'" y1="'+y+'" x2="'+(w-padR)+'" y2="'+y+'" stroke="currentColor" stroke-opacity="0.10" />';
-      svg += '<text x="'+(padL-6)+'" y="'+(y+4)+'" text-anchor="end" font-size="10" fill="currentColor" fill-opacity="0.6">'+fmtFn(maxV*f)+'</text>';
+      svg += '<line x1="'+padL+'" y1="'+y+'" x2="'+(w-padR)+'" y2="'+y+'" style="stroke:rgb(var(--c-grid))" />';
+      svg += '<text x="'+(padL-6)+'" y="'+(y+4)+'" text-anchor="end" font-size="10" style="fill:rgb(var(--c-chart-muted))">'+fmtFn(maxV*f)+'</text>';
     });
     categories.forEach(function(cat,i){
       var gx = padL + i*groupW;
       var aH = (seriesA[i]/maxV)*innerH, bH = (seriesB[i]/maxV)*innerH;
       var ax = gx + groupW*0.12, bx = gx + groupW*0.56;
-      svg += '<rect x="'+ax+'" y="'+(padT+innerH-aH)+'" width="'+barW+'" height="'+aH+'" rx="3" style="fill:'+colorA+'"><title>'+esc(String(cat))+': '+fmtFn(seriesA[i])+'</title></rect>';
-      svg += '<rect x="'+bx+'" y="'+(padT+innerH-bH)+'" width="'+barW+'" height="'+bH+'" rx="3" style="fill:'+colorB+'"><title>'+esc(String(cat))+': '+fmtFn(seriesB[i])+'</title></rect>';
-      svg += '<text x="'+(gx+groupW/2)+'" y="'+(h-8)+'" text-anchor="middle" font-size="10" fill="currentColor" fill-opacity="0.7">'+esc(String(cat))+'</text>';
+      svg += '<rect x="'+ax+'" y="'+(padT+innerH-aH)+'" width="'+barW+'" height="'+aH+'" rx="2" style="fill:'+colorA+'"><title>'+esc(String(cat))+': '+fmtFn(seriesA[i])+'</title></rect>';
+      svg += '<rect x="'+bx+'" y="'+(padT+innerH-bH)+'" width="'+barW+'" height="'+bH+'" rx="2" style="fill:'+colorB+'"><title>'+esc(String(cat))+': '+fmtFn(seriesB[i])+'</title></rect>';
+      svg += '<text x="'+(gx+groupW/2)+'" y="'+(h-8)+'" text-anchor="middle" font-size="11" font-weight="500" style="fill:rgb(var(--c-text-secondary))">'+esc(String(cat))+'</text>';
     });
     svg += '</svg>';
     return svg;
@@ -1266,7 +1270,7 @@
       var y = padT + i*rowH;
       var barLen = Math.max(2,(values[i]/maxV)*innerW*0.55);
       svg += '<text x="'+padL+'" y="'+(y+11)+'" font-size="11" fill="currentColor">'+esc(lab)+'</text>';
-      svg += '<rect x="'+padL+'" y="'+(y+16)+'" width="'+barLen+'" height="14" rx="3" style="fill:'+color+'"><title>'+esc(lab)+': '+fmtFn(values[i])+'</title></rect>';
+      svg += '<rect x="'+padL+'" y="'+(y+16)+'" width="'+barLen+'" height="14" rx="2" style="fill:'+color+'"><title>'+esc(lab)+': '+fmtFn(values[i])+'</title></rect>';
       svg += '<text x="'+(padL+barLen+8)+'" y="'+(y+27)+'" font-size="11" font-weight="700" style="fill:'+color+'">'+fmtFn(values[i])+'</text>';
     });
     svg += '</svg>';
@@ -1286,11 +1290,11 @@
       segmentsPerCat[i].forEach(function(val, si){
         var segH = (val/maxV)*innerH;
         if (val > 0){
-          svg += '<rect x="'+gx+'" y="'+(yCursor-segH)+'" width="'+barW+'" height="'+segH+'" style="fill:'+colors[si]+'"><title>'+esc(String(cat))+' '+esc(labels[si])+': '+val+'</title></rect>';
+          svg += '<rect x="'+gx+'" y="'+(yCursor-segH)+'" width="'+barW+'" height="'+segH+'" rx="2" style="fill:'+colors[si]+'"><title>'+esc(String(cat))+' '+esc(labels[si])+': '+val+'</title></rect>';
         }
         yCursor -= segH;
       });
-      svg += '<text x="'+(gx+barW/2)+'" y="'+(h-8)+'" text-anchor="middle" font-size="10" fill="currentColor" fill-opacity="0.7">'+esc(String(cat))+'</text>';
+      svg += '<text x="'+(gx+barW/2)+'" y="'+(h-8)+'" text-anchor="middle" font-size="11" font-weight="500" style="fill:rgb(var(--c-text-secondary))">'+esc(String(cat))+'</text>';
     });
     svg += '</svg>';
     return svg;
@@ -1320,21 +1324,17 @@
     var n = bars.length, groupW = innerW / n, barW = groupW * 0.5;
     var zeroY = py(0);
     var svg = '<svg viewBox="0 0 '+w+' '+h+'" xmlns="http://www.w3.org/2000/svg">';
-    svg += '<line x1="'+padL+'" y1="'+zeroY+'" x2="'+(w-padR)+'" y2="'+zeroY+'" stroke="currentColor" stroke-opacity="0.2" stroke-dasharray="2 2" />';
+    svg += '<line x1="'+padL+'" y1="'+zeroY+'" x2="'+(w-padR)+'" y2="'+zeroY+'" style="stroke:rgb(var(--c-chart-muted) / .75)" stroke-width="1.5" />';
     bars.forEach(function(b,i){
       var x = padL + i*groupW + (groupW-barW)/2;
       var top = py(Math.max(b.from,b.to)), bottom = py(Math.min(b.from,b.to));
       var barH = Math.max(2, bottom-top);
       var color = b.kind === 'total' ? 'rgb(var(--c-accent))' : (b.display < 0 ? 'rgb(var(--c-danger))' : 'rgb(var(--c-success))');
-      svg += '<rect x="'+x+'" y="'+top+'" width="'+barW+'" height="'+barH+'" rx="3" style="fill:'+color+'"><title>'+esc(b.label)+': '+fmtFn(b.display)+'</title></rect>';
-      if (i < bars.length-1){
-        var nx = padL + (i+1)*groupW + (groupW-barW)/2;
-        svg += '<line x1="'+(x+barW)+'" y1="'+py(b.to)+'" x2="'+nx+'" y2="'+py(b.to)+'" stroke="currentColor" stroke-opacity="0.25" stroke-dasharray="3 2" />';
-      }
-      svg += '<text x="'+(x+barW/2)+'" y="'+(h-8)+'" text-anchor="middle" font-size="10" fill="currentColor" fill-opacity="0.7">'+esc(b.label)+'</text>';
+      svg += '<rect x="'+x+'" y="'+top+'" width="'+barW+'" height="'+barH+'" rx="2" style="fill:'+color+'"><title>'+esc(b.label)+': '+fmtFn(b.display)+'</title></rect>';
+      svg += '<text x="'+(x+barW/2)+'" y="'+(h-8)+'" text-anchor="middle" font-size="10.5" style="fill:rgb(var(--c-text-secondary))">'+esc(b.label)+'</text>';
       var labelAbove = b.to >= b.from;
       var valueY = labelAbove ? top-6 : bottom+14;
-      svg += '<text x="'+(x+barW/2)+'" y="'+valueY+'" text-anchor="middle" font-size="10" font-weight="700" fill="currentColor">'+fmtFn(b.display)+'</text>';
+      svg += '<text x="'+(x+barW/2)+'" y="'+valueY+'" text-anchor="middle" font-size="11" font-weight="500" style="fill:rgb(var(--c-text-primary))">'+fmtFn(b.display)+'</text>';
     });
     svg += '</svg>';
     return svg;
@@ -1349,8 +1349,8 @@
     var svg = '<svg viewBox="0 0 '+w+' '+h+'" xmlns="http://www.w3.org/2000/svg">';
     [0,0.25,0.5,0.75,1].forEach(function(f){
       var y = padT + innerH*(1-f);
-      svg += '<line x1="'+padL+'" y1="'+y+'" x2="'+(w-padR)+'" y2="'+y+'" stroke="currentColor" stroke-opacity="0.10" />';
-      svg += '<text x="'+(padL-8)+'" y="'+(y+4)+'" text-anchor="end" font-size="10" fill="currentColor" fill-opacity="0.6">'+opts.yTickFmt(yMin+(yMax-yMin)*f)+'</text>';
+      svg += '<line x1="'+padL+'" y1="'+y+'" x2="'+(w-padR)+'" y2="'+y+'" style="stroke:rgb(var(--c-grid))" />';
+      svg += '<text x="'+(padL-8)+'" y="'+(y+4)+'" text-anchor="end" font-size="10" style="fill:rgb(var(--c-chart-muted))">'+opts.yTickFmt(yMin+(yMax-yMin)*f)+'</text>';
     });
     if (opts.targetY != null){
       var ty = py(opts.targetY);
@@ -1359,13 +1359,13 @@
     }
     (opts.series||[]).forEach(function(s){
       var pts = s.points.map(function(p){ return px(p.x)+','+py(p.y); }).join(' ');
-      svg += '<polyline points="'+pts+'" fill="none" style="stroke:'+s.color+'" stroke-width="2.5" stroke-dasharray="'+(s.dashed?'5 4':'0')+'" />';
+      svg += '<polyline points="'+pts+'" fill="none" style="stroke:'+s.color+'" stroke-width="'+(s.emphasis?2.8:2)+'" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="'+(s.dashed?'5 4':'0')+'" />';
       s.points.forEach(function(p){
-        svg += '<circle cx="'+px(p.x)+'" cy="'+py(p.y)+'" r="4" style="fill:'+s.color+'"><title>'+esc(p.label||"")+'</title></circle>';
+        svg += '<circle cx="'+px(p.x)+'" cy="'+py(p.y)+'" r="3.4" style="fill:rgb(var(--c-bg-primary));stroke:'+s.color+'" stroke-width="2.2"><title>'+esc(p.label||"")+'</title></circle>';
       });
     });
     (opts.xTicks||[]).forEach(function(t){
-      svg += '<text x="'+px(t.x)+'" y="'+(h-10)+'" text-anchor="middle" font-size="10" fill="currentColor" fill-opacity="0.7">'+esc(t.label)+'</text>';
+      svg += '<text x="'+px(t.x)+'" y="'+(h-10)+'" text-anchor="middle" font-size="11" font-weight="500" style="fill:rgb(var(--c-text-secondary))">'+esc(t.label)+'</text>';
     });
     svg += '</svg>';
     return svg;
@@ -1779,32 +1779,40 @@
     // gap number here always reconciles with modeled_unlaunched_inventory_lower/
     // upper in the Unlaunched Inventory section below at the two preset rates.
     function svgDivergenceChart(o){
-      var w=o.width||640, h=o.height||260, padL=44, padB=28, padT=16, padR=112;
+      var compact = o.compact;
+      var w = compact ? 360 : 1000, h = compact ? 280 : 340;
+      var padL = compact ? 34 : 56, padB = compact ? 34 : 40,
+          padT = compact ? 76 : 26, padR = compact ? 12 : 150;
+      var fSm = compact ? 12 : 11, fLg = compact ? 13 : 12;
       var innerW=w-padL-padR, innerH=h-padT-padB;
       function px(x){ return padL + x/o.xMax*innerW; }
       function py(y){ return padT + (1-y/o.yMax)*innerH; }
       var svg = '<svg viewBox="0 0 '+w+' '+h+'" xmlns="http://www.w3.org/2000/svg">';
-      [0,0.25,0.5,0.75,1].forEach(function(f){
-        var y = padT + innerH*(1-f);
-        svg += '<line x1="'+padL+'" y1="'+y+'" x2="'+(w-padR)+'" y2="'+y+'" stroke="currentColor" stroke-opacity="0.08" />';
-      });
+      svg += '<defs><linearGradient id="heroGapG" x1="0" y1="0" x2="0" y2="1">' +
+        '<stop offset="0" stop-color="rgb(var(--c-accent))" stop-opacity="0.30" />' +
+        '<stop offset="1" stop-color="rgb(var(--c-accent))" stop-opacity="0.02" /></linearGradient></defs>';
+      svg += '<line x1="'+padL+'" y1="'+py(0)+'" x2="'+(w-padR)+'" y2="'+py(0)+'" style="stroke:rgb(var(--c-bg-card2))" stroke-width="1" />';
       var fccY = py(o.fccY);
-      svg += '<line x1="'+padL+'" y1="'+fccY+'" x2="'+(w-padR)+'" y2="'+fccY+'" style="stroke:rgb(var(--c-text-secondary))" stroke-opacity="0.5" stroke-dasharray="4 3" stroke-width="1.3" />';
-      svg += '<text x="'+padL+'" y="'+(fccY-6)+'" font-size="10" style="fill:rgb(var(--c-text-secondary))">FCC condition &middot; '+Number(o.fccY).toLocaleString()+' satellites</text>';
+      svg += '<line x1="'+padL+'" y1="'+fccY+'" x2="'+(w-padR)+'" y2="'+fccY+'" style="stroke:rgb(var(--c-chart-1))" stroke-dasharray="6 5" stroke-width="1" />';
+      svg += '<text x="'+padL+'" y="'+(fccY-7)+'" font-size="'+fSm+'" font-weight="500" style="fill:rgb(var(--c-chart-1))">FCC condition &middot; '+Number(o.fccY).toLocaleString()+' satellites</text>';
       var ceilX2 = px(o.xMax), ceilY2 = py(o.ceilingY);
-      svg += '<path d="M '+px(0)+' '+py(0)+' L '+ceilX2+' '+ceilY2+' L '+ceilX2+' '+py(0)+' Z" fill="rgb(var(--c-accent) / .14)" />';
-      svg += '<polyline points="'+px(0)+','+py(0)+' '+ceilX2+','+ceilY2+'" fill="none" style="stroke:rgb(var(--c-accent))" stroke-width="2" stroke-opacity="0.55" />';
+      svg += '<path d="M '+px(0)+' '+py(0)+' L '+ceilX2+' '+ceilY2+' L '+ceilX2+' '+py(0)+' Z" fill="url(#heroGapG)" />';
+      svg += '<polyline points="'+px(0)+','+py(0)+' '+ceilX2+','+ceilY2+'" fill="none" style="stroke:rgb(var(--c-chart-1))" stroke-width="2.5" stroke-linecap="round" />';
       var selX2 = px(o.xMax), selY2 = py(o.selectedY);
-      svg += '<polyline points="'+px(0)+','+py(0)+' '+selX2+','+selY2+'" fill="none" style="stroke:rgb(var(--c-accent))" stroke-width="2" stroke-dasharray="6 4" />';
-      svg += '<text x="'+(ceilX2+6)+'" y="'+(ceilY2-6)+'" font-size="10" style="fill:rgb(var(--c-accent))" fill-opacity="0.8">Ceiling @ '+o.ceilingRate.toFixed(1)+'/day</text>';
-      svg += '<text x="'+(selX2+6)+'" y="'+(selY2+12)+'" font-size="10" style="fill:rgb(var(--c-accent))">Built @ '+o.selectedRate.toFixed(2)+'/day</text>';
+      svg += '<polyline points="'+px(0)+','+py(0)+' '+selX2+','+selY2+'" fill="none" style="stroke:rgb(var(--c-chart-3))" stroke-width="2" stroke-dasharray="7 5" stroke-linecap="round" />';
+      var ceilTxt = Math.round(o.ceilingY).toLocaleString()+' built @ '+o.ceilingRate.toFixed(1)+'/day';
+      var selTxt = Math.round(o.selectedY).toLocaleString()+' @ '+o.selectedRate.toFixed(2)+'/day';
+      svg += '<text x="'+(compact?padL:ceilX2+8)+'" y="'+(compact?20:ceilY2-6)+'" font-size="'+fLg+'" font-weight="500" style="fill:rgb(var(--c-chart-1))">'+ceilTxt+'</text>';
+      svg += '<text x="'+(compact?padL:selX2+8)+'" y="'+(compact?40:selY2+13)+'" font-size="'+fLg+'" font-weight="500" style="fill:rgb(var(--c-chart-3))">'+selTxt+'</text>';
       var actualPts = o.actual.map(function(p){ return px(p.x)+','+py(p.y); }).join(' ');
-      svg += '<polyline points="'+actualPts+'" fill="none" style="stroke:rgb(var(--c-text-primary))" stroke-width="2.5" />';
+      svg += '<polyline points="'+actualPts+'" fill="none" style="stroke:rgb(var(--c-text-primary))" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />';
       o.actual.forEach(function(p){
-        svg += '<circle cx="'+px(p.x)+'" cy="'+py(p.y)+'" r="3.5" style="fill:rgb(var(--c-text-primary))"><title>'+esc(p.label||"")+'</title></circle>';
+        svg += '<circle cx="'+px(p.x)+'" cy="'+py(p.y)+'" r="4.5" style="fill:rgb(var(--c-bg-primary));stroke:rgb(var(--c-text-primary))" stroke-width="2.5"><title>'+esc(p.label||"")+'</title></circle>';
       });
       var lastActual = o.actual[o.actual.length-1];
-      svg += '<text x="'+(px(lastActual.x)+8)+'" y="'+(py(lastActual.y)+4)+'" font-size="10" style="fill:rgb(var(--c-text-primary))">In orbit</text>';
+      svg += '<text x="'+(compact?padL:px(lastActual.x)+10)+'" y="'+(compact?60:py(lastActual.y)+4)+'" font-size="'+fLg+'" font-weight="600" style="fill:rgb(var(--c-text-primary))">'+Number(lastActual.y).toLocaleString()+' in orbit</text>';
+      svg += '<text x="'+padL+'" y="'+(h-8)+'" font-size="'+fSm+'" style="fill:rgb(var(--c-chart-muted))">'+esc(o.xStartLabel)+'</text>';
+      svg += '<text x="'+px(o.xMax)+'" y="'+(h-8)+'" text-anchor="end" font-size="'+fSm+'" style="fill:rgb(var(--c-chart-muted))">'+esc(o.xEndLabel)+'</text>';
       svg += '</svg>';
       return svg;
     }
@@ -1822,9 +1830,10 @@
       var yMaxD = niceMax(Math.max(ceilingY, near.satellites_required) * 1.08);
       var container = document.getElementById("heroChart");
       container.innerHTML = svgDivergenceChart({
-        width: 640, height: 260, xMax: xMaxD, yMax: yMaxD,
+        compact: window.innerWidth <= 720, xMax: xMaxD, yMax: yMaxD,
         fccY: near.satellites_required, ceilingY: ceilingY, ceilingRate: ceilingRate,
-        selectedY: selectedY, selectedRate: rate, actual: actualPts
+        selectedY: selectedY, selectedRate: rate, actual: actualPts,
+        xStartLabel: uiD.production_start_date, xEndLabel: uiD.latest_observed_date + ' · day ' + uiD.elapsed_days
       });
       var gap = Math.round(selectedY - uiD.deployed_count);
       document.getElementById("heroGapNum").textContent = gap.toLocaleString();
@@ -1838,6 +1847,18 @@
       return container;
     }
     function updateHeroDivergence(rate){ renderHeroDivergence(rate); }
+    // The hero is the one chart with a layout breakpoint rather than a purely fluid
+    // viewBox, so it has to be re-laid-out when a resize crosses that breakpoint.
+    (function watchHeroBreakpoint(){
+      var wasCompact = window.innerWidth <= 720, t;
+      window.addEventListener("resize", function(){
+        clearTimeout(t);
+        t = setTimeout(function(){
+          var isCompact = window.innerWidth <= 720;
+          if (isCompact !== wasCompact){ wasCompact = isCompact; renderHeroDivergence(parseFloat(rateSlider.value)); }
+        }, 150);
+      });
+    })();
     var heroChartEl = renderHeroDivergence(data.capacity_gap.realized_peak_per_day);
     observeAndDrawIn(heroChartEl);
     (function setupHeroShowMath(){
@@ -1878,11 +1899,11 @@
       var lastObs = obs[obs.length-1];
       var projectedAtMilestone = computeProjectedAtMilestone(rate);
       var series = [
-        {points: obsPts, color: 'rgb(var(--c-success))'},
+        {points: obsPts, color: 'rgb(var(--c-accent))', emphasis: true},
         {points: [
           {x: xOf(lastObs.as_of_date), y: lastObs.cumulative_satellites},
           {x: xMax, y: projectedAtMilestone, label: 'Our modeled projection @ ' + near.milestone_date + ': ' + projectedAtMilestone.toLocaleString()}
-        ], color: 'rgb(var(--c-accent))', dashed: true}
+        ], color: 'rgb(var(--c-chart-muted))', dashed: true}
       ];
       if (near.company_projected_count != null){
         series.push({points: [{x: xMax, y: near.company_projected_count, label: "Amazon's own projection: " + Number(near.company_projected_count).toLocaleString()}], color: 'rgb(var(--c-warning))'});
@@ -2056,10 +2077,10 @@
     var planYears = plan.map(function(r){ return r.fiscal_year; });
     document.getElementById("opexCapexChart").innerHTML = svgGroupedBars(
       planYears, plan.map(function(r){return r.opex_usd;}), plan.map(function(r){return r.capex_usd;}),
-      'rgb(var(--c-accent))', 'rgb(var(--c-warning))', fmtUSD
+      'rgb(var(--c-chart-1))', 'rgb(var(--c-chart-3))', fmtUSD
     );
     document.getElementById("headcountChart").innerHTML = svgVBars(
-      planYears, plan.map(function(r){return r.headcount;}), 'rgb(var(--c-success))',
+      planYears, plan.map(function(r){return r.headcount;}), 'rgb(var(--c-accent))',
       function(v){ return Math.round(v).toString(); }
     );
     var firstYear = plan[0], lastYear = plan[plan.length-1];
@@ -2121,7 +2142,7 @@
     var periods = vRows.map(function(r){ return r.period; }).concat(['Q4 (projected)']);
     var budgets = vRows.map(function(r){ return r.budget_amount; }).concat([q4Budget]);
     var actuals = vRows.map(function(r){ return r.actual_amount; }).concat([q4Projected]);
-    document.getElementById("varianceChart").innerHTML = svgGroupedBars(periods, budgets, actuals, 'rgb(var(--c-accent))', 'rgb(var(--c-warning))', fmtUSD);
+    document.getElementById("varianceChart").innerHTML = svgGroupedBars(periods, budgets, actuals, 'rgb(var(--c-chart-3))', 'rgb(var(--c-chart-1))', fmtUSD);
 
     var worstQ = vRows.reduce(function(a,b){ return (b.total_variance/b.budget_amount) > (a.total_variance/a.budget_amount) ? b : a; });
     document.getElementById("plainVariance").innerHTML =
@@ -2143,9 +2164,9 @@
       xDomain: [0, cfTrend.length-1], yDomain: [0, cfYMax],
       yTickFmt: fmtUSD,
       series: [
-        {points: planPts, color: 'rgb(var(--c-text-secondary))', dashed: true},
-        {points: forecastPts, color: 'rgb(var(--c-accent))', dashed: true},
-        {points: actualPts, color: 'rgb(var(--c-success))'}
+        {points: planPts, color: 'rgb(var(--c-chart-muted))'},
+        {points: forecastPts, color: 'rgb(var(--c-warning))', dashed: true},
+        {points: actualPts, color: 'rgb(var(--c-accent))', emphasis: true}
       ],
       xTicks: cfTrend.map(function(r,i){ return {x:i, label:r.period}; })
     });
@@ -2378,8 +2399,8 @@
       yTickFmt: function(v){ return Math.round(v).toLocaleString(); },
       series: [
         {points: upperPtsEff, color: 'rgb(var(--c-warning))', dashed: true},
-        {points: lowerPtsEff, color: 'rgb(var(--c-accent))', dashed: true},
-        {points: actualPtsEff, color: 'rgb(var(--c-success))'}
+        {points: lowerPtsEff, color: 'rgb(var(--c-chart-muted))', dashed: true},
+        {points: actualPtsEff, color: 'rgb(var(--c-accent))', emphasis: true}
       ],
       xTicks: effTrend.map(function(r){ return {x: xOfEff(r.as_of_date), label: r.as_of_date}; })
     });
