@@ -327,6 +327,50 @@
   }
   .pin-clear-btn:hover{border-color:rgb(var(--c-accent) / .5); color:rgb(var(--c-text-primary))}
 
+  /* ---- guided tour: a floating card that scrolls the page to each of 12
+     real sections in sequence and narrates what it is. Static authored
+     narrative copy (same non-fact-bearing status as the glossary above),
+     except where a step states a comparison already computed from `data`
+     (e.g. CPI vs SPI) -- those are interpolated at render time, never
+     hand-typed as a fixed claim that could go stale. */
+  .tour-highlight{
+    outline:2px solid rgb(var(--c-accent) / .85); outline-offset:4px; border-radius:10px;
+    animation:tourFlash 1.1s ease-out 1;
+  }
+  @keyframes tourFlash{
+    0%{outline-color:rgb(var(--c-accent) / 0); box-shadow:0 0 0 8px rgb(var(--c-accent) / .18)}
+    35%{outline-color:rgb(var(--c-accent) / .85); box-shadow:0 0 0 0 rgb(var(--c-accent) / 0)}
+    100%{outline-color:rgb(var(--c-accent) / .85); box-shadow:0 0 0 0 rgb(var(--c-accent) / 0)}
+  }
+  .tour-card{
+    display:none; position:fixed; left:0; right:0; bottom:0; z-index:35;
+    justify-content:center; padding:0 16px 16px;
+  }
+  .tour-card.show{display:flex}
+  .tour-card-in{
+    width:100%; max-width:560px; background:rgb(var(--c-bg-card) / .97); backdrop-filter:blur(16px);
+    border:1px solid rgb(var(--c-accent) / .3); border-radius:14px; box-shadow:0 16px 40px rgb(0 0 0 / .5);
+    padding:16px 18px;
+  }
+  .tour-card-head{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:8px}
+  .tour-step-count{font:600 10.5px/1 ui-monospace,Menlo,monospace; letter-spacing:.06em; text-transform:uppercase; color:rgb(var(--c-text-secondary))}
+  .tour-close{
+    padding:4px 9px; background:transparent; border:1px solid rgb(var(--c-text-secondary) / .3);
+    border-radius:6px; font:600 10.5px/1 inherit; color:rgb(var(--c-text-secondary)); cursor:pointer;
+  }
+  .tour-close:hover{border-color:rgb(var(--c-accent) / .6); color:rgb(var(--c-text-primary))}
+  .tour-title{font-size:15px; font-weight:600; margin:0 0 6px}
+  .tour-body{margin:0 0 14px; font-size:12.5px; line-height:1.6; color:rgb(var(--c-text-secondary))}
+  .tour-nav{display:flex; align-items:center; gap:8px}
+  .tour-btn{
+    padding:7px 14px; border-radius:8px; font:600 12px/1 inherit; cursor:pointer;
+    border:1px solid rgb(var(--c-text-secondary) / .3); background:transparent; color:rgb(var(--c-text-primary));
+  }
+  .tour-btn:hover{border-color:rgb(var(--c-accent) / .6)}
+  .tour-btn.primary{background:rgb(var(--c-accent)); border-color:rgb(var(--c-accent)); color:rgb(var(--c-bg-primary))}
+  .tour-btn:disabled{opacity:.35; cursor:default; pointer-events:none}
+  .tour-btn-spacer{flex:1 1 auto}
+
   /* ---- interactive rate slider (milestone projection only -- never the static
      Amazon-own-projection figures, which stay plain text elsewhere on the card). */
   .slidercard{margin-top:14px; padding-top:14px; border-top:1px dashed rgb(var(--c-accent) / .25)}
@@ -379,6 +423,7 @@
     <div class="right">
       <a class="icobtn" href="./leo-operations-map.html" title="Interactive relational map of every domain, risk, action, and KPI">🗺 Operations Map</a>
       <a class="icobtn" href="./leo-dbt-docs/" target="_blank" rel="noopener" title="Full dbt lineage graph + column-level docs for all 24 marts">🔗 Data Lineage</a>
+      <button class="icobtn" id="tourBtn" title="12-step guided walkthrough of this page">🧭 Tour</button>
       <button class="icobtn" id="glossaryBtn" aria-pressed="false" title="Plain-language definitions for every finance/methodology term this page uses">📖 Glossary</button>
       <button class="icobtn" id="focusBtn" aria-pressed="false" title="Show one chapter at a time -- hides the other 3, hero/exec-summary/footer stay visible">🎯 Focus</button>
       <button class="icobtn" id="themeBtn" aria-pressed="false" title="Toggle theme">🌓 Theme</button>
@@ -783,6 +828,23 @@
     <span class="pin-tray-label" id="pinTrayLabel"></span>
     <div class="pin-tray-items" id="pinTrayItems"></div>
     <button class="pin-clear-btn" id="pinClearBtn">Clear all</button>
+  </div>
+</div>
+
+<div class="tour-card" id="tourCard" role="dialog" aria-modal="true" aria-label="Guided tour">
+  <div class="tour-card-in">
+    <div class="tour-card-head">
+      <span class="tour-step-count" id="tourStepCount"></span>
+      <button class="tour-close" id="tourCloseBtn">Close</button>
+    </div>
+    <h3 class="tour-title" id="tourTitle"></h3>
+    <p class="tour-body" id="tourBody"></p>
+    <div class="tour-nav">
+      <button class="tour-btn" id="tourPrevBtn">← Back</button>
+      <span class="tour-btn-spacer"></span>
+      <button class="tour-btn" id="tourSkipBtn">Skip tour</button>
+      <button class="tour-btn primary" id="tourNextBtn">Next →</button>
+    </div>
   </div>
 </div>
 
@@ -1305,9 +1367,103 @@
     renderChips(); renderTray();
   }
 
+  // ---- guided tour: 12 steps anchored to real, already-rendered section ids.
+  // The EVM step's cost/schedule characterization is computed from the same
+  // fetched `data.evm_rollup` every other CPI/SPI display on this page already
+  // uses -- never a fixed claim that could go stale (same fix already applied
+  // once to the pin tray's EVM sub-label above).
+  function buildTourSteps(data){
+    var evm = data.evm_rollup;
+    var both = evm.cpi < 1 && evm.spi < 1;
+    var either = evm.cpi < 1 || evm.spi < 1;
+    var evmBody = "Cost Performance Index " + evm.cpi.toFixed(2) + " and Schedule Performance Index " + evm.spi.toFixed(2) + " — " +
+      (both ? "both under 1.0, so the program is over budget and behind schedule for the work completed so far."
+        : either ? "one of the two is under 1.0, so the program is off-plan on one dimension but not the other."
+        : "both at or above 1.0, so the program is on or ahead of plan on both cost and schedule.");
+    return [
+      { id:"orbitWrap", title:"1 · Deployment progress", body:"The orbit ring at the top tracks satellites deployed against the FCC milestone schedule — the single number executives ask for first." },
+      { id:"milestoneCards", title:"2 · Milestone risk", body:"Whether the current deployment pace clears the next FCC milestone date, and by how much shortfall if it doesn't." },
+      { id:"capacityCard", title:"3 · Launch capacity", body:"How much of the factory's build-and-launch ceiling is actually being used — the constraint that caps every other number on this page." },
+      { id:"costCard", title:"4 · Program cost estimate", body:"The disclosed cost range for the whole program, tagged by source (official disclosure vs. third-party estimate) so you always know how much to trust a figure." },
+      { id:"opexCapexChart", title:"5 · CapEx vs. OpEx mix", body:"How spend splits between capitalized satellites/ground infrastructure and this year's operating cost — moving the line between them changes reported profit without changing cash." },
+      { id:"cashflowBreakdownTable", title:"6 · Cash-flow breakdown", body:"Cost by category and period, with percent-complete per row — the detail underneath the headline cost number." },
+      { id:"evmEacCard", title:"7 · Earned Value Management", body: evmBody },
+      { id:"eacSensitivityChart", title:"8 · EAC sensitivity", body:"Three Estimate-at-Completion scenarios, because each embeds a different belief about whether the current overrun repeats, holds steady, or corrects." },
+      { id:"launchChart", title:"9 · Launch reliability trend", body:"Launch success rate over time — a technical metric with direct financial consequences, since a failed launch is capitalized inventory that never reaches orbit." },
+      { id:"inventoryCard", title:"10 · Unlaunched inventory", body:"Satellites built but not yet in orbit, modelled as a range rather than a false-precision point estimate — capital sitting on the balance sheet until launch." },
+      { id:"riskIndexCard", title:"11 · Program delivery risk index", body:"A single composite score weighting milestone (30%), launch (25%), cost (20%), supplier (15%), and safety (10%) signals — the one number that rolls up everything above it." },
+      { id:"roadmapTable", title:"12 · 90-day roadmap", body:"What a Finance Manager on this program would be accountable for delivering in the next 90 days, tied to the specific gaps this page surfaces." }
+    ];
+  }
+  function setupTour(data){
+    var steps = buildTourSteps(data);
+    var btn = document.getElementById("tourBtn");
+    var card = document.getElementById("tourCard");
+    var stepCount = document.getElementById("tourStepCount");
+    var titleEl = document.getElementById("tourTitle");
+    var bodyEl = document.getElementById("tourBody");
+    var prevBtn = document.getElementById("tourPrevBtn");
+    var nextBtn = document.getElementById("tourNextBtn");
+    var skipBtn = document.getElementById("tourSkipBtn");
+    var closeBtn = document.getElementById("tourCloseBtn");
+    if (!btn || !card) return;
+    var idx = -1;
+    var lastHighlighted = null;
+
+    function clearHighlight(){
+      if (lastHighlighted){ lastHighlighted.classList.remove("tour-highlight"); lastHighlighted = null; }
+    }
+    function renderStep(){
+      var s = steps[idx];
+      stepCount.textContent = "Step " + (idx+1) + " of " + steps.length;
+      titleEl.textContent = s.title;
+      bodyEl.textContent = s.body;
+      prevBtn.disabled = idx === 0;
+      nextBtn.textContent = idx === steps.length - 1 ? "Done" : "Next →";
+      clearHighlight();
+      var target = document.getElementById(s.id);
+      if (target){
+        target.scrollIntoView({ behavior: prefersReducedMotion ? "auto" : "smooth", block:"center" });
+        target.classList.add("tour-highlight");
+        lastHighlighted = target;
+      }
+    }
+    function open(){
+      idx = 0;
+      card.classList.add("show");
+      btn.classList.add("on");
+      renderStep();
+    }
+    function close(){
+      card.classList.remove("show");
+      btn.classList.remove("on");
+      clearHighlight();
+      idx = -1;
+    }
+    function next(){
+      if (idx >= steps.length - 1){ close(); return; }
+      idx++; renderStep();
+    }
+    function prev(){
+      if (idx <= 0) return;
+      idx--; renderStep();
+    }
+    btn.addEventListener("click", function(){ card.classList.contains("show") ? close() : open(); });
+    closeBtn.addEventListener("click", close);
+    skipBtn.addEventListener("click", close);
+    nextBtn.addEventListener("click", next);
+    prevBtn.addEventListener("click", prev);
+    document.addEventListener("keydown", function(e){
+      if (!card.classList.contains("show")) return;
+      if (e.key === "Escape"){ close(); return; }
+      if (e.key === "ArrowRight" || (e.key === "Enter" && e.target.tagName !== "BUTTON")){ e.preventDefault(); next(); return; }
+      if (e.key === "ArrowLeft"){ e.preventDefault(); prev(); return; }
+    });
+  }
+
   fetch("./leo_finance_dashboard_data.json")
     .then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
-    .then(function(data){ render(data); setupPinTray(data); })
+    .then(function(data){ render(data); setupPinTray(data); setupTour(data); })
     .catch(function(err){
       document.getElementById("loadErr").style.display = "block";
       document.getElementById("loadErr").innerHTML =
