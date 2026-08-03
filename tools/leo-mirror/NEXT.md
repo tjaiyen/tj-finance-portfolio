@@ -151,6 +151,45 @@ Local steps are done: secret scan, `git fetch` + drift check, commit. **Nothing 
 Push, CI watch and live-URL verification (including that `fonts/*.woff2` and `fonts/inter.css`
 actually deploy) are TJ's call — see the handoff at the end of the session.
 
+## 6. Stress test of the build chain (2026-08-03)
+
+Adversarial pass over `compile.py`, `assemble.py` and the emitted shim, plus an independent
+fresh-context reviewer. Every gate below is now covered by `python3 tools/leo-mirror/test_compile.py`
+(26 cases) — **run it before every commit**, because none of these input shapes occurs in
+`reference.html` today, and a gate with no live trigger is indistinguishable from a broken one.
+
+| # | Sev | Defect | Trigger | Status |
+|---|---|---|---|---|
+| 1 | HIGH | `python3 -O` strips all 12 `assert` guards; build exits 0 having skipped every deviation | `-O` + a one-char change to the Glossary button style → page shipped with **both** companion-page links gone, exit 0 | fixed: `require()` raises `SystemExit`. Re-verified under `-O`, `PYTHONOPTIMIZE=2`, plain |
+| 2 | HIGH | `</script>` in a text node ends the emitted `<script>` — HTML tokenizing beats JS lexing | `<p>see </script> here</p>` | fixed: `</` → `<\/` before `script`, case-insensitive |
+| 3 | HIGH | `expr_of`'s non-greedy match swallowed `}}`, splicing raw text into the generated JS | `<sc-if value="{{a}} {{b}}">` | fixed: `(?:(?!\}\}).)*` |
+| 4 | MED | The helmet style block shipped **twice** — 31,685 bytes, 9% of the page. `page_css.replace(font_css,'')` compared against the already URL-rewritten copy, so it matched nothing | `grep -c @font-face` → 98, should be 49 | fixed: strip using the pre-rewrite text, plus two guards. Page 344,058 → **312,373** bytes |
+| 5 | MED | `parse_attrs` silently **dropped** every attribute it could not parse — single-quoted, unquoted, bare boolean | `<a aria-current='page' class="x">` → the a11y attribute vanishes | fixed: residue check |
+| 6 | MED | A non-`{{ }}` control attribute degraded to `false`/`null` — the block renders empty forever and the build reports success | `<sc-if value="a && b">` | fixed: hard error |
+| 7 | MED | `{{ }}` bodies are spliced raw into JS; a backtick or `${` breaks or rewrites the page | ``{{ `x` }}`` | fixed: `check_expr` |
+| 8 | MED | `style-hover` is concatenated into a CSS rule unescaped; and `{{ }}` there is never interpolated, so it is silently dead CSS | `style-hover="color:red}body{display:none"` | fixed: reject `{ } < @` |
+| 9 | MED | `compile.py main()` was a divergent second entry point — 2 args short, `with(V)` not `with(__scope(V))`, and read `markup.html`, skipping every §3b–3d repair | `python3 compile.py` → artifact throws `ReferenceError: __g is not defined` | fixed: deleted; the test asserts it stays gone |
+| 10 | MED | No tests for the build chain at all | — | fixed: `test_compile.py`. It immediately caught #11 being half-fixed |
+| 11 | MED | `find_close` **and** the `compile_frag` dispatch matched the literal `<sc-if`, so `<sc-iffy>` counted as a nested tag | `<sc-if value="{{a}}"><sc-iffy>x</sc-iffy>Y</sc-if>` → `unclosed <sc-if>` | fixed in both places — the first fix touched only `find_close` and the test caught it |
+| 12 | LOW | HTML comments compile as markup; `{{ }}` inside one still evaluates every render | `<!-- <div class="{{x}}">c</div> -->` | fixed: rejected (the dialect has no comment support) |
+
+**Predictions that were contradicted — dropped, not talked into findings:**
+
+- *"The `__scope` fix leaks unknown names to `window`."* It does not, here: **0 of 142** template
+  identifiers exist as a `window` property, and a build with the old claim-everything `has` renders
+  byte-identical text and node counts. Behaviour-neutral, now proven rather than argued.
+- *"The single-quoted `aria-current='page'` is being dropped."* It is a CSS selector inside a
+  `<style>` block, not an attribute. The parser hole (#5) is real but has no live trigger.
+- *"The map scrolls horizontally at desktop."* Measurement artifact — the pane reported
+  `clientWidth: 0`. It does not scroll at 1280 or at 375.
+- U+2028/2029 are legal template-literal characters; no break-out, no finding.
+
+**Re-verified after all fixes:** 26/26 gate tests pass · build reproducible (same sha256) · rendered
+page **0 geometry diffs across 2,564 elements** vs the pre-fix build · console clean · 6 tables valid ·
+25 anchors, 0 emptied · `aria-pressed`/`aria-sort` flip on stable nodes · `data-in` stable at 36 ·
+KPI re-sort produces 54 correctly-ordered rows with no ragged or blank cells · map still loads Inter
+from `fonts/inter.css` with no CDN.
+
 ## Accepted limitations
 
 - A strict CSP would break the page: one large inline `<script>`, three inline `<style>`
@@ -168,3 +207,15 @@ actually deploy) are TJ's call — see the handoff at the end of the session.
   exist on disk. `assemble.py` is the only real build. Deleting it is the obvious call but is
   not this change's business; flagged rather than folded in.
 - Mobile 375px on the finance page still overflows in three sections — see §4.
+- **56 `style="…${__e(…)}…"` sites can inject CSS declarations**, the same class of hole `__u`
+  closed for `href`. Not fixed, because every interpolated value is computed in `logic.js` — a
+  palette lookup (`*.color`, via `tier()`) or a numeric width/percentage — never a raw JSON field
+  passed straight through. The guarantee lives in the logic layer, not the escaping layer, which is
+  weaker than `__u`'s. If a raw data field is ever bound into a `style=`, add a `__s()` that rejects
+  `; { } <` and route that site through it.
+- `hover_rules` is a module-level dict that is never reset, so two `compile_frag` calls in one
+  process share class numbering. `assemble.py` calls it exactly once; the test suite clears it.
+- `martsData.json` (99KB) and `markup.html` are committed but referenced by **no code** — `markup.html`
+  lost its only reader when `main()` was deleted, and `martsData.json` never had one (it also differs
+  from the live `leo_finance_dashboard_data.json`). Left in place because they may be provenance for
+  the export; delete with `git rm tools/leo-mirror/martsData.json tools/leo-mirror/markup.html` if not.
