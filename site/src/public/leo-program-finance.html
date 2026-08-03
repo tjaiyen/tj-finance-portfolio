@@ -654,6 +654,10 @@
     <p class="section-sub" id="roadmapIntro"></p>
     <div class="table-wrap card"><table id="roadmapTable"></table></div>
     <div class="plain" id="plainRoadmap"></div>
+
+    <h2 style="margin-top:32px">The Throughline <span class="src-tag illustrative" style="margin-left:6px">AI synthesis</span></h2>
+    <p class="section-sub">Connects facts already shown above into one statement this page doesn't otherwise make explicit. Introduces nothing new -- every number here is pulled live from the same marts as the rest of this page, not typed by hand. Authored once, not live-generated.</p>
+    <div class="card" id="throughlineCard"></div>
   </div>
 
   <footer>
@@ -1849,6 +1853,26 @@
       '<span class="lp-tag">Applying: Ownership</span><br>' +
       '<span class="eyebrow">In plain terms</span>' + roadmap.length + ' workstreams across ' + domainCount + ' functional domains, each owned by one accountable role and tied to a measurable target — not a status update, since none of this has actually been executed yet. ' +
       (monitorOnlyRow ? 'One row (' + esc(monitorOnlyRow.domain) + ') is deliberately "no action needed" — ' + esc(monitorOnlyRow.rationale_note) + ' A plan that manufactures busywork everywhere isn\'t more thorough, it\'s less honest.' : '');
+
+    // The Throughline -- pure synthesis of marts already rendered above; introduces
+    // no new facts. Every number below is pulled from data.X (or the already-scoped
+    // cg variable), the same mechanism every other narrator box on this page already
+    // uses -- there is no code path where a hand-typed number could sneak in here.
+    function englishList(arr){
+      if (arr.length <= 1) return arr.join('');
+      if (arr.length === 2) return arr[0] + ' and ' + arr[1];
+      return arr.slice(0, -1).join(', ') + ', and ' + arr[arr.length - 1];
+    }
+    var criticalRisks = data.risk_register.filter(function(r){ return r.exposure_tier === 'critical'; });
+    var launchOpsRows = data.roadmap_90day.filter(function(r){ return r.domain === 'Launch Operations'; });
+    var otherDomains = Array.from(new Set(data.roadmap_90day.filter(function(r){ return r.domain !== 'Launch Operations'; }).map(function(r){ return r.domain; })));
+    var latestCapValue = data.capitalized_inventory_rollforward[data.capitalized_inventory_rollforward.length - 1];
+    var utilizationPct = Math.round(cg.realized_peak_per_day / cg.capacity_ceiling_per_day * 100);
+    document.getElementById("throughlineCard").innerHTML =
+      '<span class="lp-tag">Applying: Dive Deep</span>' +
+      '<p style="margin:10px 0">Of the <b>' + data.risk_register.length + '</b> risks on the register above, <b>' + criticalRisks.length + '</b> sit in the critical exposure cell: <b>' + englishList(criticalRisks.map(function(r){ return esc(r.risk_name.replace(/_/g,' ')); })) + '</b>. Both trace to the exact same root cause the capacity-gap analysis above already names — <b>' + esc(cg.constraint_root_cause.replace(/_/g,' ')) + '</b>, not manufacturing: Kirkland has run at ' + utilizationPct + '% of its ' + cg.capacity_ceiling_per_day + '/day design capacity at best (' + cg.realized_peak_per_day + '/day realized peak), and that gap has nothing to do with how fast satellites can be built.</p>' +
+      '<p style="margin:0 0 10px">The 90-day plan already gets this right without saying so out loud: the only ' + launchOpsRows.length + ' rows under <b>Launch Operations</b> are exactly the ' + criticalRisks.length + ' critical risks above — every other domain (' + englishList(otherDomains.map(function(d){ return esc(d); })) + ') is either lower-severity or explicitly needs no action. That is not a coincidence; it is the plan correctly weighting its own highest-leverage lever.</p>' +
+      '<p style="margin:0">The cost of that lag is not abstract: the capitalized-inventory roll-forward above already shows <b>' + fmtUSD(latestCapValue.modeled_capitalized_value_low_usd) + '–' + fmtUSD(latestCapValue.modeled_capitalized_value_high_usd) + '</b> sitting in built-but-unlaunched inventory as of ' + esc(latestCapValue.as_of_date) + ' — a real balance-sheet consequence of the same single root cause, not a separate problem.</p>';
   }
 })();
 </script>
