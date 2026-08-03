@@ -28,6 +28,7 @@
     --c-accent:145 132 217; --c-accent2:167 161 219;
     --c-text-primary:233 233 237; --c-text-secondary:147 151 171; --c-text-tertiary:178 182 202; --c-text-code:210 206 253;
     --c-success:114 191 142; --c-warning:223 175 80; --c-danger:235 129 127; --c-line:145 132 217;
+    --c-chart-1:181 171 252; --c-chart-3:107 94 170; --c-chart-muted:117 121 140; --c-grid:43 46 60;
 
     /* ---- Nocturne spacing/radius/shadow scale -- same handoff source as the
        color tokens above. No light/dark variants: these don't change by theme,
@@ -47,6 +48,7 @@
       --c-accent:99 84 165; --c-accent2:112 105 159;
       --c-text-primary:41 43 49; --c-text-secondary:117 121 140; --c-text-tertiary:143 147 163; --c-text-code:77 61 140;
       --c-success:43 122 77; --c-warning:149 104 0; --c-danger:177 78 78; --c-line:99 84 165;
+      --c-chart-1:74 63 122; --c-chart-3:141 130 187; --c-chart-muted:86 90 107; --c-grid:219 223 238;
     }
   }
   :root[data-theme="dark"]{
@@ -54,12 +56,14 @@
     --c-accent:145 132 217; --c-accent2:167 161 219;
     --c-text-primary:233 233 237; --c-text-secondary:147 151 171; --c-text-tertiary:178 182 202; --c-text-code:210 206 253;
     --c-success:114 191 142; --c-warning:223 175 80; --c-danger:235 129 127; --c-line:145 132 217;
+    --c-chart-1:181 171 252; --c-chart-3:107 94 170; --c-chart-muted:117 121 140; --c-grid:43 46 60;
   }
   :root[data-theme="light"]{
     --c-bg-primary:243 245 254; --c-bg-card:255 255 255; --c-bg-card2:228 231 245;
     --c-accent:99 84 165; --c-accent2:112 105 159;
     --c-text-primary:41 43 49; --c-text-secondary:117 121 140; --c-text-tertiary:143 147 163; --c-text-code:77 61 140;
     --c-success:43 122 77; --c-warning:149 104 0; --c-danger:177 78 78; --c-line:99 84 165;
+    --c-chart-1:74 63 122; --c-chart-3:141 130 187; --c-chart-muted:86 90 107; --c-grid:219 223 238;
   }
   *{box-sizing:border-box}
   html{scroll-behavior:smooth}
@@ -129,8 +133,8 @@
     background:rgb(var(--c-bg-card)); box-shadow:var(--c-shadow-sm);
     border-radius:var(--c-radius-lg); padding:var(--c-space-8);
   }
-  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:var(--c-space-6)}
-  .grid3{display:grid; grid-template-columns:repeat(3,1fr); gap:var(--c-space-6)}
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+  .grid3{display:grid; grid-template-columns:repeat(3,1fr); gap:14px}
   @media (max-width:720px){ .grid2,.grid3{grid-template-columns:1fr} }
 
   .status{display:inline-flex; align-items:center; gap:var(--c-space-2); font:700 12px/1 ui-monospace,Menlo,monospace; padding:3px 10px; border-radius:99px}
@@ -447,10 +451,76 @@
      second axis. Legend required whenever a chart has >=2 series. */
   .chartbox{margin:var(--c-space-6) 0}
   .chartbox svg{width:100%; height:auto; display:block}
+
+  /* ---- chart interaction layer. The .infoicon tooltip above is click-to-toggle
+     because an info icon has no meaning until you ask for it; a chart mark is the
+     opposite -- you want the value the moment you point at it. So this is its own
+     hover/focus tooltip that borrows .infopop's look but not its logic. */
+  .chart-tip{
+    display:none; position:fixed; z-index:22; max-width:260px; pointer-events:none;
+    padding:var(--c-space-3) var(--c-space-4); border-radius:var(--c-radius-md);
+    background:rgb(var(--c-bg-card2)); border:1px solid rgb(var(--c-accent) / .4);
+    font-size:12.5px; line-height:1.45; color:rgb(var(--c-text-primary));
+    box-shadow:0 6px 18px rgb(0 0 0 / .35);
+  }
+  .chart-tip.show{display:block}
+  .chart-tip .ct-cat{color:rgb(var(--c-text-secondary)); font-size:11px; letter-spacing:.04em; text-transform:uppercase}
+  .chart-tip .ct-row{display:flex; align-items:baseline; justify-content:space-between; gap:var(--c-space-6); margin-top:var(--c-space-1)}
+  .chart-tip .ct-row .ct-name{display:inline-flex; align-items:center; gap:var(--c-space-2); color:rgb(var(--c-text-secondary))}
+  .chart-tip .ct-row .ct-sw{width:8px; height:8px; border-radius:99px; flex-shrink:0}
+  .chart-tip .ct-row b{font-variant-numeric:tabular-nums}
+  .chart-tip .ct-row.is-active b{color:rgb(var(--c-accent))}
+
+  /* The chart container is the single tab stop for its marks. */
+  .chartbox{border-radius:var(--c-radius-md)}
+  .chartbox:focus{outline:none}
+  .chartbox:focus-visible{outline:2px solid rgb(var(--c-accent)); outline-offset:4px}
+  .chartbox [data-val]{cursor:default; transition:opacity .12s ease}
+  /* While arrow-stepping, everything except the current mark recedes. */
+  .chartbox [data-val].mark-dim{opacity:.28}
+
+  .crosshair{pointer-events:none}
+  .crosshair line{stroke:rgb(var(--c-text-secondary)); stroke-opacity:.5; stroke-dasharray:3 3}
+  .crosshair circle{fill:rgb(var(--c-bg-primary)); stroke-width:2.6}
+
+  /* Annotation pins: a numbered dot on the chart that reveals authored interpretation. */
+  .annot-pin{cursor:pointer}
+  .annot-pin circle{fill:rgb(var(--c-bg-primary)); stroke:rgb(var(--c-accent)); stroke-width:1.6}
+  .annot-pin text{fill:rgb(var(--c-accent)); font:600 9px -apple-system,sans-serif}
+  .annot-pin:hover circle, .annot-pin:focus-visible circle{fill:rgb(var(--c-accent))}
+  .annot-pin:hover text, .annot-pin:focus-visible text{fill:rgb(var(--c-bg-primary))}
+  .annot-pin:focus{outline:none}
+  .annot-pin:focus-visible circle{stroke-width:2.4}
+
+  /* Per-chart controls + generated table view (the accessible equal of the picture). */
+  .chart-tools{display:flex; align-items:center; gap:var(--c-space-4); margin-top:var(--c-space-2); flex-wrap:wrap}
+  .chart-toolbtn{
+    background:none; border:1px solid rgb(var(--c-text-secondary) / .35); color:rgb(var(--c-text-secondary));
+    border-radius:var(--c-radius-sm); padding:var(--c-space-1) var(--c-space-3);
+    font:500 11px -apple-system,sans-serif; cursor:pointer;
+  }
+  .chart-toolbtn:hover{border-color:rgb(var(--c-accent)); color:rgb(var(--c-accent))}
+  .chart-toolbtn[aria-expanded="true"]{border-color:rgb(var(--c-accent)); color:rgb(var(--c-accent))}
+  .chart-hint{font-size:11px; color:rgb(var(--c-text-secondary))}
+  .chart-table-wrap{display:none; margin-top:var(--c-space-4); max-height:320px; overflow:auto}
+  .chart-table-wrap.show{display:block}
+  .chart-notes{display:none; margin-top:var(--c-space-4)}
+  .chart-notes.show{display:block}
+  .chart-notes ol{margin:0; padding-left:var(--c-space-6); display:grid; gap:var(--c-space-3)}
+  .chart-notes li{font-size:12.5px; line-height:1.55; color:rgb(var(--c-text-tertiary))}
+  .chart-notes li::marker{color:rgb(var(--c-accent)); font-weight:600}
+  .chart-table-wrap table{width:100%; border-collapse:collapse; font-size:12px}
+  .chart-table-wrap th, .chart-table-wrap td{
+    text-align:left; padding:var(--c-space-2) var(--c-space-3);
+    border-bottom:1px solid rgb(var(--c-accent) / .14);
+  }
+  .chart-table-wrap th{color:rgb(var(--c-text-secondary)); font-weight:500; position:sticky; top:0; background:rgb(var(--c-bg-card))}
+  .chart-table-wrap td:last-child{text-align:right; font-variant-numeric:tabular-nums}
+  @media (prefers-reduced-motion: reduce){ .chartbox [data-val]{transition:none} }
   .chart-legend{display:flex; gap:var(--c-space-6); flex-wrap:wrap; font-size:12px; color:rgb(var(--c-text-secondary)); margin-top:var(--c-space-2)}
   .chart-legend span{display:inline-flex; align-items:center; gap:var(--c-space-2)}
   .chart-legend .sw{width:9px; height:9px; border-radius:var(--c-radius-sm); flex-shrink:0}
-  .chart-grid2{display:grid; grid-template-columns:1fr 1fr; gap:var(--c-space-6)}
+  .chart-grid2{display:grid; grid-template-columns:1fr 1fr; gap:14px}
   @media (max-width:720px){ .chart-grid2{grid-template-columns:1fr} }
 
   /* ---- LP application tags -- ties each finding back to the specific Leadership
@@ -512,7 +582,7 @@
       </div>
       <button class="plain-toggle" id="plainToggle" aria-pressed="false" title="Show a plain-language restatement alongside every technical section"><span class="dot"></span>Plain English</button>
       <button class="icobtn" id="glossaryBtn" aria-pressed="false" title="Plain-language definitions for every finance/methodology term this page uses">Glossary</button>
-      <button class="hdr-cta" id="tourBtn" title="12-step guided walkthrough of this page">Walk me through it</button>
+      <button class="hdr-cta" id="tourBtn">Walk me through it</button>
       <a class="icobtn" href="./leo-operations-map.html" title="Interactive relational map of every domain, risk, action, and KPI">🗺 Operations Map</a>
       <a class="icobtn" href="./leo-dbt-docs/" target="_blank" rel="noopener" title="Full dbt lineage graph + column-level docs for all 24 marts">🔗 Data Lineage</a>
       <button class="icobtn" id="focusBtn" aria-pressed="false" title="Show one chapter at a time -- hides the other 3, hero/exec-summary/footer stay visible">🎯 Focus</button>
@@ -652,7 +722,7 @@
       <div class="card">
         <div class="kpi label">OpEx vs. CapEx by year</div>
         <div class="chartbox" id="opexCapexChart"></div>
-        <div class="chart-legend"><span><span class="sw" style="background:rgb(var(--c-accent))"></span>OpEx</span><span><span class="sw" style="background:rgb(var(--c-warning))"></span>CapEx</span></div>
+        <div class="chart-legend"><span><span class="sw" style="background:rgb(var(--c-chart-1))"></span>OpEx</span><span><span class="sw" style="background:rgb(var(--c-chart-3))"></span>CapEx</span></div>
       </div>
       <div class="card">
         <div class="kpi label">Headcount by year</div>
@@ -685,7 +755,7 @@
     <p class="section-sub">Price / volume / scope / timing drivers reconcile exactly to the total variance every quarter — a governance test, not just a display claim. The Q4 bar is a simple <em>client-computed</em> projection (average of Q1–Q3 variance % applied to Q4's budget), not a disclosed number — same "computed live in your browser, not sourced from data" pattern used elsewhere on this page.
     <button class="infoicon" data-tip="The JD's own words: 'monthly close, variance analysis, and forecasting with action-oriented commentary.'">i</button></p>
     <div class="card"><div class="chartbox" id="varianceChart"></div>
-      <div class="chart-legend"><span><span class="sw" style="background:rgb(var(--c-accent))"></span>Budget</span><span><span class="sw" style="background:rgb(var(--c-warning))"></span>Actual</span></div>
+      <div class="chart-legend"><span><span class="sw" style="background:rgb(var(--c-chart-3))"></span>Budget</span><span><span class="sw" style="background:rgb(var(--c-chart-1))"></span>Actual</span></div>
     </div>
     <div class="card table-wrap" style="margin-top:12px"><table id="varianceTable"></table></div>
     <div class="plain plain-gated" id="plainVariance"></div>
@@ -697,7 +767,7 @@
     <p class="section-sub">Plan vs. Forecast vs. Actual cash burn, broken into direct and indirect cost pools across 7 categories and 22 subcategories — the multi-level cost breakdown a Finance Manager would actually walk a program with. The table below also carries Earned Value (EV), CPI, and SPI per subcategory — the same Plan/Actual columns, one more analytical lens, not a second dataset.
     <button class="infoicon" data-tip="Forecast = actual-to-date + (remaining periods x the same run-rate observed so far) -- the identical checkpoint-plus-remaining-times-rate formula already used for the milestone projection above, just applied to cash. EV = Plan x percent_complete, the one new illustrative input feeding CPI/SPI.">i</button></p>
     <div class="card"><div class="chartbox" id="cashflowTrendChart"></div>
-      <div class="chart-legend"><span><span class="sw" style="background:rgb(var(--c-text-secondary))"></span>Plan</span><span><span class="sw" style="background:rgb(var(--c-accent))"></span>Forecast</span><span><span class="sw" style="background:rgb(var(--c-success))"></span>Actual</span></div>
+      <div class="chart-legend"><span><span class="sw" style="background:rgb(var(--c-chart-muted))"></span>Plan</span><span><span class="sw" style="background:rgb(var(--c-warning))"></span>Forecast</span><span><span class="sw" style="background:rgb(var(--c-accent))"></span>Actual</span></div>
     </div>
     <div class="plain plain-gated" id="plainCashflowTrend"></div>
     <div class="table-wrap card" style="margin-top:14px"><table id="cashflowBreakdownTable"></table></div>
@@ -780,7 +850,7 @@
       <div class="card">
         <div class="kpi label">Modeled backlog range vs. actual deployed</div>
         <div class="chartbox" id="backlogTrendChart"></div>
-        <div class="chart-legend"><span><span class="sw" style="background:rgb(var(--c-success))"></span>Actual deployed</span><span><span class="sw" style="background:rgb(var(--c-warning))"></span>Upper bound</span><span><span class="sw" style="background:rgb(var(--c-accent))"></span>Lower bound</span></div>
+        <div class="chart-legend"><span><span class="sw" style="background:rgb(var(--c-accent))"></span>Actual deployed</span><span><span class="sw" style="background:rgb(var(--c-warning))"></span>Upper bound</span><span><span class="sw" style="background:rgb(var(--c-chart-muted))"></span>Lower bound</span></div>
       </div>
     </div>
     <div class="plain plain-gated" id="plainEfficiencyTrend"></div>
@@ -917,6 +987,7 @@
 </div>
 
 <div class="infopop" id="infoPop"></div>
+<div class="chart-tip" id="chartTip" role="status" aria-live="polite"></div>
 
 <div class="pin-tray" id="pinTray">
   <div class="pin-tray-in">
@@ -1202,9 +1273,337 @@
     });
   })();
 
+  // ---- chart interaction layer -------------------------------------------------
+  // Everything here reads the per-mark data-cat/data-series/data-val contract written
+  // by markAttrs(). No chart hands its data over twice, so the tooltip, the keyboard
+  // readout and the table view can never disagree with the picture.
+  var chartTip = (function(){
+    var el = document.getElementById("chartTip");
+    var shownFor = null;
+    function place(rect){
+      el.classList.add("show");
+      var w = el.offsetWidth, h = el.offsetHeight;
+      var left = Math.min(Math.max(8, rect.left + rect.width/2 - w/2), window.innerWidth - w - 8);
+      // flip above the mark when there isn't room below it
+      var top = rect.bottom + 10;
+      if (top + h > window.innerHeight - 8) top = Math.max(8, rect.top - h - 10);
+      el.style.left = left + "px";
+      el.style.top = top + "px";
+    }
+    return {
+      // rows: [{name, value, color, active}]
+      show: function(anchor, cat, rows){
+        if (shownFor === anchor && el.classList.contains("show")) { place(anchor.getBoundingClientRect()); return; }
+        shownFor = anchor;
+        var html = '<div class="ct-cat">' + esc(String(cat)) + '</div>';
+        rows.forEach(function(r){
+          html += '<div class="ct-row' + (r.active ? ' is-active' : '') + '"><span class="ct-name">' +
+            (r.color ? '<span class="ct-sw" style="background:' + r.color + '"></span>' : '') +
+            esc(r.name || '') + '</span><b>' + esc(String(r.value)) + '</b></div>';
+        });
+        el.innerHTML = html;
+        place(anchor.getBoundingClientRect());
+      },
+      hide: function(){ el.classList.remove("show"); shownFor = null; }
+    };
+  })();
+
+  function markRows(mark){
+    return [{ name: mark.getAttribute("data-series") || "Value",
+              value: mark.getAttribute("data-val"),
+              color: markColor(mark), active: true }];
+  }
+  function markColor(mark){
+    var cs = getComputedStyle(mark);
+    // bars are filled, line markers are stroked rings -- the identity colour is
+    // whichever of the two is actually the series colour.
+    return mark.tagName === "circle" ? cs.stroke : cs.fill;
+  }
+
+  (function bindChartTip(){
+    // Delegated, so it keeps working across every innerHTML re-render.
+    document.addEventListener("pointerover", function(e){
+      var m = e.target.closest && e.target.closest(".chartbox [data-val]");
+      if (m) chartTip.show(m, m.getAttribute("data-cat"), markRows(m));
+    });
+    document.addEventListener("pointerout", function(e){
+      var m = e.target.closest && e.target.closest(".chartbox [data-val]");
+      if (m && !m.contains(e.relatedTarget)) chartTip.hide();
+    });
+    function onFocusIn(e){
+      var m = e.target.closest && e.target.closest(".chartbox [data-val]");
+      if (m) chartTip.show(m, m.getAttribute("data-cat"), markRows(m));
+    }
+    function onFocusOut(e){
+      if (e.target.closest && e.target.closest(".chartbox [data-val]")) chartTip.hide();
+    }
+    document.addEventListener("focusin", onFocusIn);
+    document.addEventListener("focusout", onFocusOut);
+    document.addEventListener("keydown", function(e){ if (e.key === "Escape") chartTip.hide(); });
+    window.addEventListener("scroll", function(){ chartTip.hide(); }, { passive: true });
+  })();
+
+  // Builds the table view straight off the marks, so it is the same data by
+  // construction rather than a hand-maintained second copy.
+  function tableFromMarks(marks){
+    var hasSeries = marks.some(function(m){ return m.getAttribute("data-series"); });
+    var head = '<tr><th scope="col">Category</th>' + (hasSeries ? '<th scope="col">Series</th>' : '') +
+               '<th scope="col">Value</th></tr>';
+    var body = marks.map(function(m){
+      return '<tr><td>' + esc(m.getAttribute("data-cat")) + '</td>' +
+             (hasSeries ? '<td>' + esc(m.getAttribute("data-series") || "") + '</td>' : '') +
+             '<td>' + esc(m.getAttribute("data-val")) + '</td></tr>';
+    }).join("");
+    return '<table><thead>' + head + '</thead><tbody>' + body + '</tbody></table>';
+  }
+
+  // On a line chart the useful unit is the x position, not the individual mark: at
+  // 2026-Q2 you want Plan AND Forecast AND Actual, not whichever dot you happened to
+  // hit. So line charts get a hit layer that snaps to the nearest x and reads out
+  // every series there at once.
+  function wireCrosshair(box, svgEl, marks){
+    if (svgEl.getAttribute("data-chart-kind") !== "line") return null;
+    var hit = svgEl.querySelector(".hit-layer");
+    var gCross = svgEl.querySelector(".crosshair");
+    if (!hit || !gCross) return null;
+
+    var top = parseFloat(svgEl.getAttribute("data-plot-top"));
+    var bottom = parseFloat(svgEl.getAttribute("data-plot-bottom"));
+
+    // group marks by their x position in user units
+    var byX = [];
+    marks.forEach(function(m){
+      var xu = parseFloat(m.getAttribute("data-px"));
+      if (isNaN(xu)) return;
+      var slot = byX.filter(function(s){ return Math.abs(s.x - xu) < 0.5; })[0];
+      if (!slot){ slot = { x: xu, marks: [] }; byX.push(slot); }
+      slot.marks.push(m);
+    });
+    if (!byX.length) return null;
+    byX.sort(function(a,b){ return a.x - b.x; });
+
+    var active = null;
+    function draw(slot){
+      active = slot;
+      var parts = '<line x1="'+slot.x+'" y1="'+top+'" x2="'+slot.x+'" y2="'+bottom+'" />';
+      slot.marks.forEach(function(m){
+        parts += '<circle cx="'+m.getAttribute("cx")+'" cy="'+m.getAttribute("cy")+'" r="5.2" style="stroke:'+
+          markColor(m)+'" />';
+      });
+      gCross.innerHTML = parts;
+      marks.forEach(function(m){ m.classList.toggle("mark-dim", slot.marks.indexOf(m) < 0); });
+      chartTip.show(slot.marks[0], slot.marks[0].getAttribute("data-cat"),
+        slot.marks.map(function(m){
+          return { name: m.getAttribute("data-series") || "Value", value: m.getAttribute("data-val"),
+                   color: markColor(m), active: true };
+        }));
+    }
+    function clear(){
+      active = null; gCross.innerHTML = "";
+      marks.forEach(function(m){ m.classList.remove("mark-dim"); });
+      chartTip.hide();
+    }
+    function nearestTo(clientX){
+      var r = svgEl.getBoundingClientRect();
+      var vb = svgEl.viewBox.baseVal;
+      var xu = (clientX - r.left) / r.width * vb.width;
+      return byX.reduce(function(best, s){
+        return Math.abs(s.x - xu) < Math.abs(best.x - xu) ? s : best;
+      }, byX[0]);
+    }
+    hit.addEventListener("pointermove", function(e){
+      var slot = nearestTo(e.clientX);
+      if (slot !== active) draw(slot);
+      else chartTip.show(slot.marks[0], slot.marks[0].getAttribute("data-cat"),
+        slot.marks.map(function(m){
+          return { name: m.getAttribute("data-series") || "Value", value: m.getAttribute("data-val"),
+                   color: markColor(m), active: true };
+        }));
+    });
+    hit.addEventListener("pointerleave", clear);
+    return {
+      showAtCat: function(cat){
+        var slot = byX.filter(function(s){
+          return s.marks.some(function(m){ return m.getAttribute("data-cat") === cat; });
+        })[0];
+        if (slot) draw(slot);
+      },
+      clear: clear
+    };
+  }
+
+  // Authored interpretation pinned to the exact mark it is about. Populated in
+  // render() so every number inside a note comes from the same dbt payload the
+  // chart itself was drawn from -- a note may interpret, it may never assert a
+  // figure the page cannot source.
+  var chartAnnotations = {};
+
+  function placeAnnotations(box, svgEl, marks){
+    svgEl.querySelectorAll(".annot-pin").forEach(function(el){ el.remove(); });
+    var notes = chartAnnotations[box.id];
+    if (!notes || !notes.length) return [];
+    var placed = [];
+    notes.forEach(function(note, i){
+      var m = marks.filter(function(mk){
+        return mk.getAttribute("data-cat") === note.cat &&
+               (!note.series || mk.getAttribute("data-series") === note.series);
+      })[0];
+      if (!m) return;
+      var cx, cy;
+      if (m.tagName === "circle"){
+        cx = parseFloat(m.getAttribute("cx")); cy = parseFloat(m.getAttribute("cy"));
+      } else {
+        cx = parseFloat(m.getAttribute("x")) + parseFloat(m.getAttribute("width"))/2;
+        cy = parseFloat(m.getAttribute("y"));
+      }
+      var n = placed.length + 1;
+      var g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      g.setAttribute("class", "annot-pin");
+      g.innerHTML = '<circle cx="' + cx + '" cy="' + (cy - 14) + '" r="7.5" />' +
+                    '<text x="' + cx + '" y="' + (cy - 11) + '" text-anchor="middle">' + n + '</text>';
+      g.addEventListener("pointerover", function(){ chartTip.show(g, "Note " + n, [{ name: "", value: note.text }]); });
+      g.addEventListener("pointerout", function(){ chartTip.hide(); });
+      svgEl.appendChild(g);
+      placed.push(note);
+    });
+    return placed;
+  }
+
+  var chartSeq = 0;
+  function enhanceChart(box){
+    var svgEl = box.querySelector("svg");
+    if (!svgEl) return;
+    var marks = [].slice.call(box.querySelectorAll("[data-val]"));
+    if (!marks.length) return;
+
+    // Re-enhancing after a re-render must not stack duplicate tools.
+    var prev = box.parentElement.querySelector('[data-chart-tools-for="' + box.id + '"]');
+    if (prev) prev.remove();
+    var prevTable = box.parentElement.querySelector('[data-chart-table-for="' + box.id + '"]');
+    if (prevTable) prevTable.remove();
+    var prevNotes = box.parentElement.querySelector('[data-chart-notes-for="' + box.id + '"]');
+    if (prevNotes) prevNotes.remove();
+
+    if (!box.id) box.id = "chart-" + (++chartSeq);
+    var tableId = box.id + "-table";
+
+    svgEl.setAttribute("role", "img");
+    svgEl.setAttribute("aria-hidden", "true");
+
+    // One tab stop per chart, then arrow keys walk the marks. Focus events never fire
+    // on SVG shapes, so the focusable thing has to be this HTML container.
+    box.setAttribute("tabindex", "0");
+    box.setAttribute("role", "application");
+    // Nearest heading wins: some charts sit in a card with its own h3, others take
+    // their name from the enclosing section's h2.
+    var heading = null;
+    for (var scope = box; scope && !heading; scope = scope.parentElement){
+      heading = scope.querySelector ? scope.querySelector("h2, h3") : null;
+      if (scope.classList && scope.classList.contains("section")) break;
+    }
+    var chartName = (heading ? heading.textContent.trim().replace(/\s+/g, " ") : "Chart").slice(0, 80);
+    box.setAttribute("aria-label", chartName + ", " + marks.length +
+      " data points. Press the left and right arrow keys to read each value.");
+
+    var cursor = -1, cross = null;
+    function setCursor(i){
+      if (!marks.length) return;
+      cursor = (i + marks.length) % marks.length;
+      var m = marks[cursor];
+      if (cross){ cross.showAtCat(m.getAttribute("data-cat")); return; }
+      marks.forEach(function(mk, j){ mk.classList.toggle("mark-dim", j !== cursor); });
+      chartTip.show(m, m.getAttribute("data-cat"), markRows(m));
+    }
+    function clearCursor(){
+      cursor = -1;
+      marks.forEach(function(m){ m.classList.remove("mark-dim"); });
+      if (cross) cross.clear();
+      chartTip.hide();
+    }
+    box.addEventListener("keydown", function(e){
+      if (e.key === "ArrowRight" || e.key === "ArrowDown"){ e.preventDefault(); setCursor(cursor + 1); }
+      else if (e.key === "ArrowLeft" || e.key === "ArrowUp"){ e.preventDefault(); setCursor(cursor - 1); }
+      else if (e.key === "Home"){ e.preventDefault(); setCursor(0); }
+      else if (e.key === "End"){ e.preventDefault(); setCursor(marks.length - 1); }
+      else if (e.key === "Escape"){ clearCursor(); }
+    });
+    box.addEventListener("blur", clearCursor);
+
+    cross = wireCrosshair(box, svgEl, marks);
+    var notes = placeAnnotations(box, svgEl, marks);
+    var notesId = box.id + "-notes";
+
+    var tools = document.createElement("div");
+    tools.className = "chart-tools";
+    tools.setAttribute("data-chart-tools-for", box.id);
+    tools.innerHTML =
+      '<button type="button" class="chart-toolbtn" aria-expanded="false" aria-controls="' + tableId + '">Show as table</button>' +
+      (notes.length ? '<button type="button" class="chart-toolbtn" data-notes-btn aria-expanded="false" aria-controls="' +
+        notesId + '">Read the ' + notes.length + ' note' + (notes.length > 1 ? 's' : '') + '</button>' : '') +
+      '<span class="chart-hint">Hover a mark, or focus the chart and use \u2190 \u2192, for exact values</span>';
+
+    var wrap = document.createElement("div");
+    wrap.className = "chart-table-wrap";
+    wrap.id = tableId;
+    wrap.setAttribute("data-chart-table-for", box.id);
+    wrap.innerHTML = tableFromMarks(marks);
+
+    box.insertAdjacentElement("afterend", wrap);
+
+    // The pins are a pointer affordance; this list is their keyboard/screen-reader
+    // equal, so the interpretation is never hover-only.
+    var notesEl = null;
+    if (notes.length){
+      notesEl = document.createElement("div");
+      notesEl.className = "chart-notes";
+      notesEl.id = notesId;
+      notesEl.setAttribute("data-chart-notes-for", box.id);
+      notesEl.innerHTML = "<ol>" + notes.map(function(nt){
+        return "<li>" + esc(nt.text) + "</li>";
+      }).join("") + "</ol>";
+      box.insertAdjacentElement("afterend", notesEl);
+    }
+    box.insertAdjacentElement("afterend", tools);
+
+    var btn = tools.querySelector("button");
+    btn.addEventListener("click", function(){
+      var open = wrap.classList.toggle("show");
+      btn.setAttribute("aria-expanded", open ? "true" : "false");
+      btn.textContent = open ? "Hide table" : "Show as table";
+    });
+    var nbtn = tools.querySelector("[data-notes-btn]");
+    if (nbtn && notesEl){
+      nbtn.addEventListener("click", function(){
+        var open = notesEl.classList.toggle("show");
+        nbtn.setAttribute("aria-expanded", open ? "true" : "false");
+      });
+    }
+  }
+  function enhanceAllCharts(){
+    document.querySelectorAll(".chartbox").forEach(enhanceChart);
+  }
+  var enhanceTimers = {};
+  function scheduleEnhance(box){
+    if (!box) return;
+    var key = box.id || "anon";
+    clearTimeout(enhanceTimers[key]);
+    enhanceTimers[key] = setTimeout(function(){ enhanceChart(box); }, 120);
+  }
+
   // ---- chart helpers: plain inline SVG, no library. Each chart is one axis --
   // different-scale measures always get separate small-multiple charts (svgVBars +
   // svgVBars again, e.g.), never a second y-axis on one chart.
+  // Every data mark carries its own label/value so the tooltip, the keyboard
+  // readout and the generated table view can all be derived from the DOM itself --
+  // no chart helper has to hand a second copy of its data to the enhancer.
+  function markAttrs(cat, series, val){
+    var label = (series ? series + " \u00b7 " : "") + cat + ": " + val;
+    return ' role="img" aria-label="' + esc(label) + '"' +
+           ' data-cat="' + esc(String(cat)) + '"' +
+           (series ? ' data-series="' + esc(String(series)) + '"' : '') +
+           ' data-val="' + esc(String(val)) + '"';
+  }
+
   function niceMax(v){
     if (v <= 0) return 1;
     var mag = Math.pow(10, Math.floor(Math.log10(v)));
@@ -1213,7 +1612,7 @@
     return step * mag;
   }
 
-  function svgVBars(categories, values, color, fmtFn){
+  function svgVBars(categories, values, color, fmtFn, seriesName){
     var w=640,h=200,padL=44,padB=26,padT=10,padR=10;
     var innerW=w-padL-padR, innerH=h-padT-padB;
     var maxV = niceMax(Math.max.apply(null, values));
@@ -1221,20 +1620,20 @@
     var svg = '<svg viewBox="0 0 '+w+' '+h+'" xmlns="http://www.w3.org/2000/svg">';
     [0,0.5,1].forEach(function(f){
       var y = padT + innerH*(1-f);
-      svg += '<line x1="'+padL+'" y1="'+y+'" x2="'+(w-padR)+'" y2="'+y+'" stroke="currentColor" stroke-opacity="0.10" />';
-      svg += '<text x="'+(padL-6)+'" y="'+(y+4)+'" text-anchor="end" font-size="10" fill="currentColor" fill-opacity="0.6">'+fmtFn(maxV*f)+'</text>';
+      svg += '<line x1="'+padL+'" y1="'+y+'" x2="'+(w-padR)+'" y2="'+y+'" style="stroke:rgb(var(--c-grid))" />';
+      svg += '<text x="'+(padL-6)+'" y="'+(y+4)+'" text-anchor="end" font-size="10" style="fill:rgb(var(--c-chart-muted))">'+fmtFn(maxV*f)+'</text>';
     });
     categories.forEach(function(cat,i){
       var bh = (values[i]/maxV)*innerH;
       var x = padL + i*groupW + (groupW-barW)/2;
-      svg += '<rect x="'+x+'" y="'+(padT+innerH-bh)+'" width="'+barW+'" height="'+bh+'" rx="3" style="fill:'+color+'"><title>'+esc(String(cat))+': '+fmtFn(values[i])+'</title></rect>';
-      svg += '<text x="'+(x+barW/2)+'" y="'+(h-8)+'" text-anchor="middle" font-size="10" fill="currentColor" fill-opacity="0.7">'+esc(String(cat))+'</text>';
+      svg += '<rect x="'+x+'" y="'+(padT+innerH-bh)+'" width="'+barW+'" height="'+bh+'" rx="2" style="fill:'+color+'"'+markAttrs(cat, seriesName, fmtFn(values[i]))+'></rect>';
+      svg += '<text x="'+(x+barW/2)+'" y="'+(h-8)+'" text-anchor="middle" font-size="11" font-weight="500" style="fill:rgb(var(--c-text-secondary))">'+esc(String(cat))+'</text>';
     });
     svg += '</svg>';
     return svg;
   }
 
-  function svgGroupedBars(categories, seriesA, seriesB, colorA, colorB, fmtFn){
+  function svgGroupedBars(categories, seriesA, seriesB, colorA, colorB, fmtFn, nameA, nameB){
     var w=640,h=220,padL=44,padB=26,padT=10,padR=10;
     var innerW=w-padL-padR, innerH=h-padT-padB;
     var maxV = niceMax(Math.max.apply(null, seriesA.concat(seriesB)));
@@ -1242,22 +1641,22 @@
     var svg = '<svg viewBox="0 0 '+w+' '+h+'" xmlns="http://www.w3.org/2000/svg">';
     [0,0.5,1].forEach(function(f){
       var y = padT + innerH*(1-f);
-      svg += '<line x1="'+padL+'" y1="'+y+'" x2="'+(w-padR)+'" y2="'+y+'" stroke="currentColor" stroke-opacity="0.10" />';
-      svg += '<text x="'+(padL-6)+'" y="'+(y+4)+'" text-anchor="end" font-size="10" fill="currentColor" fill-opacity="0.6">'+fmtFn(maxV*f)+'</text>';
+      svg += '<line x1="'+padL+'" y1="'+y+'" x2="'+(w-padR)+'" y2="'+y+'" style="stroke:rgb(var(--c-grid))" />';
+      svg += '<text x="'+(padL-6)+'" y="'+(y+4)+'" text-anchor="end" font-size="10" style="fill:rgb(var(--c-chart-muted))">'+fmtFn(maxV*f)+'</text>';
     });
     categories.forEach(function(cat,i){
       var gx = padL + i*groupW;
       var aH = (seriesA[i]/maxV)*innerH, bH = (seriesB[i]/maxV)*innerH;
       var ax = gx + groupW*0.12, bx = gx + groupW*0.56;
-      svg += '<rect x="'+ax+'" y="'+(padT+innerH-aH)+'" width="'+barW+'" height="'+aH+'" rx="3" style="fill:'+colorA+'"><title>'+esc(String(cat))+': '+fmtFn(seriesA[i])+'</title></rect>';
-      svg += '<rect x="'+bx+'" y="'+(padT+innerH-bH)+'" width="'+barW+'" height="'+bH+'" rx="3" style="fill:'+colorB+'"><title>'+esc(String(cat))+': '+fmtFn(seriesB[i])+'</title></rect>';
-      svg += '<text x="'+(gx+groupW/2)+'" y="'+(h-8)+'" text-anchor="middle" font-size="10" fill="currentColor" fill-opacity="0.7">'+esc(String(cat))+'</text>';
+      svg += '<rect x="'+ax+'" y="'+(padT+innerH-aH)+'" width="'+barW+'" height="'+aH+'" rx="2" style="fill:'+colorA+'"'+markAttrs(cat, nameA, fmtFn(seriesA[i]))+'></rect>';
+      svg += '<rect x="'+bx+'" y="'+(padT+innerH-bH)+'" width="'+barW+'" height="'+bH+'" rx="2" style="fill:'+colorB+'"'+markAttrs(cat, nameB, fmtFn(seriesB[i]))+'></rect>';
+      svg += '<text x="'+(gx+groupW/2)+'" y="'+(h-8)+'" text-anchor="middle" font-size="11" font-weight="500" style="fill:rgb(var(--c-text-secondary))">'+esc(String(cat))+'</text>';
     });
     svg += '</svg>';
     return svg;
   }
 
-  function svgHBars(labels, values, color, fmtFn){
+  function svgHBars(labels, values, color, fmtFn, seriesName){
     var w=640, rowH=42, padL=10, padT=8;
     var n = labels.length, h = padT*2 + rowH*n, innerW = w - 20;
     var maxV = niceMax(Math.max.apply(null, values));
@@ -1266,7 +1665,7 @@
       var y = padT + i*rowH;
       var barLen = Math.max(2,(values[i]/maxV)*innerW*0.55);
       svg += '<text x="'+padL+'" y="'+(y+11)+'" font-size="11" fill="currentColor">'+esc(lab)+'</text>';
-      svg += '<rect x="'+padL+'" y="'+(y+16)+'" width="'+barLen+'" height="14" rx="3" style="fill:'+color+'"><title>'+esc(lab)+': '+fmtFn(values[i])+'</title></rect>';
+      svg += '<rect x="'+padL+'" y="'+(y+16)+'" width="'+barLen+'" height="14" rx="2" style="fill:'+color+'"'+markAttrs(lab, seriesName, fmtFn(values[i]))+'></rect>';
       svg += '<text x="'+(padL+barLen+8)+'" y="'+(y+27)+'" font-size="11" font-weight="700" style="fill:'+color+'">'+fmtFn(values[i])+'</text>';
     });
     svg += '</svg>';
@@ -1286,11 +1685,11 @@
       segmentsPerCat[i].forEach(function(val, si){
         var segH = (val/maxV)*innerH;
         if (val > 0){
-          svg += '<rect x="'+gx+'" y="'+(yCursor-segH)+'" width="'+barW+'" height="'+segH+'" style="fill:'+colors[si]+'"><title>'+esc(String(cat))+' '+esc(labels[si])+': '+val+'</title></rect>';
+          svg += '<rect x="'+gx+'" y="'+(yCursor-segH)+'" width="'+barW+'" height="'+segH+'" rx="2" style="fill:'+colors[si]+'"'+markAttrs(cat, labels[si], val)+'></rect>';
         }
         yCursor -= segH;
       });
-      svg += '<text x="'+(gx+barW/2)+'" y="'+(h-8)+'" text-anchor="middle" font-size="10" fill="currentColor" fill-opacity="0.7">'+esc(String(cat))+'</text>';
+      svg += '<text x="'+(gx+barW/2)+'" y="'+(h-8)+'" text-anchor="middle" font-size="11" font-weight="500" style="fill:rgb(var(--c-text-secondary))">'+esc(String(cat))+'</text>';
     });
     svg += '</svg>';
     return svg;
@@ -1320,21 +1719,17 @@
     var n = bars.length, groupW = innerW / n, barW = groupW * 0.5;
     var zeroY = py(0);
     var svg = '<svg viewBox="0 0 '+w+' '+h+'" xmlns="http://www.w3.org/2000/svg">';
-    svg += '<line x1="'+padL+'" y1="'+zeroY+'" x2="'+(w-padR)+'" y2="'+zeroY+'" stroke="currentColor" stroke-opacity="0.2" stroke-dasharray="2 2" />';
+    svg += '<line x1="'+padL+'" y1="'+zeroY+'" x2="'+(w-padR)+'" y2="'+zeroY+'" style="stroke:rgb(var(--c-chart-muted) / .75)" stroke-width="1.5" />';
     bars.forEach(function(b,i){
       var x = padL + i*groupW + (groupW-barW)/2;
       var top = py(Math.max(b.from,b.to)), bottom = py(Math.min(b.from,b.to));
       var barH = Math.max(2, bottom-top);
       var color = b.kind === 'total' ? 'rgb(var(--c-accent))' : (b.display < 0 ? 'rgb(var(--c-danger))' : 'rgb(var(--c-success))');
-      svg += '<rect x="'+x+'" y="'+top+'" width="'+barW+'" height="'+barH+'" rx="3" style="fill:'+color+'"><title>'+esc(b.label)+': '+fmtFn(b.display)+'</title></rect>';
-      if (i < bars.length-1){
-        var nx = padL + (i+1)*groupW + (groupW-barW)/2;
-        svg += '<line x1="'+(x+barW)+'" y1="'+py(b.to)+'" x2="'+nx+'" y2="'+py(b.to)+'" stroke="currentColor" stroke-opacity="0.25" stroke-dasharray="3 2" />';
-      }
-      svg += '<text x="'+(x+barW/2)+'" y="'+(h-8)+'" text-anchor="middle" font-size="10" fill="currentColor" fill-opacity="0.7">'+esc(b.label)+'</text>';
+      svg += '<rect x="'+x+'" y="'+top+'" width="'+barW+'" height="'+barH+'" rx="2" style="fill:'+color+'"'+markAttrs(b.label, b.kind === 'total' ? 'Running total' : 'Change', fmtFn(b.display))+'></rect>';
+      svg += '<text x="'+(x+barW/2)+'" y="'+(h-8)+'" text-anchor="middle" font-size="10.5" style="fill:rgb(var(--c-text-secondary))">'+esc(b.label)+'</text>';
       var labelAbove = b.to >= b.from;
       var valueY = labelAbove ? top-6 : bottom+14;
-      svg += '<text x="'+(x+barW/2)+'" y="'+valueY+'" text-anchor="middle" font-size="10" font-weight="700" fill="currentColor">'+fmtFn(b.display)+'</text>';
+      svg += '<text x="'+(x+barW/2)+'" y="'+valueY+'" text-anchor="middle" font-size="11" font-weight="500" style="fill:rgb(var(--c-text-primary))">'+fmtFn(b.display)+'</text>';
     });
     svg += '</svg>';
     return svg;
@@ -1346,11 +1741,17 @@
     var xMin=opts.xDomain[0], xMax=opts.xDomain[1], yMin=opts.yDomain[0], yMax=opts.yDomain[1];
     function px(x){ return padL + (x-xMin)/(xMax-xMin)*innerW; }
     function py(y){ return padT + (1-(y-yMin)/(yMax-yMin))*innerH; }
-    var svg = '<svg viewBox="0 0 '+w+' '+h+'" xmlns="http://www.w3.org/2000/svg">';
+    function ptCat(p){
+      if (p.cat != null) return p.cat;
+      var tick = (opts.xTicks||[]).filter(function(t){ return t.x === p.x; })[0];
+      return tick ? tick.label : p.x;
+    }
+    var svg = '<svg viewBox="0 0 '+w+' '+h+'" xmlns="http://www.w3.org/2000/svg"' +
+      ' data-chart-kind="line" data-plot-top="'+padT+'" data-plot-bottom="'+(padT+innerH)+'">';
     [0,0.25,0.5,0.75,1].forEach(function(f){
       var y = padT + innerH*(1-f);
-      svg += '<line x1="'+padL+'" y1="'+y+'" x2="'+(w-padR)+'" y2="'+y+'" stroke="currentColor" stroke-opacity="0.10" />';
-      svg += '<text x="'+(padL-8)+'" y="'+(y+4)+'" text-anchor="end" font-size="10" fill="currentColor" fill-opacity="0.6">'+opts.yTickFmt(yMin+(yMax-yMin)*f)+'</text>';
+      svg += '<line x1="'+padL+'" y1="'+y+'" x2="'+(w-padR)+'" y2="'+y+'" style="stroke:rgb(var(--c-grid))" />';
+      svg += '<text x="'+(padL-8)+'" y="'+(y+4)+'" text-anchor="end" font-size="10" style="fill:rgb(var(--c-chart-muted))">'+opts.yTickFmt(yMin+(yMax-yMin)*f)+'</text>';
     });
     if (opts.targetY != null){
       var ty = py(opts.targetY);
@@ -1359,14 +1760,16 @@
     }
     (opts.series||[]).forEach(function(s){
       var pts = s.points.map(function(p){ return px(p.x)+','+py(p.y); }).join(' ');
-      svg += '<polyline points="'+pts+'" fill="none" style="stroke:'+s.color+'" stroke-width="2.5" stroke-dasharray="'+(s.dashed?'5 4':'0')+'" />';
+      svg += '<polyline points="'+pts+'" fill="none" style="stroke:'+s.color+'" stroke-width="'+(s.emphasis?2.8:2)+'" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="'+(s.dashed?'5 4':'0')+'" />';
       s.points.forEach(function(p){
-        svg += '<circle cx="'+px(p.x)+'" cy="'+py(p.y)+'" r="4" style="fill:'+s.color+'"><title>'+esc(p.label||"")+'</title></circle>';
+        svg += '<circle cx="'+px(p.x)+'" cy="'+py(p.y)+'" r="3.4" style="fill:rgb(var(--c-bg-primary));stroke:'+s.color+'" stroke-width="2.2"'+markAttrs(ptCat(p), s.name || '', opts.yTickFmt(p.y))+' data-px="'+px(p.x)+'"></circle>';
       });
     });
     (opts.xTicks||[]).forEach(function(t){
-      svg += '<text x="'+px(t.x)+'" y="'+(h-10)+'" text-anchor="middle" font-size="10" fill="currentColor" fill-opacity="0.7">'+esc(t.label)+'</text>';
+      svg += '<text x="'+px(t.x)+'" y="'+(h-10)+'" text-anchor="middle" font-size="11" font-weight="500" style="fill:rgb(var(--c-text-secondary))">'+esc(t.label)+'</text>';
     });
+    svg += '<g class="crosshair"></g>';
+    svg += '<rect class="hit-layer" x="'+padL+'" y="'+padT+'" width="'+innerW+'" height="'+innerH+'" fill="transparent" />';
     svg += '</svg>';
     return svg;
   }
@@ -1491,18 +1894,22 @@
         : either ? "one of the two is under 1.0, so the program is off-plan on one dimension but not the other."
         : "both at or above 1.0, so the program is on or ahead of plan on both cost and schedule.");
     return [
-      { id:"heroDivergence", title:"1 · Deployment progress", body:"The divergence chart at the top tracks what could have been built at the factory ceiling vs. what's actually in orbit — the single gap number executives ask for first. It updates live if you change the RATE control in the header." },
-      { id:"milestoneCards", title:"2 · Milestone risk", body:"Whether the current deployment pace clears the next FCC milestone date, and by how much shortfall if it doesn't." },
-      { id:"capacityCard", title:"3 · Launch capacity", body:"How much of the factory's build-and-launch ceiling is actually being used — the constraint that caps every other number on this page." },
-      { id:"costCard", title:"4 · Program cost estimate", body:"The disclosed cost range for the whole program, tagged by source (official disclosure vs. third-party estimate) so you always know how much to trust a figure." },
-      { id:"opexCapexChart", title:"5 · CapEx vs. OpEx mix", body:"How spend splits between capitalized satellites/ground infrastructure and this year's operating cost — moving the line between them changes reported profit without changing cash." },
-      { id:"cashflowBreakdownTable", title:"6 · Cash-flow breakdown", body:"Cost by category and period, with percent-complete per row — the detail underneath the headline cost number." },
-      { id:"evmEacCard", title:"7 · Earned Value Management", body: evmBody },
-      { id:"eacSensitivityChart", title:"8 · EAC sensitivity", body:"Three Estimate-at-Completion scenarios, because each embeds a different belief about whether the current overrun repeats, holds steady, or corrects." },
-      { id:"launchChart", title:"9 · Launch reliability trend", body:"Launch success rate over time — a technical metric with direct financial consequences, since a failed launch is capitalized inventory that never reaches orbit." },
-      { id:"inventoryCard", title:"10 · Unlaunched inventory", body:"Satellites built but not yet in orbit, modelled as a range rather than a false-precision point estimate — capital sitting on the balance sheet until launch." },
-      { id:"riskIndexCard", title:"11 · Program delivery risk index", body:"A single composite score weighting milestone (30%), launch (25%), cost (20%), supplier (15%), and safety (10%) signals — the one number that rolls up everything above it." },
-      { id:"roadmapTable", title:"12 · 90-day roadmap", body:"What a Finance Manager on this program would be accountable for delivering in the next 90 days, tied to the specific gaps this page surfaces." }
+      { id:"heroDivergence", title:"How to read the charts here",
+        body:"Every chart on this page is interrogable. Point at a mark for its exact value; on a trend chart the crosshair reads out all series at once. " +
+             "Focus a chart and use the left and right arrow keys to walk its points. Numbered dots mark places worth pausing on, and each chart can " +
+             "be shown as a plain table. Nothing here is a picture you have to take on trust." },
+      { id:"heroDivergence", title:"Deployment progress", body:"The divergence chart at the top tracks what could have been built at the factory ceiling vs. what's actually in orbit — the single gap number executives ask for first. It updates live if you change the RATE control in the header." },
+      { id:"milestoneCards", title:"Milestone risk", body:"Whether the current deployment pace clears the next FCC milestone date, and by how much shortfall if it doesn't." },
+      { id:"capacityCard", title:"Launch capacity", body:"How much of the factory's build-and-launch ceiling is actually being used — the constraint that caps every other number on this page." },
+      { id:"costCard", title:"Program cost estimate", body:"The disclosed cost range for the whole program, tagged by source (official disclosure vs. third-party estimate) so you always know how much to trust a figure." },
+      { id:"opexCapexChart", title:"CapEx vs. OpEx mix", body:"How spend splits between capitalized satellites/ground infrastructure and this year's operating cost — moving the line between them changes reported profit without changing cash." },
+      { id:"cashflowBreakdownTable", title:"Cash-flow breakdown", body:"Cost by category and period, with percent-complete per row — the detail underneath the headline cost number." },
+      { id:"evmEacCard", title:"Earned Value Management", body: evmBody },
+      { id:"eacSensitivityChart", title:"EAC sensitivity", body:"Three Estimate-at-Completion scenarios, because each embeds a different belief about whether the current overrun repeats, holds steady, or corrects." },
+      { id:"launchChart", title:"Launch reliability trend", body:"Launch success rate over time — a technical metric with direct financial consequences, since a failed launch is capitalized inventory that never reaches orbit." },
+      { id:"inventoryCard", title:"Unlaunched inventory", body:"Satellites built but not yet in orbit, modelled as a range rather than a false-precision point estimate — capital sitting on the balance sheet until launch." },
+      { id:"riskIndexCard", title:"Program delivery risk index", body:"A single composite score weighting milestone (30%), launch (25%), cost (20%), supplier (15%), and safety (10%) signals — the one number that rolls up everything above it." },
+      { id:"roadmapTable", title:"90-day roadmap", body:"What a Finance Manager on this program would be accountable for delivering in the next 90 days, tied to the specific gaps this page surfaces." }
     ];
   }
   function setupTour(data){
@@ -1517,6 +1924,8 @@
     var skipBtn = document.getElementById("tourSkipBtn");
     var closeBtn = document.getElementById("tourCloseBtn");
     if (!btn || !card) return;
+    // derived, so inserting a step can never leave a stale count in the tooltip
+    btn.title = steps.length + "-step guided walkthrough of this page";
     var idx = -1;
     var lastHighlighted = null;
 
@@ -1531,12 +1940,31 @@
       prevBtn.disabled = idx === 0;
       nextBtn.textContent = idx === steps.length - 1 ? "Done" : "Next →";
       clearHighlight();
+      clearDemo();
       var target = document.getElementById(s.id);
       if (target){
         target.scrollIntoView({ behavior: prefersReducedMotion ? "auto" : "smooth", block:"center" });
         target.classList.add("tour-highlight");
         lastHighlighted = target;
+        runDemo(target);
       }
+    }
+    // A tour step that lands on a chart should show the reader what the chart can do,
+    // not just point at it. Opening the notes panel is the durable half of that -- it
+    // stays readable while the tour card is still on screen.
+    var lastDemo = null;
+    function runDemo(target){
+      var box = target.classList.contains("chartbox") ? target : target.querySelector(".chartbox");
+      if (!box) return;
+      var notesBtn = box.parentElement.querySelector('[data-chart-tools-for="' + box.id + '"] [data-notes-btn]');
+      if (notesBtn && notesBtn.getAttribute("aria-expanded") !== "true"){
+        notesBtn.click();
+        lastDemo = notesBtn;
+      }
+    }
+    function clearDemo(){
+      if (lastDemo && lastDemo.getAttribute("aria-expanded") === "true") lastDemo.click();
+      lastDemo = null;
     }
     function open(){
       idx = 0;
@@ -1548,6 +1976,7 @@
       card.classList.remove("show");
       btn.classList.remove("on");
       clearHighlight();
+      clearDemo();
       idx = -1;
     }
     function next(){
@@ -1779,32 +2208,40 @@
     // gap number here always reconciles with modeled_unlaunched_inventory_lower/
     // upper in the Unlaunched Inventory section below at the two preset rates.
     function svgDivergenceChart(o){
-      var w=o.width||640, h=o.height||260, padL=44, padB=28, padT=16, padR=112;
+      var compact = o.compact;
+      var w = compact ? 360 : 1000, h = compact ? 280 : 340;
+      var padL = compact ? 34 : 56, padB = compact ? 34 : 40,
+          padT = compact ? 76 : 26, padR = compact ? 12 : 150;
+      var fSm = compact ? 12 : 11, fLg = compact ? 13 : 12;
       var innerW=w-padL-padR, innerH=h-padT-padB;
       function px(x){ return padL + x/o.xMax*innerW; }
       function py(y){ return padT + (1-y/o.yMax)*innerH; }
       var svg = '<svg viewBox="0 0 '+w+' '+h+'" xmlns="http://www.w3.org/2000/svg">';
-      [0,0.25,0.5,0.75,1].forEach(function(f){
-        var y = padT + innerH*(1-f);
-        svg += '<line x1="'+padL+'" y1="'+y+'" x2="'+(w-padR)+'" y2="'+y+'" stroke="currentColor" stroke-opacity="0.08" />';
-      });
+      svg += '<defs><linearGradient id="heroGapG" x1="0" y1="0" x2="0" y2="1">' +
+        '<stop offset="0" stop-color="rgb(var(--c-accent))" stop-opacity="0.30" />' +
+        '<stop offset="1" stop-color="rgb(var(--c-accent))" stop-opacity="0.02" /></linearGradient></defs>';
+      svg += '<line x1="'+padL+'" y1="'+py(0)+'" x2="'+(w-padR)+'" y2="'+py(0)+'" style="stroke:rgb(var(--c-bg-card2))" stroke-width="1" />';
       var fccY = py(o.fccY);
-      svg += '<line x1="'+padL+'" y1="'+fccY+'" x2="'+(w-padR)+'" y2="'+fccY+'" style="stroke:rgb(var(--c-text-secondary))" stroke-opacity="0.5" stroke-dasharray="4 3" stroke-width="1.3" />';
-      svg += '<text x="'+padL+'" y="'+(fccY-6)+'" font-size="10" style="fill:rgb(var(--c-text-secondary))">FCC condition &middot; '+Number(o.fccY).toLocaleString()+' satellites</text>';
+      svg += '<line x1="'+padL+'" y1="'+fccY+'" x2="'+(w-padR)+'" y2="'+fccY+'" style="stroke:rgb(var(--c-chart-1))" stroke-dasharray="6 5" stroke-width="1" />';
+      svg += '<text x="'+padL+'" y="'+(fccY-7)+'" font-size="'+fSm+'" font-weight="500" style="fill:rgb(var(--c-chart-1))">FCC condition &middot; '+Number(o.fccY).toLocaleString()+' satellites</text>';
       var ceilX2 = px(o.xMax), ceilY2 = py(o.ceilingY);
-      svg += '<path d="M '+px(0)+' '+py(0)+' L '+ceilX2+' '+ceilY2+' L '+ceilX2+' '+py(0)+' Z" fill="rgb(var(--c-accent) / .14)" />';
-      svg += '<polyline points="'+px(0)+','+py(0)+' '+ceilX2+','+ceilY2+'" fill="none" style="stroke:rgb(var(--c-accent))" stroke-width="2" stroke-opacity="0.55" />';
+      svg += '<path d="M '+px(0)+' '+py(0)+' L '+ceilX2+' '+ceilY2+' L '+ceilX2+' '+py(0)+' Z" fill="url(#heroGapG)" />';
+      svg += '<polyline points="'+px(0)+','+py(0)+' '+ceilX2+','+ceilY2+'" fill="none" style="stroke:rgb(var(--c-chart-1))" stroke-width="2.5" stroke-linecap="round" />';
       var selX2 = px(o.xMax), selY2 = py(o.selectedY);
-      svg += '<polyline points="'+px(0)+','+py(0)+' '+selX2+','+selY2+'" fill="none" style="stroke:rgb(var(--c-accent))" stroke-width="2" stroke-dasharray="6 4" />';
-      svg += '<text x="'+(ceilX2+6)+'" y="'+(ceilY2-6)+'" font-size="10" style="fill:rgb(var(--c-accent))" fill-opacity="0.8">Ceiling @ '+o.ceilingRate.toFixed(1)+'/day</text>';
-      svg += '<text x="'+(selX2+6)+'" y="'+(selY2+12)+'" font-size="10" style="fill:rgb(var(--c-accent))">Built @ '+o.selectedRate.toFixed(2)+'/day</text>';
+      svg += '<polyline points="'+px(0)+','+py(0)+' '+selX2+','+selY2+'" fill="none" style="stroke:rgb(var(--c-chart-3))" stroke-width="2" stroke-dasharray="7 5" stroke-linecap="round" />';
+      var ceilTxt = Math.round(o.ceilingY).toLocaleString()+' built @ '+o.ceilingRate.toFixed(1)+'/day';
+      var selTxt = Math.round(o.selectedY).toLocaleString()+' @ '+o.selectedRate.toFixed(2)+'/day';
+      svg += '<text x="'+(compact?padL:ceilX2+8)+'" y="'+(compact?20:ceilY2-6)+'" font-size="'+fLg+'" font-weight="500" style="fill:rgb(var(--c-chart-1))">'+ceilTxt+'</text>';
+      svg += '<text x="'+(compact?padL:selX2+8)+'" y="'+(compact?40:selY2+13)+'" font-size="'+fLg+'" font-weight="500" style="fill:rgb(var(--c-chart-3))">'+selTxt+'</text>';
       var actualPts = o.actual.map(function(p){ return px(p.x)+','+py(p.y); }).join(' ');
-      svg += '<polyline points="'+actualPts+'" fill="none" style="stroke:rgb(var(--c-text-primary))" stroke-width="2.5" />';
+      svg += '<polyline points="'+actualPts+'" fill="none" style="stroke:rgb(var(--c-text-primary))" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />';
       o.actual.forEach(function(p){
-        svg += '<circle cx="'+px(p.x)+'" cy="'+py(p.y)+'" r="3.5" style="fill:rgb(var(--c-text-primary))"><title>'+esc(p.label||"")+'</title></circle>';
+        svg += '<circle cx="'+px(p.x)+'" cy="'+py(p.y)+'" r="4.5" style="fill:rgb(var(--c-bg-primary));stroke:rgb(var(--c-text-primary))" stroke-width="2.5"'+markAttrs(p.date || ('day ' + p.x), 'In orbit', Number(p.y).toLocaleString())+'></circle>';
       });
       var lastActual = o.actual[o.actual.length-1];
-      svg += '<text x="'+(px(lastActual.x)+8)+'" y="'+(py(lastActual.y)+4)+'" font-size="10" style="fill:rgb(var(--c-text-primary))">In orbit</text>';
+      svg += '<text x="'+(compact?padL:px(lastActual.x)+10)+'" y="'+(compact?60:py(lastActual.y)+4)+'" font-size="'+fLg+'" font-weight="600" style="fill:rgb(var(--c-text-primary))">'+Number(lastActual.y).toLocaleString()+' in orbit</text>';
+      svg += '<text x="'+padL+'" y="'+(h-8)+'" font-size="'+fSm+'" style="fill:rgb(var(--c-chart-muted))">'+esc(o.xStartLabel)+'</text>';
+      svg += '<text x="'+px(o.xMax)+'" y="'+(h-8)+'" text-anchor="end" font-size="'+fSm+'" style="fill:rgb(var(--c-chart-muted))">'+esc(o.xEndLabel)+'</text>';
       svg += '</svg>';
       return svg;
     }
@@ -1814,7 +2251,7 @@
       var xMaxD = uiD.elapsed_days;
       var actualPts = obsD.map(function(c){
         return {x: daysBetween(uiD.production_start_date, c.as_of_date), y: c.cumulative_satellites,
-          label: c.as_of_date + ': ' + Number(c.cumulative_satellites).toLocaleString() + ' deployed'};
+          date: c.as_of_date};
       });
       var ceilingRate = data.capacity_gap.capacity_ceiling_per_day;
       var ceilingY = xMaxD * ceilingRate;
@@ -1822,9 +2259,10 @@
       var yMaxD = niceMax(Math.max(ceilingY, near.satellites_required) * 1.08);
       var container = document.getElementById("heroChart");
       container.innerHTML = svgDivergenceChart({
-        width: 640, height: 260, xMax: xMaxD, yMax: yMaxD,
+        compact: window.innerWidth <= 720, xMax: xMaxD, yMax: yMaxD,
         fccY: near.satellites_required, ceilingY: ceilingY, ceilingRate: ceilingRate,
-        selectedY: selectedY, selectedRate: rate, actual: actualPts
+        selectedY: selectedY, selectedRate: rate, actual: actualPts,
+        xStartLabel: uiD.production_start_date, xEndLabel: uiD.latest_observed_date + ' · day ' + uiD.elapsed_days
       });
       var gap = Math.round(selectedY - uiD.deployed_count);
       document.getElementById("heroGapNum").textContent = gap.toLocaleString();
@@ -1835,9 +2273,22 @@
         esc(uiD.latest_observed_date) + ': ' + Number(uiD.deployed_count).toLocaleString() + '. Gap: ' +
         Math.round(selectedY).toLocaleString() + ' &minus; ' + Number(uiD.deployed_count).toLocaleString() +
         ' = ' + gap.toLocaleString() + '.';
+      scheduleEnhance(container);
       return container;
     }
     function updateHeroDivergence(rate){ renderHeroDivergence(rate); }
+    // The hero is the one chart with a layout breakpoint rather than a purely fluid
+    // viewBox, so it has to be re-laid-out when a resize crosses that breakpoint.
+    (function watchHeroBreakpoint(){
+      var wasCompact = window.innerWidth <= 720, t;
+      window.addEventListener("resize", function(){
+        clearTimeout(t);
+        t = setTimeout(function(){
+          var isCompact = window.innerWidth <= 720;
+          if (isCompact !== wasCompact){ wasCompact = isCompact; renderHeroDivergence(parseFloat(rateSlider.value)); }
+        }, 150);
+      });
+    })();
     var heroChartEl = renderHeroDivergence(data.capacity_gap.realized_peak_per_day);
     observeAndDrawIn(heroChartEl);
     (function setupHeroShowMath(){
@@ -1878,14 +2329,14 @@
       var lastObs = obs[obs.length-1];
       var projectedAtMilestone = computeProjectedAtMilestone(rate);
       var series = [
-        {points: obsPts, color: 'rgb(var(--c-success))'},
+        {points: obsPts, color: 'rgb(var(--c-accent))', emphasis: true, name: 'Actual deployed'},
         {points: [
           {x: xOf(lastObs.as_of_date), y: lastObs.cumulative_satellites},
           {x: xMax, y: projectedAtMilestone, label: 'Our modeled projection @ ' + near.milestone_date + ': ' + projectedAtMilestone.toLocaleString()}
-        ], color: 'rgb(var(--c-accent))', dashed: true}
+        ], color: 'rgb(var(--c-chart-muted))', dashed: true, name: 'Modelled projection'}
       ];
       if (near.company_projected_count != null){
-        series.push({points: [{x: xMax, y: near.company_projected_count, label: "Amazon's own projection: " + Number(near.company_projected_count).toLocaleString()}], color: 'rgb(var(--c-warning))'});
+        series.push({points: [{x: xMax, y: near.company_projected_count, cat: near.milestone_date}], color: 'rgb(var(--c-warning))', name: "Amazon's own projection"});
       }
       var yMax = fixedYMax != null ? fixedYMax : niceMax(Math.max(near.satellites_required, projectedAtMilestone, near.company_projected_count || 0) * 1.08);
       var xTicks = obs.map(function(c){ return {x: xOf(c.as_of_date), label: c.as_of_date}; }).concat([{x: xMax, label: near.milestone_date}]);
@@ -1915,6 +2366,7 @@
         renderTrajectoryChart(targetRate, targetYMax);
         if (lastDisplayedRate == null) observeAndDrawIn(document.getElementById("trajectoryChart"));
         lastDisplayedRate = targetRate;
+        scheduleEnhance(document.getElementById("trajectoryChart"));
         return;
       }
       var fromRate = lastDisplayedRate, start = null, duration = 220;
@@ -1924,7 +2376,7 @@
         var t = Math.min(1, (ts - start) / duration);
         renderTrajectoryChart(fromRate + (targetRate - fromRate) * easeOutCubic(t), targetYMax);
         if (t < 1) trajectoryAnimFrame = requestAnimationFrame(step);
-        else { trajectoryAnimFrame = null; lastDisplayedRate = targetRate; }
+        else { trajectoryAnimFrame = null; lastDisplayedRate = targetRate; scheduleEnhance(document.getElementById("trajectoryChart")); }
       }
       trajectoryAnimFrame = requestAnimationFrame(step);
     }
@@ -2031,7 +2483,7 @@
         width: 640, height: 200,
         xDomain: [0, xMax], yDomain: [0, yMax],
         yTickFmt: fmtUSD,
-        series: [{points: pts, color: 'rgb(var(--c-accent))'}],
+        series: [{points: pts, color: 'rgb(var(--c-accent))', name: 'Program cost estimate'}],
         xTicks: cumRows.map(function(r){ return {x: daysBetween(t0, r.as_of_date), label: r.as_of_date}; })
       });
       svg += '<div class="cite" style="margin-top:6px">Separately disclosed (not on this line, different metric): <b style="color:rgb(var(--c-warning))">' + fmtUSD(yoyRow.high_estimate_usd) + ' YoY headwind</b> (' + esc(yoyRow.as_of_date) + ' earnings call).</div>';
@@ -2056,11 +2508,11 @@
     var planYears = plan.map(function(r){ return r.fiscal_year; });
     document.getElementById("opexCapexChart").innerHTML = svgGroupedBars(
       planYears, plan.map(function(r){return r.opex_usd;}), plan.map(function(r){return r.capex_usd;}),
-      'rgb(var(--c-accent))', 'rgb(var(--c-warning))', fmtUSD
+      'rgb(var(--c-chart-1))', 'rgb(var(--c-chart-3))', fmtUSD, 'OpEx', 'CapEx'
     );
     document.getElementById("headcountChart").innerHTML = svgVBars(
-      planYears, plan.map(function(r){return r.headcount;}), 'rgb(var(--c-success))',
-      function(v){ return Math.round(v).toString(); }
+      planYears, plan.map(function(r){return r.headcount;}), 'rgb(var(--c-accent))',
+      function(v){ return Math.round(v).toString(); }, 'Headcount'
     );
     var firstYear = plan[0], lastYear = plan[plan.length-1];
     document.getElementById("plainOp1Op2").innerHTML =
@@ -2073,7 +2525,7 @@
       roi.map(function(r){ return r.scenario_name + ' (' + r.payback_years + ' yr payback, ' + r.roi_pct + '% ROI)'; }),
       roi.map(function(r){ return r.payback_years; }),
       'rgb(var(--c-accent))',
-      function(v){ return v.toFixed(2) + ' yrs'; }
+      function(v){ return v.toFixed(2) + ' yrs'; }, 'Payback'
     );
     document.getElementById("plainRoi").innerHTML =
       '<span class="lp-tag">Applying: Are Right, A Lot</span><br>' +
@@ -2121,7 +2573,7 @@
     var periods = vRows.map(function(r){ return r.period; }).concat(['Q4 (projected)']);
     var budgets = vRows.map(function(r){ return r.budget_amount; }).concat([q4Budget]);
     var actuals = vRows.map(function(r){ return r.actual_amount; }).concat([q4Projected]);
-    document.getElementById("varianceChart").innerHTML = svgGroupedBars(periods, budgets, actuals, 'rgb(var(--c-accent))', 'rgb(var(--c-warning))', fmtUSD);
+    document.getElementById("varianceChart").innerHTML = svgGroupedBars(periods, budgets, actuals, 'rgb(var(--c-chart-3))', 'rgb(var(--c-chart-1))', fmtUSD, 'Budget', 'Actual');
 
     var worstQ = vRows.reduce(function(a,b){ return (b.total_variance/b.budget_amount) > (a.total_variance/a.budget_amount) ? b : a; });
     document.getElementById("plainVariance").innerHTML =
@@ -2143,9 +2595,9 @@
       xDomain: [0, cfTrend.length-1], yDomain: [0, cfYMax],
       yTickFmt: fmtUSD,
       series: [
-        {points: planPts, color: 'rgb(var(--c-text-secondary))', dashed: true},
-        {points: forecastPts, color: 'rgb(var(--c-accent))', dashed: true},
-        {points: actualPts, color: 'rgb(var(--c-success))'}
+        {points: planPts, color: 'rgb(var(--c-chart-muted))', name: 'Plan'},
+        {points: forecastPts, color: 'rgb(var(--c-warning))', dashed: true, name: 'Forecast'},
+        {points: actualPts, color: 'rgb(var(--c-accent))', emphasis: true, name: 'Actual'}
       ],
       xTicks: cfTrend.map(function(r,i){ return {x:i, label:r.period}; })
     });
@@ -2233,7 +2685,7 @@
       width: 640, height: 220,
       xDomain: [-20, 20], yDomain: [sensYMin, sensYMax],
       yTickFmt: function(v){ return '$'+(v/1e6).toFixed(0)+'M'; },
-      series: [{points: sensPts, color: 'rgb(var(--c-accent))'}],
+      series: [{points: sensPts, color: 'rgb(var(--c-accent))', name: 'EAC'}],
       xTicks: sensPts.map(function(p){ return {x: p.x, label: (p.x>0?'+':'')+p.x+'%'}; })
     });
     observeAndDrawIn(document.getElementById("eacSensitivityChart"));
@@ -2257,7 +2709,7 @@
       topDrivers.map(function(r){ return r.subcategory; }),
       topDrivers.map(function(r){ return r.variance_usd; }),
       'rgb(var(--c-danger))',
-      fmtUSD
+      fmtUSD, 'Variance'
     );
     document.getElementById("plainCostDriver").innerHTML =
       '<span class="lp-tag">Applying: Are Right, A Lot</span><br>' +
@@ -2362,7 +2814,7 @@
       effTrend.map(function(r){ return r.as_of_date; }),
       effTrend.map(function(r){ return r.interval_utilization_pct; }),
       'rgb(var(--c-accent))',
-      function(v){ return v.toFixed(1) + '%'; }
+      function(v){ return v.toFixed(1) + '%'; }, 'Interval utilisation'
     );
 
     var t0date = effTrend[0].as_of_date;
@@ -2377,9 +2829,9 @@
       xDomain: [0, xMaxEff], yDomain: [0, yMaxEff],
       yTickFmt: function(v){ return Math.round(v).toLocaleString(); },
       series: [
-        {points: upperPtsEff, color: 'rgb(var(--c-warning))', dashed: true},
-        {points: lowerPtsEff, color: 'rgb(var(--c-accent))', dashed: true},
-        {points: actualPtsEff, color: 'rgb(var(--c-success))'}
+        {points: upperPtsEff, color: 'rgb(var(--c-warning))', dashed: true, name: 'Upper bound'},
+        {points: lowerPtsEff, color: 'rgb(var(--c-chart-muted))', dashed: true, name: 'Lower bound'},
+        {points: actualPtsEff, color: 'rgb(var(--c-accent))', emphasis: true, name: 'Actual deployed'}
       ],
       xTicks: effTrend.map(function(r){ return {x: xOfEff(r.as_of_date), label: r.as_of_date}; })
     });
@@ -2512,7 +2964,7 @@
       driverDefs.map(function(d){ return d.label + ' ' + d.tag; }),
       driverDefs.map(function(d){ return d.value; }),
       'rgb(var(--c-accent))',
-      function(v){ return v.toFixed(1) + '% of score'; }
+      function(v){ return v.toFixed(1) + '% of score'; }, 'Contribution'
     );
     var topDriver = driverDefs[0];
     document.getElementById("plainRiskIndex").innerHTML =
@@ -2560,7 +3012,7 @@
         width: 640, height: 200,
         xDomain: [0, xMaxRel || 1], yDomain: [0, 100],
         yTickFmt: function(v){ return v.toFixed(0) + '%'; },
-        series: [{points: adverseRatePts, color: 'rgb(var(--c-accent))'}],
+        series: [{points: adverseRatePts, color: 'rgb(var(--c-accent))', name: 'Cumulative adverse rate'}],
         xTicks: relTrend.map(function(r){ return {x: xOfRel(r.event_date), label: r.event_date}; })
       });
       observeAndDrawIn(document.getElementById("reliabilityTrendChart"));
@@ -2714,6 +3166,58 @@
     document.getElementById("plainDataQuality").innerHTML =
       '<span class="lp-tag">Applying: Earn Trust</span><br>' +
       '<span class="eyebrow">In plain terms</span>' + dqIncidents.length + ' real incidents, both found by this project\'s own testing rather than a live monitoring system, and both now structurally prevented from recurring the same way — a deterministic tiebreaker, and corrected sources with the formula that depended on them fixed too. That is what "the system learns to prevent future errors" honestly means for a static analytics pipeline: tests accumulate, they don\'t forget.';
+
+    // ---- chart annotations: authored interpretation, anchored to the exact mark it
+    // is about. Every figure quoted below is read out of `data` here rather than
+    // typed, so a note can never drift from the chart it sits on.
+    (function buildAnnotations(){
+      var ui = data.unlaunched_inventory;
+      var cumEsc = data.cost_escalation.filter(function(r){ return r.metric_type === "cumulative_total_program"; });
+      var firstEsc = cumEsc[0], lastEsc = cumEsc[cumEsc.length - 1];
+      var escPct = Math.round((lastEsc.high_estimate_usd / firstEsc.high_estimate_usd - 1) * 100);
+      var pnlW = data.pnl_waterfall;
+      var cogsMultiple = Math.round(pnlW.direct_cogs_usd / pnlW.revenue_usd);
+      var eff = data.operational_efficiency_trend;
+      var firstEff = eff[0], lastEff = eff[eff.length - 1];
+      var gapGrowth = (lastEff.modeled_backlog_lower - firstEff.modeled_backlog_lower);
+
+      chartAnnotations = {
+        heroChart: [
+          { cat: ui.latest_observed_date, series: "In orbit",
+            text: "This lower line is the only one here made of facts — each point is a dated, publicly reported count. " +
+                  "The lines above it are arithmetic on an assumed build rate, not a schedule Amazon published. " +
+                  "The distance between them is the finance problem: capital already committed to hardware that is not yet in service." }
+        ],
+        costChart: [
+          { cat: lastEsc.as_of_date, series: "Program cost estimate",
+            text: "Two company-stated estimates " + (Number(lastEsc.as_of_date.slice(0,4)) - Number(firstEsc.as_of_date.slice(0,4))) +
+                  " years apart, up " + escPct + "%. That is why the deadline is a capital question and not only a schedule one — " +
+                  "the cost of being late is compounding against a fixed regulatory date." }
+        ],
+        pnlChart: [
+          { cat: "Direct COGS",
+            text: "Direct cost of goods alone runs about " + cogsMultiple + "x revenue at this stage. " +
+                  "A gap that opens at the COGS line cannot be closed by overhead discipline further down the bridge." },
+          { cat: "Operating Margin",
+            text: "A negative operating margin here is the expected shape of a capital-intensive build-out, not a red flag by itself. " +
+                  "It becomes one only if it fails to narrow once the constellation actually starts earning service revenue." }
+        ],
+        backlogTrendChart: [
+          { cat: lastEff.as_of_date, series: "Actual deployed",
+            text: "Deployment is rising, but the modelled build range rises faster — even at the conservative end of " +
+                  "that range the implied backlog widened by " + Number(gapGrowth).toLocaleString() +
+                  " over this window, while launches continued. That is the signature of a launch-cadence " +
+                  "constraint rather than a manufacturing one." }
+        ],
+        varianceChart: [
+          { cat: "Q4 (projected)", series: "Actual",
+            text: "This is the one column with no reconciled actual behind it. The value of a rolling variance view is precisely " +
+                  "that this bar keeps moving — read it as the forecast it is, and re-read it next close." }
+        ]
+      };
+    })();
+
+    enhanceAllCharts();
   }
 })();
 </script>
