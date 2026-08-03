@@ -76,7 +76,7 @@
     border:1px solid rgb(var(--c-accent) / .35); background:rgb(var(--c-accent) / .09); color:rgb(var(--c-text-code));
     border-radius:99px; padding:6px 11px;
   }
-  .bar .right{margin-left:auto; display:flex; align-items:center; gap:8px}
+  .bar .right{margin-left:auto; display:flex; align-items:center; gap:8px; flex-wrap:wrap; justify-content:flex-end}
   .icobtn{
     display:inline-flex; align-items:center; gap:6px; height:32px; padding:0 12px; border-radius:8px;
     border:1px solid rgb(var(--c-accent) / .3); background:transparent; color:rgb(var(--c-text-secondary));
@@ -264,6 +264,32 @@
   }
   .infopop.show{display:block}
 
+  /* ---- glossary drawer: a right-side slide-in overlay -- plain-language
+     definitions of methodology/accounting terms already used on this page
+     (CPI, EAC, TCO, etc.). Static authored content, not data-bound: these
+     define what a metric MEANS, they never state a fact about the Leo
+     program itself, so there's no fetch()/citation requirement here the
+     way there is for every number elsewhere on the page. */
+  .drawer-overlay{
+    display:none; position:fixed; inset:0; z-index:30; background:rgb(0 0 0 / .58);
+  }
+  .drawer-overlay.show{display:flex; justify-content:flex-end}
+  .drawer{
+    width:min(440px,100%); height:100%; overflow-y:auto; background:rgb(var(--c-bg-card));
+    box-shadow:-16px 0 40px rgb(0 0 0 / .45); padding:24px 24px 48px; border-left:1px solid rgb(var(--c-accent) / .18);
+  }
+  .drawer-head{display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:4px}
+  .drawer-head h2{font-size:19px; margin:0}
+  .drawer-close{
+    padding:6px 10px; background:transparent; border:1px solid rgb(var(--c-text-secondary) / .3);
+    border-radius:6px; font:600 11px/1 inherit; color:rgb(var(--c-text-secondary)); cursor:pointer;
+  }
+  .drawer-close:hover{border-color:rgb(var(--c-accent) / .6); color:rgb(var(--c-text-primary))}
+  .drawer-intro{margin:0 0 20px; font-size:12.5px; line-height:1.6; color:rgb(var(--c-text-secondary))}
+  .gloss-grid{display:grid; gap:16px}
+  .gloss-term{font:600 13px/1.3 inherit; color:rgb(var(--c-accent)); margin-bottom:4px}
+  .gloss-def{margin:0; font-size:12.5px; line-height:1.6; color:rgb(var(--c-text-secondary))}
+
   /* ---- interactive rate slider (milestone projection only -- never the static
      Amazon-own-projection figures, which stay plain text elsewhere on the card). */
   .slidercard{margin-top:14px; padding-top:14px; border-top:1px dashed rgb(var(--c-accent) / .25)}
@@ -316,6 +342,7 @@
     <div class="right">
       <a class="icobtn" href="./leo-operations-map.html" title="Interactive relational map of every domain, risk, action, and KPI">🗺 Operations Map</a>
       <a class="icobtn" href="./leo-dbt-docs/" target="_blank" rel="noopener" title="Full dbt lineage graph + column-level docs for all 24 marts">🔗 Data Lineage</a>
+      <button class="icobtn" id="glossaryBtn" aria-pressed="false" title="Plain-language definitions for every finance/methodology term this page uses">📖 Glossary</button>
       <button class="icobtn" id="focusBtn" aria-pressed="false" title="Show one chapter at a time -- hides the other 3, hero/exec-summary/footer stay visible">🎯 Focus</button>
       <button class="icobtn" id="themeBtn" aria-pressed="false" title="Toggle theme">🌓 Theme</button>
     </div>
@@ -710,6 +737,39 @@
 
 <div class="infopop" id="infoPop"></div>
 
+<div class="drawer-overlay" id="glossaryOverlay">
+  <div class="drawer" role="dialog" aria-modal="true" aria-label="Glossary">
+    <div class="drawer-head">
+      <h2>Glossary</h2>
+      <button class="drawer-close" id="glossaryCloseBtn">Close</button>
+    </div>
+    <p class="drawer-intro">Every term this page uses, in plain language. Nothing here assumes you've read a program P&amp;L before.</p>
+    <div class="gloss-grid">
+      <div><div class="gloss-term">BAC — Budget at Completion</div><p class="gloss-def">What you said the whole thing would cost. The number in the approved plan.</p></div>
+      <div><div class="gloss-term">AC — Actual Cost</div><p class="gloss-def">Money genuinely spent to date. No judgement attached about whether it bought anything.</p></div>
+      <div><div class="gloss-term">EV — Earned Value</div><p class="gloss-def">The budgeted value of work actually finished. The bridge between spend and progress, and the number most reports quietly skip.</p></div>
+      <div><div class="gloss-term">PV — Planned Value</div><p class="gloss-def">What you should have finished by now according to the schedule.</p></div>
+      <div><div class="gloss-term">CPI — Cost Performance Index</div><p class="gloss-def">EV ÷ AC. Below 1.0 means every dollar bought less than a dollar of progress. As a hypothetical example, a CPI of 0.75 means 75 cents of work for every dollar spent -- a generic illustration, not this page's own CPI (see the EVM section above for the real one).</p></div>
+      <div><div class="gloss-term">SPI — Schedule Performance Index</div><p class="gloss-def">EV ÷ PV. Below 1.0 means behind the planned curve. It says nothing about cost.</p></div>
+      <div><div class="gloss-term">CV / SV — Cost &amp; Schedule Variance</div><p class="gloss-def">The same two ideas in dollars instead of ratios. Negative is bad in both.</p></div>
+      <div><div class="gloss-term">EAC — Estimate at Completion</div><p class="gloss-def">What it will now cost given what's happened so far. Three versions exist because each embeds a different belief about whether the overrun repeats.</p></div>
+      <div><div class="gloss-term">VAC — Variance at Completion</div><p class="gloss-def">BAC minus EAC. How far over or under budget you now expect to finish.</p></div>
+      <div><div class="gloss-term">TCPI — To-Complete Performance Index</div><p class="gloss-def">The efficiency you'd have to hit from here to land on a target. If it comes out negative, the target is already unreachable.</p></div>
+      <div><div class="gloss-term">OP1 / OP2</div><p class="gloss-def">Amazon's annual planning cycle — OP1 in the autumn, OP2 as the January reset. The documents a Finance Manager is measured against.</p></div>
+      <div><div class="gloss-term">CapEx vs. OpEx</div><p class="gloss-def">CapEx buys things that last and is spread over years. OpEx is the cost of running this year. Moving spend between them changes reported profit without changing cash.</p></div>
+      <div><div class="gloss-term">TCO — Total Cost of Ownership</div><p class="gloss-def">Unit price plus everything unit price hides: tooling, qualification, yield loss, carrying cost, switching cost.</p></div>
+      <div><div class="gloss-term">Payback &amp; ROI</div><p class="gloss-def">Payback is how long until an investment returns its cost. ROI is the annual return as a percentage of it. Neither prices risk on its own.</p></div>
+      <div><div class="gloss-term">Variance drivers</div><p class="gloss-def">Price (paid a different rate), volume (bought a different quantity), scope (bought something unplanned), timing (right money, wrong period). Only timing reverses on its own.</p></div>
+      <div><div class="gloss-term">Pareto analysis</div><p class="gloss-def">Ranking causes so you can see which handful explain most of the effect — the vital few against the long tail.</p></div>
+      <div><div class="gloss-term">Capitalized inventory</div><p class="gloss-def">Finished goods carried on the balance sheet at cost rather than expensed. Fine while they're worth what you paid; a write-down when they're not.</p></div>
+      <div><div class="gloss-term">Priority status (FCC)</div><p class="gloss-def">First claim on an orbit and a frequency. Losing it isn't losing the license — it's losing your place in the queue, which is close to the same thing commercially.</p></div>
+      <div><div class="gloss-term">OISL — Optical Inter-Satellite Link</div><p class="gloss-def">Laser terminals that let satellites talk to each other instead of routing everything via the ground. Few suppliers make them well.</p></div>
+      <div><div class="gloss-term">D2D / SCS</div><p class="gloss-def">Direct-to-device: satellites talking straight to ordinary phones. SCS is the FCC framework that regulates it.</p></div>
+      <div><div class="gloss-term">Exposure tier</div><p class="gloss-def">Probability crossed with impact, expressed as a band rather than a false-precision number. A tier admits what a percentage pretends to know.</p></div>
+    </div>
+  </div>
+</div>
+
 <script>
 (function(){
   "use strict";
@@ -723,6 +783,21 @@
     applyThemeLabel();
   });
   applyThemeLabel();
+
+  // ---- glossary drawer: plain toggle + backdrop-click + Escape close, same
+  // interaction shape as the redesign's own gloss/closeGloss state pair.
+  (function setupGlossary(){
+    var btn = document.getElementById("glossaryBtn");
+    var overlay = document.getElementById("glossaryOverlay");
+    var closeBtn = document.getElementById("glossaryCloseBtn");
+    if (!btn || !overlay) return;
+    function open(){ overlay.classList.add("show"); btn.classList.add("on"); btn.setAttribute("aria-pressed","true"); }
+    function close(){ overlay.classList.remove("show"); btn.classList.remove("on"); btn.setAttribute("aria-pressed","false"); }
+    btn.addEventListener("click", function(){ overlay.classList.contains("show") ? close() : open(); });
+    closeBtn.addEventListener("click", close);
+    overlay.addEventListener("click", function(e){ if (e.target === overlay) close(); });
+    document.addEventListener("keydown", function(e){ if (e.key === "Escape" && overlay.classList.contains("show")) close(); });
+  })();
 
   function fmtUSD(n){
     var abs = Math.abs(n);
