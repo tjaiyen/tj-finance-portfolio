@@ -5,44 +5,50 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Leo Operations Map — dbt Leo Program Finance</title>
 <meta name="description" content="Interactive relational map of Amazon Leo's operating structure -- domains, risks, 90-day actions, and KPIs, drawn entirely from the existing dbt marts. Not affiliated with Amazon." />
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2306b6d4'/%3E%3Crect x='12' y='12' width='8' height='8' rx='2' fill='%230a0f1d'/%3E%3C/svg%3E" />
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%239184d9'/%3E%3Crect x='12' y='12' width='8' height='8' rx='2' fill='%23161826'/%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <style>
-  /* ---- tokens: copied verbatim from leo-program-finance.html so this page reads as
-     part of the same portfolio, not a new visual language. */
+  /* ---- tokens: ported from leo-program-finance.html's Nocturne reskin (same
+     variable names, same values) so this page reads as part of the same
+     portfolio, not a new visual language. See that file for the OKLCH
+     derivation notes on the light variant. */
   :root{
-    --c-bg-primary:10 15 29; --c-bg-card:30 41 59; --c-bg-card2:27 35 52;
-    --c-accent:6 182 212; --c-accent2:34 211 238;
-    --c-text-primary:241 245 249; --c-text-secondary:148 163 184; --c-text-code:34 211 238;
-    --c-success:16 185 129; --c-warning:245 158 11; --c-danger:239 68 68; --c-line:6 182 212;
+    --c-bg-primary:22 24 38; --c-bg-card:35 37 50; --c-bg-card2:63 66 77;
+    --c-accent:145 132 217; --c-accent2:167 161 219;
+    --c-text-primary:233 233 237; --c-text-secondary:147 151 171; --c-text-code:210 206 253;
+    --c-success:114 191 142; --c-warning:223 175 80; --c-danger:235 129 127; --c-line:145 132 217;
   }
   @media (prefers-color-scheme: light){
     :root{
-      --c-bg-primary:248 250 252; --c-bg-card:255 255 255; --c-bg-card2:241 245 249;
-      --c-accent:14 116 144; --c-accent2:8 145 178;
-      --c-text-primary:15 23 42; --c-text-secondary:71 85 105; --c-text-code:8 145 178;
-      --c-success:5 150 105; --c-warning:180 83 9; --c-danger:220 38 38; --c-line:14 116 144;
+      --c-bg-primary:243 245 254; --c-bg-card:255 255 255; --c-bg-card2:228 231 245;
+      --c-accent:99 84 165; --c-accent2:112 105 159;
+      --c-text-primary:41 43 49; --c-text-secondary:117 121 140; --c-text-code:77 61 140;
+      --c-success:43 122 77; --c-warning:149 104 0; --c-danger:177 78 78; --c-line:99 84 165;
     }
   }
   :root[data-theme="dark"]{
-    --c-bg-primary:10 15 29; --c-bg-card:30 41 59; --c-bg-card2:27 35 52;
-    --c-accent:6 182 212; --c-accent2:34 211 238;
-    --c-text-primary:241 245 249; --c-text-secondary:148 163 184; --c-text-code:34 211 238;
-    --c-success:16 185 129; --c-warning:245 158 11; --c-danger:239 68 68; --c-line:6 182 212;
+    --c-bg-primary:22 24 38; --c-bg-card:35 37 50; --c-bg-card2:63 66 77;
+    --c-accent:145 132 217; --c-accent2:167 161 219;
+    --c-text-primary:233 233 237; --c-text-secondary:147 151 171; --c-text-code:210 206 253;
+    --c-success:114 191 142; --c-warning:223 175 80; --c-danger:235 129 127; --c-line:145 132 217;
   }
   :root[data-theme="light"]{
-    --c-bg-primary:248 250 252; --c-bg-card:255 255 255; --c-bg-card2:241 245 249;
-    --c-accent:14 116 144; --c-accent2:8 145 178;
-    --c-text-primary:15 23 42; --c-text-secondary:71 85 105; --c-text-code:8 145 178;
-    --c-success:5 150 105; --c-warning:180 83 9; --c-danger:220 38 38; --c-line:14 116 144;
+    --c-bg-primary:243 245 254; --c-bg-card:255 255 255; --c-bg-card2:228 231 245;
+    --c-accent:99 84 165; --c-accent2:112 105 159;
+    --c-text-primary:41 43 49; --c-text-secondary:117 121 140; --c-text-code:77 61 140;
+    --c-success:43 122 77; --c-warning:149 104 0; --c-danger:177 78 78; --c-line:99 84 165;
   }
   *{box-sizing:border-box}
   html{scroll-behavior:smooth}
   body{
     margin:0; min-height:100vh;
     background:rgb(var(--c-bg-primary)); color:rgb(var(--c-text-primary));
-    font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    font:14px/1.55 "Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     -webkit-font-smoothing:antialiased;
   }
+  h1,h2,h3,h4{font-weight:500}
   code,.mono,.tabular{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace}
   a{color:rgb(var(--c-accent))}
   .wrap{max-width:1200px; margin:0 auto; padding:0 20px 64px}
