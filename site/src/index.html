@@ -17,7 +17,7 @@
   <header class="sticky top-0 z-30 border-b border-accent/15 bg-bg-primary/90 backdrop-blur">
     <div class="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
       <a href="#top" class="font-mono text-sm text-text-code">finance·∩·ai</a>
-      <nav class="hidden gap-6 text-sm text-text-secondary lg:flex">
+      <nav class="hidden gap-6 text-sm text-text-secondary md:flex">
         <a href="#thesis" class="hover:text-text-primary">Thesis</a>
         <a href="#translation" class="hover:text-text-primary">Translation</a>
         <a href="#projects" class="hover:text-text-primary">Projects</a>
@@ -25,18 +25,18 @@
         <a href="#sandbox" class="hover:text-text-primary">Sandbox</a>
         <a href="#contact" class="hover:text-text-primary">Contact</a>
       </nav>
-      <button id="nav-toggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="nav-menu" class="lg:hidden text-text-secondary" style="min-width:44px;min-height:44px;">
+      <button id="nav-toggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="nav-menu" class="md:hidden text-text-secondary" style="min-width:44px;min-height:44px;">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
       </button>
     </div>
-    <div id="nav-menu" class="hidden border-t border-accent/15 lg:hidden">
+    <div id="nav-menu" class="hidden border-t border-accent/15 md:hidden">
       <div class="mx-auto flex max-w-6xl flex-col px-4 py-2 text-text-secondary">
-        <a href="#thesis" class="py-2">Thesis</a>
-        <a href="#translation" class="py-2">Translation</a>
-        <a href="#projects" class="py-2">Projects</a>
-        <a href="#agentic-ops" class="py-2">Agentic Ops</a>
-        <a href="#sandbox" class="py-2">Sandbox</a>
-        <a href="#contact" class="py-2">Contact</a>
+        <a href="#thesis" class="flex min-h-[44px] items-center">Thesis</a>
+        <a href="#translation" class="flex min-h-[44px] items-center">Translation</a>
+        <a href="#projects" class="flex min-h-[44px] items-center">Projects</a>
+        <a href="#agentic-ops" class="flex min-h-[44px] items-center">Agentic Ops</a>
+        <a href="#sandbox" class="flex min-h-[44px] items-center">Sandbox</a>
+        <a href="#contact" class="flex min-h-[44px] items-center">Contact</a>
       </div>
     </div>
   </header>
@@ -105,7 +105,7 @@
         The discipline is the same, and it's one-to-one — the controls a cost accountant already lives by, expressed
         as tested data. Each row is captioned by a real artifact in the repos below.
       </p>
-      <div class="mt-6 overflow-x-auto">
+      <div class="scroll-x mt-6">
         <table class="w-full min-w-[640px] border-collapse text-sm">
           <thead>
             <tr class="bg-bg-card text-left text-text-secondary">
@@ -243,7 +243,7 @@
       <div class="card mt-6">
         <h3 class="text-lg">Lineage (dbt project)</h3>
         <p class="mt-1 text-sm text-text-secondary">Seed → staging → mart, with two test tiers gating the build. Static diagram — no warehouse connection.</p>
-        <div class="mt-4 overflow-x-auto">
+        <div class="scroll-x mt-4">
           <svg viewBox="0 0 760 220" class="w-full min-w-[640px]" role="img" aria-label="dbt lineage: raw_financials seed to stg_financials to fct_account_variance, gated by data and unit tests">
             <defs>
               <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
@@ -324,7 +324,7 @@
       <div class="card mt-6">
         <h3 class="text-lg">Pipeline (human-in-the-loop on every outward action)</h3>
         <p class="mt-1 text-sm text-text-secondary">Agents do the work; a person owns every irreversible step. Static diagram — illustrative.</p>
-        <div class="mt-4 overflow-x-auto">
+        <div class="scroll-x mt-4">
           <svg viewBox="0 0 860 200" class="w-full min-w-[720px]" role="img" aria-label="Agentic pipeline: discover, score, generate, then a human-reviewed queue gating the outward action">
             <defs>
               <marker id="arrow2" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
@@ -415,10 +415,10 @@ def vet_url(u: str) -> bool:
         <div class="card">
           <h3 class="text-lg">Variance &amp; materiality</h3>
           <p class="mt-1 text-xs text-text-secondary">Mirrors <code class="text-text-code">fct_account_variance</code>.</p>
-          <div class="mt-4 grid grid-cols-2 gap-3">
+          <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div><label class="field-label" for="v-prior">Prior amount</label><input id="v-prior" class="field-input" type="number" value="1000000" /></div>
             <div><label class="field-label" for="v-current">Current amount</label><input id="v-current" class="field-input" type="number" value="1100000" /></div>
-            <div class="col-span-2"><label class="field-label" for="v-threshold">Materiality threshold (%)</label><input id="v-threshold" class="field-input" type="number" value="5" step="0.5" /></div>
+            <div class="sm:col-span-2"><label class="field-label" for="v-threshold">Materiality threshold (%)</label><input id="v-threshold" class="field-input" type="number" value="5" step="0.5" /></div>
           </div>
           <div class="mt-4 grid grid-cols-3 gap-3 text-center" aria-live="polite">
             <div class="rounded-md bg-bg-primary p-3"><div class="field-label">Variance</div><div id="v-abs" class="font-mono text-text-primary">—</div></div>
@@ -431,7 +431,7 @@ def vet_url(u: str) -> bool:
         <div class="card">
           <h3 class="text-lg">Gross margin &amp; zone</h3>
           <p class="mt-1 text-xs text-text-secondary">FinOps framing — inference COGS only. Benchmarks are point-in-time (2026).</p>
-          <div class="mt-4 grid grid-cols-2 gap-3">
+          <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div><label class="field-label" for="m-revenue">Revenue</label><input id="m-revenue" class="field-input" type="number" value="100000" /></div>
             <div><label class="field-label" for="m-cost">Cost (COGS)</label><input id="m-cost" class="field-input" type="number" value="48000" /></div>
           </div>
