@@ -1,7 +1,7 @@
 {
   "project": "dbt_leo_program_finance",
   "disclaimer": "Independent illustrative project. Not affiliated with, endorsed by, or built using any internal Amazon data. Figures describing the real program are sourced to public reporting (see source/source_url per row); figures describing an Amazon internal decision (make-vs-buy, variance drivers) are fully synthetic and flagged is_illustrative.",
-  "generated_at": "2026-08-03T00:34:29.113353+00:00",
+  "generated_at": "2026-08-03T00:52:14.363898+00:00",
   "deployment_checkpoints": [
     {
       "as_of_date": "2025-04-28",
@@ -1982,6 +1982,8 @@
       "target_type": "threshold_zero_new",
       "target_description": "Zero new disputed incidents (1 logged to date)",
       "rationale_note": "Shorter 30-day window -- a near-term process fix, not a 90-day buildout.",
+      "finance_manager_tasks": "Quantify any insurance/reserve exposure from repeated disputes | Monitor for a pattern that would require a contingency line | Coordinate with Mission Assurance on financial implications",
+      "finance_deliverable": "Contingent financial exposure note",
       "is_illustrative": true,
       "notes": "A proposed 90-day plan, not an executed one -- there is no real \"actual progress\" for something that has not happened, so every target here is a stated goal, never a fabricated completion status. Baselines are pulled from the same marts mart_risk_register itself draws from; the only new inputs are target_improvement_pct/target_qualify_count, one illustrative planning assumption per row."
     },
@@ -2000,6 +2002,8 @@
       "target_type": "percent_improvement",
       "target_description": "Improve CPI from 0.8628 to 0.9491 (+10.0%)",
       "rationale_note": "Target expressed against CPI (mart_evm_rollup), not the whole-program cost estimate -- different metric scope, never blended.",
+      "finance_manager_tasks": "Own the CPI/EAC tracking directly | Report cost variance monthly | Lead the cost-containment review",
+      "finance_deliverable": "Monthly CPI/EAC variance report",
       "is_illustrative": true,
       "notes": "A proposed 90-day plan, not an executed one -- there is no real \"actual progress\" for something that has not happened, so every target here is a stated goal, never a fabricated completion status. Baselines are pulled from the same marts mart_risk_register itself draws from; the only new inputs are target_improvement_pct/target_qualify_count, one illustrative planning assumption per row."
     },
@@ -2018,6 +2022,8 @@
       "target_type": "milestone_checkpoint",
       "target_description": "Readiness milestones with no fixed FCC deadline to plan against (5105-satellite filing, 2026-07-24)",
       "rationale_note": "No FCC review timeline is publicly disclosed for this filing -- a prior 12-18-month estimate was found to be unsourced and removed. This is about being ready whenever the FCC acts, not about a timeline that doesn't exist.",
+      "finance_manager_tasks": "Model the D2D filing's capital requirement | Compare against the core constellation's budget | Get ahead of the budget ask before it's a surprise",
+      "finance_deliverable": "D2D capital-requirement preliminary model",
       "is_illustrative": true,
       "notes": "A proposed 90-day plan, not an executed one -- there is no real \"actual progress\" for something that has not happened, so every target here is a stated goal, never a fabricated completion status. Baselines are pulled from the same marts mart_risk_register itself draws from; the only new inputs are target_improvement_pct/target_qualify_count, one illustrative planning assumption per row."
     },
@@ -2036,6 +2042,8 @@
       "target_type": "monitor_only",
       "target_description": "No action needed (72.0% utilization already -- launch-constrained, not capacity-constrained)",
       "rationale_note": "Capacity was never the bottleneck (mart_deployment_capacity_gap); the honest inclusion here is that nothing needs fixing.",
+      "finance_manager_tasks": "Flag the unlaunched-inventory carrying cost now | Track the capitalized value trend monthly | Raise the obsolescence-risk conversation early, not as a later write-down",
+      "finance_deliverable": "Unlaunched-inventory carrying-cost flag",
       "is_illustrative": true,
       "notes": "A proposed 90-day plan, not an executed one -- there is no real \"actual progress\" for something that has not happened, so every target here is a stated goal, never a fabricated completion status. Baselines are pulled from the same marts mart_risk_register itself draws from; the only new inputs are target_improvement_pct/target_qualify_count, one illustrative planning assumption per row."
     },
@@ -2054,6 +2062,8 @@
       "target_type": "qualify_count",
       "target_description": "Qualify 1 additional launch-vehicle family -- from 3 tracked today to 4",
       "rationale_note": "Ties directly to this dashboard's own Chapter 4 recommendation on the ROI of launch-provider diversification.",
+      "finance_manager_tasks": "Build the ROI/TCO business case for a 4th launch-vehicle provider | Quantify the cost of continued single-provider concentration risk | Present the case before it's asked for, not after",
+      "finance_deliverable": "Launch-diversification ROI business case",
       "is_illustrative": true,
       "notes": "A proposed 90-day plan, not an executed one -- there is no real \"actual progress\" for something that has not happened, so every target here is a stated goal, never a fabricated completion status. Baselines are pulled from the same marts mart_risk_register itself draws from; the only new inputs are target_improvement_pct/target_qualify_count, one illustrative planning assumption per row."
     },
@@ -2071,7 +2081,9 @@
       "phase_end_day": 90,
       "target_type": "percent_improvement",
       "target_description": "Increase realized deployment rate from 3.6/day to 4.14/day (+15.0%)",
-      "rationale_note": "Only 15 days remained before the near-term deadline at the analysis checkpoint (2026-07-15) -- this targets the realized rate driving the 2029 milestone, not the already near-decided 2026 one.",
+      "rationale_note": "Only 15 days remained before the near-term deadline at the analysis checkpoint used when this row was first modeled -- this targets the realized rate driving the 2029 milestone, not the already near-decided 2026 one.",
+      "finance_manager_tasks": "Build and maintain a milestone cost-of-delay model | Brief leadership monthly on trajectory vs. the 2029 target | Feed updates into the OP1/OP2 CapEx re-baseline",
+      "finance_deliverable": "Monthly milestone cost-exposure memo",
       "is_illustrative": true,
       "notes": "A proposed 90-day plan, not an executed one -- there is no real \"actual progress\" for something that has not happened, so every target here is a stated goal, never a fabricated completion status. Baselines are pulled from the same marts mart_risk_register itself draws from; the only new inputs are target_improvement_pct/target_qualify_count, one illustrative planning assumption per row."
     },
@@ -2090,6 +2102,8 @@
       "target_type": "qualify_count",
       "target_description": "Qualify 1 second-source supplier(s) for the high-concentration-risk component(s)",
       "rationale_note": "Targets the one real, publicly-named high-concentration-risk component (OISL terminals) -- the rad-hardened semiconductor is tracked separately at medium concentration risk, not this tier.",
+      "finance_manager_tasks": "Support the second-source supplier's TCO comparison | Quantify single-source business-continuity cost exposure | Apply the existing make-vs-buy methodology",
+      "finance_deliverable": "Second-source TCO comparison",
       "is_illustrative": true,
       "notes": "A proposed 90-day plan, not an executed one -- there is no real \"actual progress\" for something that has not happened, so every target here is a stated goal, never a fabricated completion status. Baselines are pulled from the same marts mart_risk_register itself draws from; the only new inputs are target_improvement_pct/target_qualify_count, one illustrative planning assumption per row."
     }
