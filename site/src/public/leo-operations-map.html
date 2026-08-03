@@ -169,7 +169,6 @@
   .mm-action .mm-shape{fill:rgb(var(--c-bg-card2)); stroke:rgb(var(--c-accent) / .6)}
   .mm-kpi .mm-shape{fill:rgb(var(--c-bg-card2)); stroke:rgb(var(--c-success) / .6)}
   .mm-leaf .mm-shape{fill:rgb(var(--c-bg-card2)); stroke:rgb(var(--c-text-secondary) / .5)}
-  .mm-label-bg{fill:rgb(var(--c-bg-primary) / .82); pointer-events:none}
   .mm-label{fill:rgb(var(--c-text-primary)); font:600 10.5px/1.2 -apple-system,sans-serif; text-anchor:middle; pointer-events:none}
   .mm-sublabel{fill:rgb(var(--c-text-secondary)); font:600 8.5px/1 ui-monospace,Menlo,monospace; text-anchor:middle; text-transform:uppercase; letter-spacing:.03em; pointer-events:none}
   .mm-root .mm-shape{fill:rgb(var(--c-accent) / .22); stroke:rgb(var(--c-accent))}
@@ -283,7 +282,11 @@
   var mapWrap = document.getElementById("mapWrap");
   var infoPop = document.getElementById("infoPop");
 
-  var CX = 620, CY = 600, R_DOMAIN = 230, R_CHILD_STEP = 78;
+  // Bigger canvas than the first version -- labels sit INSIDE their shapes
+  // (TJ's call, twice), which means shapes have to be sized to actually hold
+  // real text, and same-type siblings within one domain (e.g. Launch
+  // Operations' 2 risks) need enough room not to collide.
+  var CX = 720, CY = 720, R_DOMAIN = 250, R_CHILD_STEP = 205, TYPE_STAGGER = 60;
   var model = null; // built once data loads
   var searchQuery = "";
   var highlightedNodeId = null;
@@ -526,10 +529,18 @@
       var ordered = risks.concat(others);
       var n = ordered.length;
       var spreadHalfDeg = Math.min(16, n*3.5);
+      var typeSeen = {};
       ordered.forEach(function(c, i){
         var offsetDeg = n <= 1 ? 0 : (-spreadHalfDeg + i*(2*spreadHalfDeg/(n-1)));
         c.angle = d.angle + offsetDeg * Math.PI/180;
-        c.radius = R_DOMAIN + R_CHILD_STEP;
+        // A domain can carry 2 of the same child type (Launch Operations has
+        // 2 risks; Finance and Launch Operations each have 2 grounding
+        // leaves) -- angle alone can't spread 2 same-size shapes far enough
+        // apart at a shared radius, so repeats of one type also step
+        // outward in radius, using the one dimension angle can't buy.
+        var typeIdx = typeSeen[c.type] || 0;
+        typeSeen[c.type] = typeIdx + 1;
+        c.radius = R_DOMAIN + R_CHILD_STEP + typeIdx*TYPE_STAGGER;
         c.x = CX + c.radius * Math.cos(c.angle);
         c.y = CY + c.radius * Math.sin(c.angle);
         if (c.type === "risk" && c.actionId){
@@ -544,44 +555,34 @@
   }
 
   // ---- render -------------------------------------------------------
+  // Shapes are sized to actually hold their own label (real measurement:
+  // domain/risk/action words run 5.3-5.7px/char at these font sizes -- e.g.
+  // "Commercialization" alone is ~93px, "filing-readiness" ~86px), not the
+  // small icon-sized markers of the first pass. Text still centers ON the
+  // shape; only "Commercialization" (17 chars, far past any real second-
+  // longest domain word) still gets truncated -- see wrapLabel.
   function shapePath(type, x, y){
-    var s = 22;
+    var s = 26;
     if (type === "root") return '<circle class="mm-shape" cx="'+x+'" cy="'+y+'" r="46"/>';
     if (type === "domain") {
       var pts = [];
       for (var i=0;i<6;i++){ var a = Math.PI/6 + i*Math.PI/3; pts.push((x+s*1.6*Math.cos(a)).toFixed(1)+","+(y+s*1.6*Math.sin(a)).toFixed(1)); }
       return '<polygon class="mm-shape" points="'+pts.join(" ")+'"/>';
     }
-    if (type === "risk") return '<polygon class="mm-shape ' + (TIER_CLASS[arguments[3]]||"") + '" points="'+x+','+(y-24)+' '+(x+24)+','+y+' '+x+','+(y+24)+' '+(x-24)+','+y+'"/>'; // arguments[3] is the tier, passed as the 4th call arg
-    if (type === "action") return '<rect class="mm-shape" x="'+(x-30)+'" y="'+(y-16)+'" width="60" height="32" rx="7"/>';
+    if (type === "risk") return '<polygon class="mm-shape ' + (TIER_CLASS[arguments[3]]||"") + '" points="'+x+','+(y-38)+' '+(x+38)+','+y+' '+x+','+(y+38)+' '+(x-38)+','+y+'"/>'; // arguments[3] is the tier, passed as the 4th call arg
+    if (type === "action") return '<rect class="mm-shape" x="'+(x-44)+'" y="'+(y-19)+'" width="88" height="38" rx="8"/>';
     if (type === "kpi") return '<circle class="mm-shape" cx="'+x+'" cy="'+y+'" r="22"/>';
-    return '<rect class="mm-shape" x="'+(x-26)+'" y="'+(y-14)+'" width="52" height="28" rx="6"/>'; // leaf
+    return '<rect class="mm-shape" x="'+(x-32)+'" y="'+(y-15)+'" width="64" height="30" rx="6"/>'; // leaf
   }
 
-  // The farthest a shape's own boundary ever reaches from its center, in ANY
-  // direction (a rectangle/diamond's corner distance, a hex/circle's exact
-  // radius) -- used to place its label as a caption clearly outside the
-  // shape, projected along that specific node's own angle from the map
-  // center, rather than a flat "straight down" offset. A label was never
-  // going to reliably fit inside a 44-60px marker (real measurement: action
-  // labels ran 10-26px wider than their 60px rect on almost every node) --
-  // shrinking text further just made names unreadable, so the shape is now
-  // a marker and the text is an external caption, same convention as a
-  // labeled pin on a map. Using each node's own angle (not a shared
-  // downward direction) makes captions fan outward the same way the shapes
-  // themselves already do, so adjacent lanes' captions diverge from each
-  // other instead of all converging on the same "below" real estate.
-  function shapeSafeRadius(type){
-    if (type === "root") return 46;
-    if (type === "domain") return 35.2;
-    if (type === "risk") return 24;
-    if (type === "action") return 34; // rect corner distance: sqrt(30^2+16^2)
-    if (type === "kpi") return 22;
-    return 30; // leaf: rect corner distance sqrt(26^2+14^2)
-  }
-
+  // A single word longer than the line budget can't be split at a space, so
+  // it's truncated with an ellipsis instead of being left to run past the
+  // shape -- the full name is always still one click away (detail popover)
+  // and in the table view, this only shortens the on-canvas mark.
+  function truncWord(w, max){ return w.length > max ? w.slice(0, Math.max(1,max-1)) + "…" : w; }
   function wrapLabel(text, max){
-    var words = String(text).split(" "), lines = [], cur = "";
+    var words = String(text).split(" ").map(function(w){ return truncWord(w, max); });
+    var lines = [], cur = "";
     words.forEach(function(w){
       // Only break BEFORE a word if cur already holds something -- otherwise a
       // first word alone longer than max pushed an empty line (consuming a
@@ -635,38 +636,29 @@
       return '<g class="'+nodeClasses(n)+'" data-node-id="'+n.id+'">'+shape+'</g>';
     });
 
+    // Wrap width per type is calibrated to that type's actual shape width at
+    // the measured 5.3-5.7px/char for these fonts (domain hex ~72px wide,
+    // risk diamond ~76px, action rect ~88px, leaf rect ~64px) -- text sits
+    // centered ON the shape, the way TJ wants it, not as an outside caption.
     var labelParts = visibleNodes.map(function(v){
       var n = v.node, lines, lineHeight;
       var labelCls = n.type==="root" || n.type==="domain" ? "mm-label" : "mm-sublabel";
       if (n.type === "root"){ lines = ["Amazon","Leo"]; lineHeight = 13; }
-      else if (n.type === "domain"){ lines = wrapLabel(n.name, 14); lineHeight = 11; }
-      else { lines = wrapLabel(n.name, 13); lineHeight = 10; }
-      // Caption anchor is projected TANGENTIALLY (perpendicular to this
-      // node's own radial angle), never straight outward -- every child sits
-      // further out along nearly its parent's own angle, so an outward
-      // caption runs straight into its own child (confirmed empirically: a
-      // radial-outward first attempt produced 21 parent/child overlaps).
-      // Tangential is the one direction that's never "where the children
-      // are," and it also makes angularly-adjacent siblings diverge from
-      // each other instead of both pointing the same shared direction.
-      var gap = labelCls === "mm-label" ? 14 : 11;
-      var angle = (n.angle != null ? n.angle + Math.PI/2 : Math.PI/2);
-      var dist = shapeSafeRadius(n.type) + gap;
-      var anchorX = v.x + dist*Math.cos(angle);
-      var yStart = v.y + dist*Math.sin(angle);
-      var maxLen = lines.reduce(function(m,l){ return Math.max(m,l.length); }, 0);
-      var pillW = Math.max(30, maxLen * (labelCls==="mm-label"?6.0:5.5) + 10);
-      var pillH = lines.length * lineHeight + 6;
-      var backing = '<rect class="mm-label-bg" x="'+(anchorX-pillW/2)+'" y="'+(yStart-lineHeight*0.8)+'" width="'+pillW+'" height="'+pillH+'" rx="5"/>';
-      var txt = lines.map(function(l,i){ return '<text class="'+labelCls+'" x="'+anchorX+'" y="'+(yStart+i*lineHeight)+'">'+esc(l)+'</text>'; }).join("");
-      return '<g class="'+nodeClasses(n)+'" data-node-id="'+n.id+'">'+backing+txt+'</g>';
+      else if (n.type === "domain"){ lines = wrapLabel(n.name, 11); lineHeight = 11; }
+      else if (n.type === "risk"){ lines = wrapLabel(n.name, 13); lineHeight = 10; }
+      else if (n.type === "action"){ lines = wrapLabel(n.name, 14); lineHeight = 10; }
+      else { lines = wrapLabel(n.name, 10); lineHeight = 10; } // kpi ("N KPIs") / leaf
+      var yStart = v.y - (lines.length-1)*lineHeight/2;
+      var txt = lines.map(function(l,i){ return '<text class="'+labelCls+'" x="'+v.x+'" y="'+(yStart+i*lineHeight)+'">'+esc(l)+'</text>'; }).join("");
+      return '<g class="'+nodeClasses(n)+'" data-node-id="'+n.id+'">'+txt+'</g>';
     });
 
-    // viewBox large enough for the widest expanded state; fixed generous size,
+    // viewBox large enough for the widest expanded state (bigger shapes +
+    // radial staggering push the reach further than the first version);
     // page never scrolls sideways because #mapWrap owns overflow, not <body>.
-    svg.setAttribute("viewBox", "0 0 1240 1200");
-    svg.setAttribute("width", "1240");
-    svg.setAttribute("height", "1200");
+    svg.setAttribute("viewBox", "0 0 1440 1440");
+    svg.setAttribute("width", "1440");
+    svg.setAttribute("height", "1440");
     svg.innerHTML = edgeParts.join("") + shapeParts.join("") + labelParts.join("");
   }
 
