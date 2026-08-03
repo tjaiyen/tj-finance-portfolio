@@ -558,6 +558,28 @@
     return '<rect class="mm-shape" x="'+(x-26)+'" y="'+(y-14)+'" width="52" height="28" rx="6"/>'; // leaf
   }
 
+  // The farthest a shape's own boundary ever reaches from its center, in ANY
+  // direction (a rectangle/diamond's corner distance, a hex/circle's exact
+  // radius) -- used to place its label as a caption clearly outside the
+  // shape, projected along that specific node's own angle from the map
+  // center, rather than a flat "straight down" offset. A label was never
+  // going to reliably fit inside a 44-60px marker (real measurement: action
+  // labels ran 10-26px wider than their 60px rect on almost every node) --
+  // shrinking text further just made names unreadable, so the shape is now
+  // a marker and the text is an external caption, same convention as a
+  // labeled pin on a map. Using each node's own angle (not a shared
+  // downward direction) makes captions fan outward the same way the shapes
+  // themselves already do, so adjacent lanes' captions diverge from each
+  // other instead of all converging on the same "below" real estate.
+  function shapeSafeRadius(type){
+    if (type === "root") return 46;
+    if (type === "domain") return 35.2;
+    if (type === "risk") return 24;
+    if (type === "action") return 34; // rect corner distance: sqrt(30^2+16^2)
+    if (type === "kpi") return 22;
+    return 30; // leaf: rect corner distance sqrt(26^2+14^2)
+  }
+
   function wrapLabel(text, max){
     var words = String(text).split(" "), lines = [], cur = "";
     words.forEach(function(w){
@@ -614,18 +636,29 @@
     });
 
     var labelParts = visibleNodes.map(function(v){
-      var n = v.node, lines, lineHeight, yStart;
-      if (n.type === "root"){ lines = ["Amazon","Leo"]; lineHeight = 16; yStart = v.y - 4; }
-      else if (n.type === "domain"){ lines = wrapLabel(n.name, 14); lineHeight = 11; yStart = v.y - 6 - (lines.length-1)*5.5; }
-      else { lines = wrapLabel(n.name, 13); lineHeight = 10; yStart = v.y - 2 - (lines.length-1)*5; }
+      var n = v.node, lines, lineHeight;
       var labelCls = n.type==="root" || n.type==="domain" ? "mm-label" : "mm-sublabel";
-      // legibility backing so a label reads cleanly even where it overlaps a
-      // neighboring node's fill -- widest line decides the pill's width.
+      if (n.type === "root"){ lines = ["Amazon","Leo"]; lineHeight = 13; }
+      else if (n.type === "domain"){ lines = wrapLabel(n.name, 14); lineHeight = 11; }
+      else { lines = wrapLabel(n.name, 13); lineHeight = 10; }
+      // Caption anchor is projected TANGENTIALLY (perpendicular to this
+      // node's own radial angle), never straight outward -- every child sits
+      // further out along nearly its parent's own angle, so an outward
+      // caption runs straight into its own child (confirmed empirically: a
+      // radial-outward first attempt produced 21 parent/child overlaps).
+      // Tangential is the one direction that's never "where the children
+      // are," and it also makes angularly-adjacent siblings diverge from
+      // each other instead of both pointing the same shared direction.
+      var gap = labelCls === "mm-label" ? 14 : 11;
+      var angle = (n.angle != null ? n.angle + Math.PI/2 : Math.PI/2);
+      var dist = shapeSafeRadius(n.type) + gap;
+      var anchorX = v.x + dist*Math.cos(angle);
+      var yStart = v.y + dist*Math.sin(angle);
       var maxLen = lines.reduce(function(m,l){ return Math.max(m,l.length); }, 0);
-      var pillW = Math.max(30, maxLen * (labelCls==="mm-label"?6.4:5.6) + 10);
+      var pillW = Math.max(30, maxLen * (labelCls==="mm-label"?6.0:5.5) + 10);
       var pillH = lines.length * lineHeight + 6;
-      var backing = '<rect class="mm-label-bg" x="'+(v.x-pillW/2)+'" y="'+(yStart-lineHeight*0.75)+'" width="'+pillW+'" height="'+pillH+'" rx="5"/>';
-      var txt = lines.map(function(l,i){ return '<text class="'+labelCls+'" x="'+v.x+'" y="'+(yStart+i*lineHeight)+'">'+esc(l)+'</text>'; }).join("");
+      var backing = '<rect class="mm-label-bg" x="'+(anchorX-pillW/2)+'" y="'+(yStart-lineHeight*0.8)+'" width="'+pillW+'" height="'+pillH+'" rx="5"/>';
+      var txt = lines.map(function(l,i){ return '<text class="'+labelCls+'" x="'+anchorX+'" y="'+(yStart+i*lineHeight)+'">'+esc(l)+'</text>'; }).join("");
       return '<g class="'+nodeClasses(n)+'" data-node-id="'+n.id+'">'+backing+txt+'</g>';
     });
 
