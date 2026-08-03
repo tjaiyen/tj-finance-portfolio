@@ -169,6 +169,7 @@
   .mm-action .mm-shape{fill:rgb(var(--c-bg-card2)); stroke:rgb(var(--c-accent) / .6)}
   .mm-kpi .mm-shape{fill:rgb(var(--c-bg-card2)); stroke:rgb(var(--c-success) / .6)}
   .mm-leaf .mm-shape{fill:rgb(var(--c-bg-card2)); stroke:rgb(var(--c-text-secondary) / .5)}
+  .mm-label-bg{fill:rgb(var(--c-bg-primary) / .82); pointer-events:none}
   .mm-label{fill:rgb(var(--c-text-primary)); font:600 10.5px/1.2 -apple-system,sans-serif; text-anchor:middle; pointer-events:none}
   .mm-sublabel{fill:rgb(var(--c-text-secondary)); font:600 8.5px/1 ui-monospace,Menlo,monospace; text-anchor:middle; text-transform:uppercase; letter-spacing:.03em; pointer-events:none}
   .mm-root .mm-shape{fill:rgb(var(--c-accent) / .22); stroke:rgb(var(--c-accent))}
@@ -560,25 +561,18 @@
   function wrapLabel(text, max){
     var words = String(text).split(" "), lines = [], cur = "";
     words.forEach(function(w){
-      if ((cur+" "+w).trim().length > max){ lines.push(cur.trim()); cur = w; } else cur += " "+w;
+      // Only break BEFORE a word if cur already holds something -- otherwise a
+      // first word alone longer than max pushed an empty line (consuming a
+      // slice(0,2) slot) and silently dropped the real remainder.
+      if (cur && (cur+" "+w).length > max){ lines.push(cur); cur = w; } else cur = cur ? cur+" "+w : w;
     });
-    if (cur.trim()) lines.push(cur.trim());
+    if (cur) lines.push(cur);
     return lines.slice(0,2);
   }
 
   function render(){
     var visibleIds = {"root":true};
     model.domains.forEach(function(d){ visibleIds[d.id]=true; if (d.expanded) d.primaryChildren.forEach(function(c){ visibleIds[c.id]=true; if(c.actionId) visibleIds[c.actionId]=true; }); });
-
-    var parts = [];
-    // edges first (under nodes)
-    model.edges.forEach(function(e){
-      if (!visibleIds[e.from] || !visibleIds[e.to]) return;
-      var a = model.byId[e.from], b = model.byId[e.to];
-      var ax = a.id==="root"?CX:a.x, ay = a.id==="root"?CY:a.y;
-      var isHi = highlightedNodeId && (e.from===highlightedNodeId || e.to===highlightedNodeId);
-      parts.push('<line class="mm-edge'+(isHi?" hi":"")+'" x1="'+ax+'" y1="'+ay+'" x2="'+b.x+'" y2="'+b.y+'"/>');
-    });
 
     function nodeClasses(n, extra){
       var cls = "mm-node mm-"+n.type+" mm-fade";
@@ -590,36 +584,49 @@
       return cls + (extra||"");
     }
 
-    // root
-    parts.push('<g class="mm-node mm-root" data-node-id="root">' + shapePath("root",CX,CY) +
-      '<text class="mm-label" x="'+CX+'" y="'+(CY-4)+'">Amazon</text><text class="mm-label" x="'+CX+'" y="'+(CY+12)+'">Leo</text></g>');
-
+    // Build the flat visible-node list once, in x/y-annotated form, so shapes
+    // and labels can be painted as two SEPARATE passes below -- every label
+    // ends up on top of every shape, regardless of node order. Text getting
+    // silently painted-over by a later node's shape (an earlier bug) is
+    // structurally impossible once labels are their own top-most layer.
+    var visibleNodes = [{ node: model.byId.root, x:CX, y:CY }];
     model.domains.forEach(function(d){
-      var lines = wrapLabel(d.name, 14);
-      var g = '<g class="'+nodeClasses(d)+'" data-node-id="'+d.id+'">' + shapePath("domain", d.x, d.y);
-      lines.forEach(function(l,i){ g += '<text class="mm-label" x="'+d.x+'" y="'+(d.y - 6 + i*11)+'">'+esc(l)+'</text>'; });
-      g += '</g>';
-      parts.push(g);
+      visibleNodes.push({ node:d, x:d.x, y:d.y });
+      if (d.expanded) d.primaryChildren.forEach(function(c){
+        visibleNodes.push({ node:c, x:c.x, y:c.y });
+        if (c.actionId){ var a = model.byId[c.actionId]; visibleNodes.push({ node:a, x:a.x, y:a.y }); }
+      });
+    });
 
-      if (d.expanded){
-        d.primaryChildren.forEach(function(c){
-          var lbl = wrapLabel(c.name, 13);
-          var shape = c.type==="risk" ? shapePath("risk", c.x, c.y, c.exposure_tier) : shapePath(c.type, c.x, c.y);
-          var g2 = '<g class="'+nodeClasses(c)+'" data-node-id="'+c.id+'">' + shape;
-          lbl.forEach(function(l,i){ g2 += '<text class="mm-sublabel" x="'+c.x+'" y="'+(c.y - 2 + i*10)+'">'+esc(l)+'</text>'; });
-          g2 += '</g>';
-          parts.push(g2);
+    var edgeParts = [];
+    model.edges.forEach(function(e){
+      if (!visibleIds[e.from] || !visibleIds[e.to]) return;
+      var a = model.byId[e.from], b = model.byId[e.to];
+      var ax = a.id==="root"?CX:a.x, ay = a.id==="root"?CY:a.y;
+      var isHi = highlightedNodeId && (e.from===highlightedNodeId || e.to===highlightedNodeId);
+      edgeParts.push('<line class="mm-edge'+(isHi?" hi":"")+'" x1="'+ax+'" y1="'+ay+'" x2="'+b.x+'" y2="'+b.y+'"/>');
+    });
 
-          if (c.actionId){
-            var a = model.byId[c.actionId];
-            var albl = wrapLabel(a.name, 13);
-            var g3 = '<g class="'+nodeClasses(a)+'" data-node-id="'+a.id+'">' + shapePath("action", a.x, a.y);
-            albl.forEach(function(l,i){ g3 += '<text class="mm-sublabel" x="'+a.x+'" y="'+(a.y - 2 + i*10)+'">'+esc(l)+'</text>'; });
-            g3 += '</g>';
-            parts.push(g3);
-          }
-        });
-      }
+    var shapeParts = visibleNodes.map(function(v){
+      var n = v.node;
+      var shape = n.type==="risk" ? shapePath("risk", v.x, v.y, n.exposure_tier) : shapePath(n.type, v.x, v.y);
+      return '<g class="'+nodeClasses(n)+'" data-node-id="'+n.id+'">'+shape+'</g>';
+    });
+
+    var labelParts = visibleNodes.map(function(v){
+      var n = v.node, lines, lineHeight, yStart;
+      if (n.type === "root"){ lines = ["Amazon","Leo"]; lineHeight = 16; yStart = v.y - 4; }
+      else if (n.type === "domain"){ lines = wrapLabel(n.name, 14); lineHeight = 11; yStart = v.y - 6 - (lines.length-1)*5.5; }
+      else { lines = wrapLabel(n.name, 13); lineHeight = 10; yStart = v.y - 2 - (lines.length-1)*5; }
+      var labelCls = n.type==="root" || n.type==="domain" ? "mm-label" : "mm-sublabel";
+      // legibility backing so a label reads cleanly even where it overlaps a
+      // neighboring node's fill -- widest line decides the pill's width.
+      var maxLen = lines.reduce(function(m,l){ return Math.max(m,l.length); }, 0);
+      var pillW = Math.max(30, maxLen * (labelCls==="mm-label"?6.4:5.6) + 10);
+      var pillH = lines.length * lineHeight + 6;
+      var backing = '<rect class="mm-label-bg" x="'+(v.x-pillW/2)+'" y="'+(yStart-lineHeight*0.75)+'" width="'+pillW+'" height="'+pillH+'" rx="5"/>';
+      var txt = lines.map(function(l,i){ return '<text class="'+labelCls+'" x="'+v.x+'" y="'+(yStart+i*lineHeight)+'">'+esc(l)+'</text>'; }).join("");
+      return '<g class="'+nodeClasses(n)+'" data-node-id="'+n.id+'">'+backing+txt+'</g>';
     });
 
     // viewBox large enough for the widest expanded state; fixed generous size,
@@ -627,7 +634,7 @@
     svg.setAttribute("viewBox", "0 0 1240 1200");
     svg.setAttribute("width", "1240");
     svg.setAttribute("height", "1200");
-    svg.innerHTML = parts.join("");
+    svg.innerHTML = edgeParts.join("") + shapeParts.join("") + labelParts.join("");
   }
 
   // ---- detail popover -------------------------------------------------------
