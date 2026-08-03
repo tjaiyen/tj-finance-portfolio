@@ -73,6 +73,7 @@
     font:600 13px/1.3 inherit; cursor:pointer; transition:all .15s;
   }
   .icobtn:hover{color:rgb(var(--c-text-primary)); border-color:rgb(var(--c-accent) / .55)}
+  .icobtn.on{color:rgb(var(--c-accent)); border-color:rgb(var(--c-accent) / .6); background:rgb(var(--c-accent) / .1)}
 
   .disclaimer{
     background:rgb(var(--c-warning) / .1); border:1px solid rgb(var(--c-warning) / .4);
@@ -122,9 +123,9 @@
   .src-tag.third_party{background:rgb(var(--c-warning) / .12); color:rgb(var(--c-warning)); border:1px solid rgb(var(--c-warning) / .35)}
   .src-tag.illustrative{background:rgb(var(--c-text-secondary) / .14); color:rgb(var(--c-text-secondary)); border:1px solid rgb(var(--c-text-secondary) / .35)}
 
-  .kpi .label{font:600 11.5px/1.2 ui-monospace,Menlo,monospace; letter-spacing:.05em; text-transform:uppercase; color:rgb(var(--c-text-secondary))}
-  .kpi .val{font:800 26px/1.15 -apple-system,sans-serif; margin:6px 0 2px; letter-spacing:-.02em}
-  .kpi .note{font-size:12.5px; color:rgb(var(--c-text-secondary))}
+  .kpi.label{font:600 11.5px/1.2 ui-monospace,Menlo,monospace; letter-spacing:.05em; text-transform:uppercase; color:rgb(var(--c-text-secondary))}
+  .kpi.val{font:800 26px/1.15 -apple-system,sans-serif; margin:6px 0 2px; letter-spacing:-.02em}
+  .kpi.note{font-size:12.5px; color:rgb(var(--c-text-secondary))}
 
   /* Tables scroll horizontally inside their own box on narrow screens rather than
      breaking the card/page layout -- the page body itself must never scroll sideways. */
@@ -181,7 +182,7 @@
 
   .cite{font-size:12px; color:rgb(var(--c-text-secondary)); overflow-wrap:anywhere}
   .cite a{color:rgb(var(--c-text-secondary)); text-decoration:underline}
-  .kpi .note, .kpi .val, .section-sub, .lede{overflow-wrap:anywhere}
+  .kpi.note, .kpi.val, .section-sub, .lede{overflow-wrap:anywhere}
 
   footer{margin-top:56px; padding-top:24px; border-top:1px solid rgb(var(--c-accent) / .16)}
   .legend{display:flex; gap:16px; flex-wrap:wrap; font-size:12.5px; color:rgb(var(--c-text-secondary)); margin-bottom:16px}
@@ -305,6 +306,7 @@
     <div class="right">
       <a class="icobtn" href="./leo-operations-map.html" title="Interactive relational map of every domain, risk, action, and KPI">🗺 Operations Map</a>
       <a class="icobtn" href="./leo-dbt-docs/" target="_blank" rel="noopener" title="Full dbt lineage graph + column-level docs for all 24 marts">🔗 Data Lineage</a>
+      <button class="icobtn" id="focusBtn" aria-pressed="false" title="Show one chapter at a time -- hides the other 3, hero/exec-summary/footer stay visible">🎯 Focus</button>
       <button class="icobtn" id="themeBtn" aria-pressed="false" title="Toggle theme">🌓 Theme</button>
     </div>
   </div>
@@ -667,8 +669,9 @@
   </div>
 
   <!-- Meta section: about this project's own engineering, not the Amazon Leo narrative --
-       deliberately outside the chapter structure and the scroll-spy it drives. -->
-  <div class="section" style="margin-top:56px; border-top:1px solid rgb(var(--c-accent) / .16); padding-top:28px">
+       deliberately outside the chapter structure and the scroll-spy it drives. data-chapter-end
+       marks it as the boundary Focus Mode's chapter-grouping walk stops at (see setupChapterNav). -->
+  <div class="section" data-chapter-end style="margin-top:56px; border-top:1px solid rgb(var(--c-accent) / .16); padding-top:28px">
     <div class="eyebrow" style="font:700 12px/1 ui-monospace,monospace;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px;color:rgb(var(--c-text-secondary))">About this page, not Amazon Leo</div>
     <h1 style="font-size:22px;margin:0 0 8px">How This Page Verifies Itself</h1>
     <p class="section-sub">Not a live system: this is this project's own testing catching its own mistakes, plus a plain-language routing map for who'd fix what if it happened again. Every commit link below is real and checkable.</p>
@@ -758,6 +761,74 @@
     window.addEventListener("resize", function(){
       moveIndicatorTo(document.querySelector(".chapchip.active"));
     });
+
+    // ---- Focus Mode: show one chapter at a time. Ch1-3 each span MULTIPLE
+    // sibling .section divs (only the first carries id="chN"); ch4 is a single
+    // div. The walk below buckets every .wrap child into whichever chapter is
+    // "current" without assuming either shape, and stops at the meta section's
+    // data-chapter-end marker so hero/disclaimer/exec-summary (before ch1) and
+    // the meta/footer (after ch4) are never touched -- they stay always-visible.
+    var focusOn = false, chapterGroups = null;
+    var focusBtn = document.getElementById("focusBtn");
+    var scrollbarEl = document.querySelector(".scrollbar");
+
+    function buildChapterGroups(){
+      var wrap = document.querySelector(".wrap");
+      var groups = { ch1: [], ch2: [], ch3: [], ch4: [] };
+      var current = null;
+      Array.prototype.forEach.call(wrap.children, function(el){
+        if (el.hasAttribute("data-chapter-end")) current = null;
+        if (el.id && groups.hasOwnProperty(el.id)) current = el.id;
+        if (current) groups[current].push(el);
+      });
+      return groups;
+    }
+
+    function showOnlyChapter(activeId){
+      Object.keys(chapterGroups).forEach(function(chId){
+        var display = chId === activeId ? "" : "none";
+        chapterGroups[chId].forEach(function(el){ el.style.display = display; });
+      });
+    }
+
+    function setActiveChip(chip){
+      chips.forEach(function(c){ c.classList.remove("active"); });
+      chip.classList.add("active");
+      moveIndicatorTo(chip);
+    }
+
+    if (focusBtn){
+      focusBtn.addEventListener("click", function(){
+        focusOn = !focusOn;
+        focusBtn.classList.toggle("on", focusOn);
+        focusBtn.setAttribute("aria-pressed", String(focusOn));
+        if (scrollbarEl) scrollbarEl.style.display = focusOn ? "none" : ""; // "how far through ch1-4" is meaningless once 3 of them are hidden
+        if (focusOn){
+          if (!chapterGroups) chapterGroups = buildChapterGroups();
+          var active = document.querySelector(".chapchip.active");
+          showOnlyChapter(active ? active.getAttribute("data-nav-target") : "ch1");
+        } else if (chapterGroups){
+          Object.keys(chapterGroups).forEach(function(chId){
+            chapterGroups[chId].forEach(function(el){ el.style.display = ""; });
+          });
+        }
+      });
+      // Chip clicks only need interception while focus is on -- the target
+      // chapter is hidden, so the native #hash scroll would land nowhere.
+      // Off, chips behave exactly as they always have (plain anchor scroll).
+      chips.forEach(function(chip){
+        chip.addEventListener("click", function(e){
+          if (!focusOn) return;
+          e.preventDefault();
+          if (!chapterGroups) chapterGroups = buildChapterGroups();
+          var target = chip.getAttribute("data-nav-target");
+          setActiveChip(chip);
+          showOnlyChapter(target);
+          var first = chapterGroups[target][0];
+          if (first) first.scrollIntoView({ behavior: prefersReducedMotion ? "auto" : "smooth", block: "start" });
+        });
+      });
+    }
 
     var targets = ["ch1","ch2","ch3","ch4"].map(function(id){ return document.getElementById(id); }).filter(Boolean);
     if (!targets.length || !("IntersectionObserver" in window)) return;
