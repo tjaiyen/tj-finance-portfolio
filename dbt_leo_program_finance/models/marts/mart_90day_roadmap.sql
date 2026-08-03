@@ -8,10 +8,12 @@
 -- riskier) act than citing a real person's public statement, which this project already does
 -- correctly elsewhere (e.g. the CFO's sourced earnings-call quote).
 --
--- The analysis clock is the real latest checkpoint (2026-07-15), 15 days before the
--- near-term FCC deadline -- a 90-day plan starting there can't change that near-term
--- outcome (already effectively decided); it targets the 2029 milestone's trajectory and
--- the response to what the near-term result reveals.
+-- The analysis clock is the real latest observed checkpoint (mart_unlaunched_inventory's
+-- latest_observed_date, computed dynamically -- not hardcoded, since this date has already
+-- changed once as the underlying checkpoint data was corrected), well before the near-term
+-- FCC deadline -- a 90-day plan starting there can't change that near-term outcome (already
+-- effectively decided); it targets the 2029 milestone's trajectory and the response to what
+-- the near-term result reveals.
 --
 -- Each row's baseline is pulled from the SAME mart mart_risk_register itself draws that
 -- risk's signal from -- zero new facts about the program, only one new illustrative input
@@ -92,6 +94,8 @@ select
             r.target_qualitative || ' (' || lc.utilization_pct_display || '% utilization already -- launch-constrained, not capacity-constrained)'
     end as target_description,
     r.rationale_note,
+    r.finance_manager_tasks,
+    r.finance_deliverable,
     true as is_illustrative,
     'A proposed 90-day plan, not an executed one -- there is no real "actual progress" for something that has not happened, so every target here is a stated goal, never a fabricated completion status. Baselines are pulled from the same marts mart_risk_register itself draws from; the only new inputs are target_improvement_pct/target_qualify_count, one illustrative planning assumption per row.' as notes
 from roadmap r

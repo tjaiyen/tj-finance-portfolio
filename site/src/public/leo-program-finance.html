@@ -300,7 +300,7 @@
 <div class="bar">
   <div class="bar-in">
     <a class="brand" href="./" style="text-decoration:none; color:inherit" title="Back to portfolio"><span class="dot"></span><div>Leo Program Finance<small>dbt + DuckDB · illustrative</small></div></a>
-    <span class="badge">288 tests passing</span>
+    <span class="badge">290 tests passing</span>
     <span class="badge" id="dataAsOf" title="Timestamp of the last dbt build + export, not a live feed"></span>
     <div class="right">
       <a class="icobtn" href="./leo-dbt-docs/" target="_blank" rel="noopener" title="Full dbt lineage graph + column-level docs for all 24 marts">🔗 Data Lineage</a>
@@ -654,6 +654,11 @@
     <p class="section-sub" id="roadmapIntro"></p>
     <div class="table-wrap card"><table id="roadmapTable"></table></div>
     <div class="plain" id="plainRoadmap"></div>
+
+    <h2 style="margin-top:32px">Finance Manager's 90-Day Accountability <span class="src-tag illustrative" style="margin-left:6px">illustrative</span></h2>
+    <p class="section-sub">The same 7 rows above, re-read through one lens: not who in the org owns each operational fix, but what a Finance Manager specifically tracks, analyzes, and delivers across all of them -- regardless of which domain owns the fix. Mission-critical rows (the same 2 already flagged <code>critical</code> in the risk register, not a new classification) are called out first.</p>
+    <div class="table-wrap card"><table id="fmAccountabilityTable"></table></div>
+    <div class="plain" id="plainFmAccountability"></div>
 
     <h2 style="margin-top:32px">The Throughline <span class="src-tag illustrative" style="margin-left:6px">AI synthesis</span></h2>
     <p class="section-sub">Connects facts already shown above into one statement this page doesn't otherwise make explicit. Introduces nothing new -- every number here is pulled live from the same marts as the rest of this page, not typed by hand. Authored once, not live-generated.</p>
@@ -1870,6 +1875,31 @@
       '<span class="lp-tag">Applying: Ownership</span><br>' +
       '<span class="eyebrow">In plain terms</span>' + roadmap.length + ' workstreams across ' + domainCount + ' functional domains, each owned by one accountable role and tied to a measurable target — not a status update, since none of this has actually been executed yet. ' +
       (monitorOnlyRow ? 'One row (' + esc(monitorOnlyRow.domain) + ') is deliberately "no action needed" — ' + esc(monitorOnlyRow.rationale_note) + ' A plan that manufactures busywork everywhere isn\'t more thorough, it\'s less honest.' : '');
+
+    // Finance Manager's 90-Day Accountability -- the same 7 rows re-read through one
+    // lens. "Mission critical" reuses the exposure_tier already computed in the risk
+    // register above, not a new classification invented for this section.
+    var fmRows = roadmap.slice().sort(function(a,b){
+      var aCrit = a.exposure_tier === 'critical' ? 0 : 1;
+      var bCrit = b.exposure_tier === 'critical' ? 0 : 1;
+      return aCrit - bCrit;
+    });
+    var fmHtml = '<thead><tr><th>Risk</th><th>Finance Manager Tasks</th><th>Deliverable</th></tr></thead><tbody>';
+    fmRows.forEach(function(r){
+      var tasks = r.finance_manager_tasks.split(' | ').map(function(t){ return '<li>' + esc(t) + '</li>'; }).join('');
+      var critBadge = r.exposure_tier === 'critical' ? ' <span class="status risk">mission critical</span>' : '';
+      fmHtml += '<tr><td>' + esc(r.risk_name.replace(/_/g,' ')) + critBadge + '<div class="kpi note" style="margin-top:2px;font-size:11px">Owned operationally by ' + esc(r.accountable_role) + '</div></td>' +
+        '<td><ul style="margin:0;padding-left:18px">' + tasks + '</ul></td>' +
+        '<td>' + esc(r.finance_deliverable) + '</td></tr>';
+    });
+    fmHtml += '</tbody>';
+    document.getElementById("fmAccountabilityTable").innerHTML = fmHtml;
+
+    var criticalCount = roadmap.filter(function(r){ return r.exposure_tier === 'critical'; }).length;
+    var financeOwnedRow = roadmap.filter(function(r){ return r.risk_name === 'cost_escalation'; })[0];
+    document.getElementById("plainFmAccountability").innerHTML =
+      '<span class="lp-tag">Applying: Ownership</span><br>' +
+      '<span class="eyebrow">In plain terms</span>' + criticalCount + ' of these 7 are mission-critical by the same standard used everywhere else on this page (the risk register\'s own exposure tier, not a new bar invented for this section). On ' + (financeOwnedRow ? esc(financeOwnedRow.risk_name.replace(/_/g,' ')) : 'cost escalation') + ', Finance is already the operational owner — there\'s no separate "finance lens" to add, the tracking work above is the fix itself. On every other row, Finance owns the financial visibility even though it doesn\'t own the operational fix — that\'s the actual distinction this table makes.';
 
     // The Throughline -- pure synthesis of marts already rendered above; introduces
     // no new facts. Every number below is pulled from data.X (or the already-scoped

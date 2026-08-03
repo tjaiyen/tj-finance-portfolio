@@ -11,5 +11,7 @@ select
     cast(target_improvement_pct as double) as target_improvement_pct,
     cast(target_qualify_count as integer) as target_qualify_count,
     cast(target_qualitative as varchar) as target_qualitative,
-    cast(rationale_note as varchar) as rationale_note
+    cast(rationale_note as varchar) as rationale_note,
+    cast(finance_manager_tasks as varchar) as finance_manager_tasks,
+    cast(finance_deliverable as varchar) as finance_deliverable
 from {{ ref('raw_90day_roadmap') }}

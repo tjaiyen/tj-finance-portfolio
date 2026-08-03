@@ -138,7 +138,13 @@ number.
     (2026-07-02, computed dynamically -- not hardcoded, since the underlying checkpoint
     data has already changed once since this mart was first built), well before the
     near-term FCC deadline -- honestly framed as targeting the 2029 trajectory, not a fix
-    for an outcome that's already effectively decided.
+    for an outcome that's already effectively decided. Two added columns, `finance_manager_tasks`
+    and `finance_deliverable`, re-read the same 7 rows through a Finance Manager's accountability
+    lens -- what Finance specifically tracks/analyzes/delivers on each row, independent of which
+    domain owns the operational fix. 4 of 7 tie directly to this project's own Chapter 4
+    recommendations (launch-provider ROI, D2D capital ask, unlaunched-inventory carrying cost,
+    milestone cost-of-delay); "mission critical" on the dashboard reuses exposure_tier from
+    mart_risk_register rather than inventing a new classification.
   - `mart_data_quality_routing` -- a fully synthetic anomaly-category -> role routing
     table (5 categories). Generic role titles only, same convention as the 90-day
     roadmap -- not a claim about Amazon's real org chart. 4 of 5 categories are this
@@ -171,7 +177,7 @@ If you're rebuilding after changing seed column shapes, delete the local `.duckd
 it's a rebuildable cache, and dbt won't reconcile a changed seed schema against an existing table on its own.
 
 This project runs in CI on every push (`.github/workflows/dbt-ci.yml`, `dbt-build-leo` job) --
-the 249-test claim above is an enforced gate, not just a number run locally before committing.
+the 290-test claim above is an enforced gate, not just a number run locally before committing.
 A full column-level lineage graph (`dbt docs generate --static`) is published alongside the
 dashboard: [leo-dbt-docs/](../site/src/public/leo-dbt-docs/index.html).
 

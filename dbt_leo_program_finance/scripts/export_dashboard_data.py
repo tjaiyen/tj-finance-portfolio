@@ -231,7 +231,8 @@ def main():
     roadmap_90day = rows_as_dicts(con.execute("""
         select roadmap_id, risk_name, category, exposure_tier, domain, accountable_role,
                action, phase_start_date, phase_end_date, phase_start_day, phase_end_day,
-               target_type, target_description, rationale_note, is_illustrative, notes
+               target_type, target_description, rationale_note, finance_manager_tasks,
+               finance_deliverable, is_illustrative, notes
         from main.mart_90day_roadmap
         order by roadmap_id
     """))

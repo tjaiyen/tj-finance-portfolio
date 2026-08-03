@@ -193,6 +193,8 @@ seeds:
         target_qualify_count: integer
         target_qualitative: varchar
         rationale_note: varchar
+        finance_manager_tasks: varchar
+        finance_deliverable: varchar
     raw_data_quality_routing:
       +column_types:
         category: varchar

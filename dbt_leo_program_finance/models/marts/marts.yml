@@ -446,6 +446,10 @@ models:
                 values: ['percent_improvement', 'qualify_count', 'threshold_zero_new', 'milestone_checkpoint', 'monitor_only']
       - name: target_description
         tests: [not_null]
+      - name: finance_manager_tasks
+        tests: [not_null]
+      - name: finance_deliverable
+        tests: [not_null]
       - name: is_illustrative
         tests:
           - not_null

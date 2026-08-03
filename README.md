@@ -100,7 +100,11 @@ independently, which turn out to produce numerically identical EAC at every leve
 sees their product, so the dashboard shows one curve rather than a misleading pair of overlapping ones, plus a
 **90-day accountability roadmap** keyed to the risk register itself — one action per risk, generic role titles
 only (never a real named individual), every target a stated goal rather than a fabricated completion status,
-and an honest "no action needed" row for the one signal that was never actually a problem. Closes with **"The
+and an honest "no action needed" row for the one signal that was never actually a problem. The same 7 rows are
+then re-read through a **Finance Manager's accountability lens** — critical-first, what a Finance Manager
+specifically tracks/analyzes/delivers on each, regardless of which domain owns the operational fix (4 of the 7
+tie directly to this page's own Chapter 4 recommendations); "mission critical" reuses the register's own
+exposure tier rather than inventing a new bar. Closes with **"The
 Throughline"** — an AI-synthesized paragraph connecting facts already on the page (two of seven register risks
 share one root cause; the 90-day plan's own domain grouping already reflects it) — guarded not by a post-hoc
 fact-checker but architecturally: every number renders through the same live data-interpolation every other
@@ -110,7 +114,7 @@ testing has actually found and fixed (a nondeterminism bug, a full source-halluc
 its own real, checkable GitHub commit, plus a category-to-role routing map for what would happen if it happened
 again. Not a live monitoring system — the honest version of "the system learns to prevent future errors" for a
 static analytics pipeline: tests accumulate, they don't forget.
-288 tests pass, enforced in CI on every push (not just run locally before committing), with a full column-level
+290 tests pass, enforced in CI on every push (not just run locally before committing), with a full column-level
 lineage graph published alongside the dashboard; singular tests enforce that every illustrative mart's rows are
 explicitly flagged and that every risk in the register has an owner, making the grounded-vs-illustrative
 separation a tested property of the project, not just a README claim.
