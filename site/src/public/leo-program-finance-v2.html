@@ -1598,9 +1598,22 @@
     renderTable();
   }
 
+  // ---- section-wide scroll reveal: reuses the SAME reveal-pending/reveal-once
+  // classes + revealOnce keyframe already shipped for the KPI table (no new
+  // animation system). Called only after render(data) has already populated every
+  // section -- never added in the static HTML -- so a fetch failure can't leave
+  // a section permanently invisible. Skips hero/disclaimer (not .section, and
+  // already have their own orbit-ring/draw-in animation) by construction.
+  function setupSectionReveal(){
+    document.querySelectorAll(".section").forEach(function(sec){
+      sec.classList.add("reveal-pending");
+      observeAndAddClass(sec, "reveal-once");
+    });
+  }
+
   fetch("./leo_finance_dashboard_data.json")
     .then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
-    .then(function(data){ render(data); setupPinTray(data); setupTour(data); setupKpiFilters(data); })
+    .then(function(data){ render(data); setupPinTray(data); setupTour(data); setupKpiFilters(data); setupSectionReveal(); })
     .catch(function(err){
       document.getElementById("loadErr").style.display = "block";
       document.getElementById("loadErr").innerHTML =
