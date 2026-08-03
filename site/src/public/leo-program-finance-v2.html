@@ -290,6 +290,43 @@
   .gloss-term{font:600 13px/1.3 inherit; color:rgb(var(--c-accent)); margin-bottom:4px}
   .gloss-def{margin:0; font-size:12.5px; line-height:1.6; color:rgb(var(--c-text-secondary))}
 
+  /* ---- pin-to-compare: toggle chips + a floating bottom tray. Every pinned
+     value is read from the same fetched `data` object every other number on
+     this page already uses -- this is a second DISPLAY of an existing figure,
+     never a new one computed independently. */
+  .pin-chip{
+    display:inline-flex; align-items:center; gap:5px; padding:6px 11px; border-radius:99px;
+    font:600 11.5px/1.2 inherit; color:rgb(var(--c-text-secondary)); cursor:pointer;
+    border:1px solid rgb(var(--c-text-secondary) / .3); background:transparent;
+  }
+  .pin-chip:hover{border-color:rgb(var(--c-accent) / .5); color:rgb(var(--c-text-primary))}
+  .pin-chip.pinned{color:rgb(var(--c-accent)); border-color:rgb(var(--c-accent) / .6); background:rgb(var(--c-accent) / .1)}
+  .pin-tray{
+    display:none; position:fixed; left:0; right:0; bottom:0; z-index:25;
+    justify-content:center; padding:0 16px 16px;
+  }
+  .pin-tray.show{display:flex}
+  .pin-tray-in{
+    width:100%; max-width:1100px; background:rgb(var(--c-bg-card) / .96); backdrop-filter:blur(16px);
+    border:1px solid rgb(var(--c-accent) / .2); border-radius:14px; box-shadow:0 16px 40px rgb(0 0 0 / .45);
+    padding:12px 16px; display:flex; align-items:center; gap:14px; flex-wrap:wrap; max-height:min(200px,30vh); overflow-y:auto;
+  }
+  .pin-tray-label{font:600 10px/1 ui-monospace,Menlo,monospace; letter-spacing:.08em; text-transform:uppercase; color:rgb(var(--c-text-secondary)); flex:0 0 auto}
+  .pin-tray-items{display:flex; gap:10px; flex:1 1 auto; flex-wrap:wrap; min-width:0}
+  .pin-item{
+    text-align:left; display:flex; flex-direction:column; gap:2px; padding:8px 12px; border-radius:8px;
+    background:rgb(var(--c-bg-card2)); border:1px solid rgb(var(--c-text-secondary) / .2); min-width:132px; cursor:pointer;
+  }
+  .pin-item:hover{border-color:rgb(var(--c-accent) / .5)}
+  .pin-item .k{font-size:10px; color:rgb(var(--c-text-secondary))}
+  .pin-item .v{font:700 15px/1 inherit; font-variant-numeric:tabular-nums; color:rgb(var(--c-accent))}
+  .pin-item .s{font-size:10px; color:rgb(var(--c-text-secondary))}
+  .pin-clear-btn{
+    flex:0 0 auto; padding:6px 11px; background:transparent; border:1px solid rgb(var(--c-text-secondary) / .3);
+    border-radius:99px; font:600 11px/1 inherit; color:rgb(var(--c-text-secondary)); cursor:pointer;
+  }
+  .pin-clear-btn:hover{border-color:rgb(var(--c-accent) / .5); color:rgb(var(--c-text-primary))}
+
   /* ---- interactive rate slider (milestone projection only -- never the static
      Amazon-own-projection figures, which stay plain text elsewhere on the card). */
   .slidercard{margin-top:14px; padding-top:14px; border-top:1px dashed rgb(var(--c-accent) / .25)}
@@ -406,6 +443,10 @@
     <p class="section-sub">The full reasoning is below, chapter by chapter — this is the version for a reader who only has ten seconds.</p>
     <div class="grid3" id="execSummaryCards"></div>
     <div class="plain" id="execSummaryAction" style="margin-top:12px"></div>
+    <div style="margin-top:16px">
+      <div style="font:600 10.5px/1 ui-monospace,Menlo,monospace; letter-spacing:.06em; text-transform:uppercase; color:rgb(var(--c-text-secondary)); margin-bottom:8px">Pin metrics to compare</div>
+      <div id="pinChipRow" style="display:flex; gap:8px; flex-wrap:wrap"></div>
+    </div>
   </div>
 
   <!-- 1. Milestone risk -->
@@ -736,6 +777,14 @@
 </div>
 
 <div class="infopop" id="infoPop"></div>
+
+<div class="pin-tray" id="pinTray">
+  <div class="pin-tray-in">
+    <span class="pin-tray-label" id="pinTrayLabel"></span>
+    <div class="pin-tray-items" id="pinTrayItems"></div>
+    <button class="pin-clear-btn" id="pinClearBtn">Clear all</button>
+  </div>
+</div>
 
 <div class="drawer-overlay" id="glossaryOverlay">
   <div class="drawer" role="dialog" aria-modal="true" aria-label="Glossary">
@@ -1190,9 +1239,75 @@
     obs.observe(container);
   }
 
+  // ---- pin-to-compare tray -- reads the SAME fetched `data` object every
+  // other number on this page already uses; this is a second display of an
+  // existing figure, never a value computed independently of it.
+  var pinnedKeys = [];
+  function buildPinDefs(data){
+    var ms = data.milestone_risk[0];
+    var cg = data.capacity_gap;
+    var cost = data.cost_escalation[data.cost_escalation.length-1];
+    var inv = data.capitalized_inventory_rollforward[data.capitalized_inventory_rollforward.length-1];
+    var evm = data.evm_rollup;
+    var ri = data.program_risk_index;
+    var d2d = data.d2d_pipeline;
+    return {
+      ms: { label:"Milestone shortfall", value: Number(ms.modeled_projected_shortfall).toLocaleString(), sub:"satellites · " + ms.milestone_date },
+      cap: { label:"Launch utilization", value: Math.round(cg.utilization_pct*100) + "%", sub:"of factory ceiling" },
+      cost: { label:"Program cost", value: fmtUSD(cost.low_estimate_usd) + (cost.high_estimate_usd!==cost.low_estimate_usd ? "–"+fmtUSD(cost.high_estimate_usd) : ""), sub:"stated " + cost.as_of_date },
+      inv: { label:"Unlaunched inventory", value: Number(inv.modeled_backlog_lower).toLocaleString() + "–" + Number(inv.modeled_backlog_upper).toLocaleString(), sub:"satellites, modelled" },
+      evm: { label:"CPI / SPI", value: evm.cpi.toFixed(2) + " / " + evm.spi.toFixed(2), sub: (evm.cpi<1 && evm.spi<1 ? "both" : (evm.cpi<1 || evm.spi<1 ? "one" : "neither")) + " below 1.0" },
+      eac: { label:"EAC composite", value: fmtUSD(evm.eac_composite), sub:"vs BAC " + fmtUSD(evm.bac) },
+      risk: { label:"Delivery risk index", value: ri.composite_score_pct + "%", sub: ri.risk_tier },
+      d2d: { label:"D2D filing", value: Number(d2d.satellites_requested).toLocaleString(), sub:"satellites requested" }
+    };
+  }
+  function setupPinTray(data){
+    var PD = buildPinDefs(data);
+    var chipRow = document.getElementById("pinChipRow");
+    var tray = document.getElementById("pinTray");
+    var trayItems = document.getElementById("pinTrayItems");
+    var trayLabel = document.getElementById("pinTrayLabel");
+    if (!chipRow || !tray) return;
+
+    function renderChips(){
+      chipRow.innerHTML = Object.keys(PD).map(function(k){
+        var on = pinnedKeys.indexOf(k) >= 0;
+        return '<button class="pin-chip'+(on?" pinned":"")+'" data-pin-key="'+escAttr(k)+'">'+(on?"📌 ":"+ ")+esc(PD[k].label)+'</button>';
+      }).join("");
+    }
+    function renderTray(){
+      var pinned = pinnedKeys.filter(function(k){ return PD[k]; });
+      if (!pinned.length){ tray.classList.remove("show"); return; }
+      tray.classList.add("show");
+      trayLabel.textContent = "Compare · " + pinned.length;
+      trayItems.innerHTML = pinned.map(function(k){
+        var p = PD[k];
+        return '<button class="pin-item" data-pin-key="'+escAttr(k)+'" title="Click to unpin"><span class="k">'+esc(p.label)+'</span><span class="v">'+esc(p.value)+'</span><span class="s">'+esc(p.sub)+'</span></button>';
+      }).join("");
+    }
+    function togglePin(k){
+      var idx = pinnedKeys.indexOf(k);
+      if (idx >= 0) pinnedKeys.splice(idx,1); else pinnedKeys.push(k);
+      renderChips(); renderTray();
+    }
+    chipRow.addEventListener("click", function(e){
+      var btn = e.target.closest("[data-pin-key]");
+      if (btn) togglePin(btn.getAttribute("data-pin-key"));
+    });
+    trayItems.addEventListener("click", function(e){
+      var btn = e.target.closest("[data-pin-key]");
+      if (btn) togglePin(btn.getAttribute("data-pin-key"));
+    });
+    document.getElementById("pinClearBtn").addEventListener("click", function(){
+      pinnedKeys = []; renderChips(); renderTray();
+    });
+    renderChips(); renderTray();
+  }
+
   fetch("./leo_finance_dashboard_data.json")
     .then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
-    .then(render)
+    .then(function(data){ render(data); setupPinTray(data); })
     .catch(function(err){
       document.getElementById("loadErr").style.display = "block";
       document.getElementById("loadErr").innerHTML =
