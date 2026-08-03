@@ -104,30 +104,20 @@
   .icobtn:hover{color:rgb(var(--c-text-primary)); border-color:rgb(var(--c-accent) / .55)}
   .icobtn.on{color:rgb(var(--c-accent)); border-color:rgb(var(--c-accent) / .6); background:rgb(var(--c-accent) / .1)}
 
+  /* subtle-border card, not a warning-colored box -- matches the reference
+     design's treatment (a factual disclosure, not an alarm). */
   .disclaimer{
-    background:rgb(var(--c-warning) / .1); border:1px solid rgb(var(--c-warning) / .4);
+    background:rgb(var(--c-bg-card)); border:1px solid rgb(var(--c-accent) / .16);
     border-radius:var(--c-radius-md); padding:var(--c-space-6) var(--c-space-6); margin:var(--c-space-8) 0; font-size:13px; line-height:1.6;
-    color:rgb(var(--c-text-primary));
+    color:rgb(var(--c-text-secondary));
   }
-  .disclaimer b{color:rgb(var(--c-warning))}
+  .disclaimer b{color:rgb(var(--c-text-primary)); font-weight:600}
 
   h1{font-size:26px; margin:calc(var(--c-space-8) * 1.25) 0 var(--c-space-2); letter-spacing:-.01em}
   .lede{color:rgb(var(--c-text-secondary)); font-size:14.5px; max-width:70ch; margin:0 0 var(--c-space-3)}
 
-  /* ---- hero orbit ring: the one authored focal moment. Not decorative -- the arc
-     fraction is checkpoint_count / satellites_required from mart_milestone_risk, the
-     same real numbers the page states in prose two paragraphs later. Draws in once on
-     load; skipped (final state shown directly) under reduced-motion or narrow mobile. */
   .hero-row{display:flex; align-items:flex-start; gap:calc(var(--c-space-8) * 1.25); flex-wrap:wrap}
   .hero-row .hero-text{flex:1 1 380px; min-width:0}
-  .orbit-wrap{flex:0 0 auto; display:flex; flex-direction:column; align-items:center; gap:var(--c-space-1); margin-top:var(--c-space-8)}
-  .orbit-wrap svg{width:112px; height:112px}
-  .orbit-ring-track{fill:none; stroke:rgb(var(--c-text-secondary) / .16); stroke-width:10}
-  .orbit-ring-fill{fill:none; stroke:rgb(var(--c-accent)); stroke-width:10; stroke-linecap:round}
-  .orbit-label{font:800 17px/1 ui-monospace,Menlo,monospace; fill:rgb(var(--c-text-primary))}
-  .orbit-sub{font:600 8.5px/1 ui-monospace,Menlo,monospace; fill:rgb(var(--c-text-secondary)); text-transform:uppercase; letter-spacing:.04em}
-  .orbit-caption{font-size:11px; color:rgb(var(--c-text-secondary)); text-align:center; max-width:120px}
-  @media (max-width:640px){ .orbit-wrap{margin:var(--c-space-6) auto 0} }
   h2{font-size:16px; margin:0 0 var(--c-space-1); letter-spacing:-.01em}
   .section{margin-top:calc(var(--c-space-8) * 1.75)}
   .section-sub{color:rgb(var(--c-text-secondary)); font-size:13px; margin:0 0 var(--c-space-6); max-width:76ch}
@@ -227,44 +217,63 @@
 
   #loadErr{display:none; margin:var(--c-space-8) 0; padding:var(--c-space-6); border:1px solid rgb(var(--c-danger) / .4); border-radius:var(--c-radius-md); color:rgb(var(--c-danger)); font-size:13px}
 
-  /* ---- chapter nav: a sticky horizontal chip strip (not a fixed sidebar) -- the
-     wayfinding goal from the reference command-center page, adapted so it never
-     competes with mobile screen width the way a two-column sidebar layout would. */
-  .chapternav{
-    position:sticky; top:61px; z-index:4; backdrop-filter:blur(8px);
-    overflow-x:auto; -webkit-overflow-scrolling:touch;
-    background:
-      linear-gradient(to right, transparent, rgb(var(--c-accent) / .14) var(--c-divider-fade-w),
-        rgb(var(--c-accent) / .14) calc(100% - var(--c-divider-fade-w)), transparent) bottom / 100% 1px no-repeat,
-      rgb(var(--c-bg-primary) / .92);
-  }
-  .chapternav-in{max-width:1100px; margin:0 auto; padding:var(--c-space-4) var(--c-space-8); display:flex; gap:var(--c-space-3); white-space:nowrap; position:relative}
+  /* ---- header nav: plain underlined text links, inline in the same bar as the
+     brand and controls (matches the reference design) -- not a separate sticky
+     sub-bar with pill chips. Active state driven by the same scroll-spy JS that
+     used to move a sliding pill indicator; that JS's moveIndicatorTo() no-ops
+     safely now (its target element no longer exists), so it needed no changes. */
+  .hdr-nav{display:flex; align-items:center; gap:var(--c-space-4); flex-wrap:wrap}
   .chapchip{
-    display:inline-flex; align-items:center; gap:var(--c-space-2); padding:var(--c-space-2) calc(var(--c-space-3) * 1.2); border-radius:calc(var(--c-radius-md) * .75);
-    font:600 12.5px/1.2 inherit; color:rgb(var(--c-text-secondary)); text-decoration:none;
-    border:1px solid transparent; transition:color .15s, border-color .15s; flex-shrink:0;
-    position:relative; z-index:1;
+    display:inline-flex; align-items:center; padding-bottom:2px;
+    font:600 12px/1.2 inherit; color:rgb(var(--c-text-secondary)); text-decoration:none;
+    border-bottom:2px solid transparent; transition:color .15s, border-color .15s; flex-shrink:0; white-space:nowrap;
   }
   .chapchip:hover{color:rgb(var(--c-text-primary))}
-  .chapchip.active{color:rgb(var(--c-accent)); border-color:rgb(var(--c-accent) / .4)}
-  .chapchip .num{
-    display:inline-flex; align-items:center; justify-content:center; width:16px; height:16px;
-    border-radius:var(--c-radius-sm); background:rgb(var(--c-text-secondary) / .18); font-size:10.5px; font-weight:700;
+  .chapchip.active{color:rgb(var(--c-accent)); border-bottom-color:rgb(var(--c-accent))}
+
+  /* ---- RATE segmented control -- Nocturne's .seg pattern, header-inline.
+     Presets set the SAME rate state the milestone card's fine slider already
+     drives (see setupRatePresets); Low/Base/High are real computed values,
+     never hand-typed. */
+  .rate-seg{display:inline-flex; align-items:center; gap:var(--c-space-2)}
+  .rate-seg-label{font:600 10px/1 ui-monospace,Menlo,monospace; letter-spacing:.08em; text-transform:uppercase; color:rgb(var(--c-text-secondary))}
+  .rate-seg-opts{display:inline-flex; border:1px solid rgb(var(--c-text-secondary) / .3); border-radius:var(--c-radius-md); overflow:hidden}
+  .rate-seg-opt{
+    padding:var(--c-space-2) calc(var(--c-space-3) * 1.2); font:600 11.5px/1 inherit; color:rgb(var(--c-text-secondary));
+    background:transparent; border:none; border-left:1px solid rgb(var(--c-text-secondary) / .3); cursor:pointer;
   }
-  .chapchip.active .num{background:rgb(var(--c-accent) / .3); color:rgb(var(--c-accent))}
-  /* Sliding pill: replaces the old instant background-color toggle with real spatial
-     continuity between chapters -- the fixed border-color above still works standalone
-     if JS never runs. Position/width set by JS from the active chip's own box. Radius
-     MUST match .chapchip's own (both the pill->tag conversion) or the highlight and the
-     chip corners it sits behind would visibly mismatch. */
-  .chip-indicator{
-    position:absolute; top:var(--c-space-2); bottom:var(--c-space-2); left:0; width:0; border-radius:calc(var(--c-radius-md) * .75);
-    background:rgb(var(--c-accent) / .1); z-index:0; pointer-events:none;
-    transition:transform .3s cubic-bezier(.16,1,.3,1), width .3s cubic-bezier(.16,1,.3,1);
+  .rate-seg-opt:first-child{border-left:none}
+  .rate-seg-opt:hover{background:rgb(var(--c-accent) / .08)}
+  .rate-seg-opt.active{color:rgb(var(--c-accent)); background:rgb(var(--c-accent) / .12)}
+
+  /* ---- Plain English toggle -- shows/hides the existing .plain-gated "In plain
+     terms" narrator boxes (28 of them, already written); OFF by default. */
+  .plain-toggle{
+    display:inline-flex; align-items:center; gap:var(--c-space-2); background:transparent;
+    border:1px solid rgb(var(--c-text-secondary) / .3); border-radius:calc(var(--c-radius-md) * .75);
+    padding:var(--c-space-2) calc(var(--c-space-3) * 1.2); font:600 11.5px/1 inherit; color:rgb(var(--c-text-secondary)); cursor:pointer;
   }
+  .plain-toggle:hover{border-color:rgb(var(--c-accent) / .5); color:rgb(var(--c-text-primary))}
+  .plain-toggle .dot{width:7px; height:7px; border-radius:50%; background:rgb(var(--c-text-secondary) / .4); flex-shrink:0}
+  .plain-toggle.on{color:rgb(var(--c-accent)); border-color:rgb(var(--c-accent) / .5)}
+  .plain-toggle.on .dot{background:rgb(var(--c-accent)); box-shadow:0 0 6px rgb(var(--c-accent) / .6)}
+
+  /* ---- header CTA ("Walk me through it") -- the one deliberately solid-filled
+     control on the page. Distinct from .tour-btn.primary (the in-tour Next
+     button, which stays outline per Nocturne's own rule): this is the launch
+     affordance, matching the reference's own solid treatment for it. */
+  .hdr-cta{
+    display:inline-flex; align-items:center; gap:var(--c-space-2); padding:var(--c-space-2) calc(var(--c-space-3) * 1.2);
+    border-radius:calc(var(--c-radius-md) * .75); font:600 12px/1 inherit; cursor:pointer;
+    background:rgb(var(--c-text-primary)); color:rgb(var(--c-bg-primary)); border:1px solid rgb(var(--c-text-primary));
+  }
+  .hdr-cta:hover{background:rgb(var(--c-text-primary) / .85)}
+
   /* Scroll progress: how far through the 4 chapters, not a decorative loader. */
   .scrollbar{height:2px; background:rgb(var(--c-accent) / .12)}
   .scrollbar .fill{height:100%; width:0%; background:rgb(var(--c-accent)); transform-origin:left; transition:width .1s linear}
+
+  .meta-badges{max-width:1100px; margin:0 auto; padding:var(--c-space-3) var(--c-space-8) 0; display:flex; gap:var(--c-space-3); flex-wrap:wrap}
 
   /* ---- headline insight + per-section "in plain terms" narrator boxes -- computed
      from the same loaded JSON, never a hardcoded sentence, so they can't go stale. */
@@ -279,6 +288,11 @@
     border-left:3px solid rgb(var(--c-accent) / .5); font-size:13px; line-height:1.6;
   }
   .plain .eyebrow{font:700 10.5px/1 ui-monospace,Menlo,monospace; letter-spacing:.06em; text-transform:uppercase; color:rgb(var(--c-accent)); margin-bottom:var(--c-space-2); display:block}
+  /* Plain English mode: OFF by default (matches the reference's own default),
+     toggled from the header. Only the per-chapter "In plain terms" narrator
+     boxes are gated -- execSummaryAction reuses the same box styling for its
+     always-visible action line and is deliberately NOT in this class. */
+  :root:not([data-plain="on"]) .plain-gated{display:none}
 
   /* ---- shared floating tooltip (one DOM node, repositioned per click -- same
      pattern as the reference page's .infopop, not one tooltip per icon). */
@@ -476,29 +490,37 @@
 
 <div class="bar">
   <div class="bar-in">
-    <a class="brand" href="./" style="text-decoration:none; color:inherit" title="Back to portfolio"><span class="dot"></span><div>Leo Program Finance<small>dbt + DuckDB · illustrative</small></div></a>
-    <span class="badge">290 tests passing</span>
-    <span class="badge" id="dataAsOf" title="Timestamp of the last dbt build + export, not a live feed"></span>
+    <a class="brand" href="./" style="text-decoration:none; color:inherit" title="Back to portfolio"><span class="dot"></span><div>Leo Program Finance<small>dbt + DuckDB</small></div></a>
+    <nav class="hdr-nav" id="chapterNav">
+      <a class="chapchip active" href="#ch1" data-nav-target="ch1">1 Regulatory &amp; Capital</a>
+      <a class="chapchip" href="#ch2" data-nav-target="ch2">2 The Plan</a>
+      <a class="chapchip" href="#ch3" data-nav-target="ch3">3 Operations</a>
+      <a class="chapchip" href="#ch4" data-nav-target="ch4">4 Recommendation</a>
+    </nav>
     <div class="right">
+      <div class="rate-seg">
+        <span class="rate-seg-label">Rate</span>
+        <div class="rate-seg-opts" id="rateSegOpts">
+          <button class="rate-seg-opt" data-rate-preset="low" title="Programme-average realized pace">Low</button>
+          <button class="rate-seg-opt active" data-rate-preset="base" title="Best realized pace on record (dbt default)">Base</button>
+          <button class="rate-seg-opt" data-rate-preset="high" title="Stated factory ceiling">High</button>
+        </div>
+      </div>
+      <button class="plain-toggle" id="plainToggle" aria-pressed="false" title="Show a plain-language restatement alongside every technical section"><span class="dot"></span>Plain English</button>
+      <button class="icobtn" id="glossaryBtn" aria-pressed="false" title="Plain-language definitions for every finance/methodology term this page uses">Glossary</button>
+      <button class="hdr-cta" id="tourBtn" title="12-step guided walkthrough of this page">Walk me through it</button>
       <a class="icobtn" href="./leo-operations-map.html" title="Interactive relational map of every domain, risk, action, and KPI">🗺 Operations Map</a>
       <a class="icobtn" href="./leo-dbt-docs/" target="_blank" rel="noopener" title="Full dbt lineage graph + column-level docs for all 24 marts">🔗 Data Lineage</a>
-      <button class="icobtn" id="tourBtn" title="12-step guided walkthrough of this page">🧭 Tour</button>
-      <button class="icobtn" id="glossaryBtn" aria-pressed="false" title="Plain-language definitions for every finance/methodology term this page uses">📖 Glossary</button>
       <button class="icobtn" id="focusBtn" aria-pressed="false" title="Show one chapter at a time -- hides the other 3, hero/exec-summary/footer stay visible">🎯 Focus</button>
       <button class="icobtn" id="themeBtn" aria-pressed="false" title="Toggle theme">🌓 Theme</button>
     </div>
   </div>
+  <div class="scrollbar"><div class="fill" id="scrollFill"></div></div>
 </div>
 
-<div class="chapternav">
-  <div class="chapternav-in" id="chapterNav">
-    <span class="chip-indicator" id="chipIndicator"></span>
-    <a class="chapchip active" href="#ch1" data-nav-target="ch1"><span class="num">1</span> Regulatory &amp; Capital</a>
-    <a class="chapchip" href="#ch2" data-nav-target="ch2"><span class="num">2</span> Building the Plan</a>
-    <a class="chapchip" href="#ch3" data-nav-target="ch3"><span class="num">3</span> Operations &amp; Outlook</a>
-    <a class="chapchip" href="#ch4" data-nav-target="ch4"><span class="num">4</span> The Recommendation</a>
-  </div>
-  <div class="scrollbar"><div class="fill" id="scrollFill"></div></div>
+<div class="meta-badges">
+  <span class="badge">290 tests passing</span>
+  <span class="badge" id="dataAsOf" title="Timestamp of the last dbt build + export, not a live feed"></span>
 </div>
 
 <div class="wrap">
@@ -512,19 +534,29 @@
       OpEx/CapEx/headcount planning, ROI frameworks, rolling variance, make-vs-buy/TCO) applied to Amazon's own public
       reporting on its Leo satellite broadband program.</p>
     </div>
-    <div class="orbit-wrap" id="orbitWrap" style="display:none">
-      <svg viewBox="0 0 120 120" role="img" aria-label="Deployed satellites toward the near-term FCC milestone">
-        <circle class="orbit-ring-track" cx="60" cy="60" r="50"></circle>
-        <circle class="orbit-ring-fill" id="orbitFill" cx="60" cy="60" r="50" transform="rotate(-90 60 60)"></circle>
-        <text x="60" y="57" text-anchor="middle" class="orbit-label" id="orbitLabel">0</text>
-        <text x="60" y="70" text-anchor="middle" class="orbit-sub">deployed</text>
-      </svg>
-      <div class="orbit-caption" id="orbitCaption"></div>
+  </div>
+
+  <div class="card" id="heroDivergence" style="margin-top:var(--c-space-8)">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:var(--c-space-6); flex-wrap:wrap">
+      <div>
+        <div style="font:700 10.5px/1 ui-monospace,Menlo,monospace; letter-spacing:.08em; text-transform:uppercase; color:rgb(var(--c-accent)); margin-bottom:var(--c-space-2)">The Divergence</div>
+        <h3 style="margin:0; font-size:17px; font-weight:500">Satellites the line could have built vs. satellites actually in orbit</h3>
+      </div>
+      <div style="text-align:right; flex:0 0 auto">
+        <div class="tabular" id="heroGapNum" style="font:700 clamp(24px,3vw,32px)/1 inherit; color:rgb(var(--c-accent))"></div>
+        <div style="font-size:11px; color:rgb(var(--c-text-secondary)); max-width:190px">satellite-equivalents of modelled build capacity unlaunched</div>
+      </div>
     </div>
+    <div class="chartbox" id="heroChart" style="margin-top:var(--c-space-6)"></div>
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:var(--c-space-4); flex-wrap:wrap; margin-top:var(--c-space-3)">
+      <p style="margin:0; font-size:11.5px; line-height:1.6; color:rgb(var(--c-text-secondary)); max-width:62ch">Solid is the modelled build at the stated factory ceiling. Dashed is the build at whatever rate you set in the header. The line at bottom is what public reporting actually confirms in orbit — real, dated checkpoints.</p>
+      <button class="resetbtn" id="heroShowMath" style="flex:0 0 auto">Show the math</button>
+    </div>
+    <div id="heroMathBreakdown" class="plain" style="display:none; margin-top:var(--c-space-4)"></div>
   </div>
 
   <div class="disclaimer">
-    <b>⚠ Not affiliated with, endorsed by, or built using any internal Amazon data.</b> Every figure describing
+    <b>Not affiliated with, endorsed by, or built using any internal Amazon data.</b> Every figure describing
     the real program below is sourced to public reporting, shown with its citation and an evidence-tier badge
     (see legend). Every figure describing an internal Amazon decision (make-vs-buy, variance drivers) is fully
     synthetic and marked <span class="src-tag illustrative">illustrative</span>. This is an independent
@@ -570,7 +602,7 @@
       <div class="grid2" id="sliderOutput" style="margin-top:10px"></div>
       <div class="chartbox card" id="trajectoryChart"></div>
     </div>
-    <div class="plain" id="plainMilestone"></div>
+    <div class="plain plain-gated" id="plainMilestone"></div>
   </div>
 
   <!-- 2. Capacity gap -->
@@ -579,7 +611,7 @@
     <p class="section-sub">Kirkland factory's theoretical capacity vs. the highest deployment rate actually achieved — even in the best month on record.
     <button class="infoicon" data-tip="Utilization % = best realized rate ÷ factory capacity ceiling. A gap here means launch supply, not manufacturing, is the constraint.">i</button></p>
     <div class="card" id="capacityCard"></div>
-    <div class="plain" id="plainCapacity"></div>
+    <div class="plain plain-gated" id="plainCapacity"></div>
   </div>
 
   <!-- 3. Cost escalation -->
@@ -589,7 +621,7 @@
     <button class="infoicon" data-tip="cumulative_total_program tracks the whole-program estimate over time; yoy_incremental is a single-year delta the CFO disclosed separately -- never added to the cumulative figures.">i</button></p>
     <div class="card" id="costCard"></div>
     <div class="chartbox card" id="costChart"></div>
-    <div class="plain" id="plainCost"></div>
+    <div class="plain plain-gated" id="plainCost"></div>
   </div>
 
   <!-- 4. Implied scale cost -->
@@ -597,7 +629,7 @@
     <h2>Implied Full-Scale Hardware Cost <span class="src-tag illustrative" style="margin-left:6px">derived</span></h2>
     <p class="section-sub">A transparent calculation, not a published Amazon figure — formula shown alongside the output.</p>
     <div class="card" id="scaleCard"></div>
-    <div class="plain" id="plainScale"></div>
+    <div class="plain plain-gated" id="plainScale"></div>
   </div>
 
   <!-- Chapter 2 intro -->
@@ -623,7 +655,7 @@
         <div class="chartbox" id="headcountChart"></div>
       </div>
     </div>
-    <div class="plain" id="plainOp1Op2"></div>
+    <div class="plain plain-gated" id="plainOp1Op2"></div>
   </div>
 
   <!-- 5b. ROI & payback -->
@@ -632,7 +664,7 @@
     <p class="section-sub">Three generic capital-investment scenarios — fully synthetic, not a real Amazon decision. payback_years = capex ÷ annual_benefit; roi_pct = annual_benefit ÷ capex.
     <button class="infoicon" data-tip="The JD names this directly: 'ROI frameworks for architecture and supplier decisions.' The formula is the whole model -- nothing hidden behind it.">i</button></p>
     <div class="card"><div class="chartbox" id="roiChart"></div></div>
-    <div class="plain" id="plainRoi"></div>
+    <div class="plain plain-gated" id="plainRoi"></div>
   </div>
 
   <!-- 5. Make vs buy -->
@@ -640,7 +672,7 @@
     <h2>Make-vs-Buy TCO Framework <span class="src-tag illustrative" style="margin-left:6px">illustrative</span></h2>
     <p class="section-sub">Fully synthetic, generic-category scenario demonstrating the framework named in the JD — not a real Amazon supplier decision.</p>
     <div class="card"><div class="table-wrap"><table id="makevsbuyTable"></table></div></div>
-    <div class="plain" id="plainMakevsbuy"></div>
+    <div class="plain plain-gated" id="plainMakevsbuy"></div>
   </div>
 
   <!-- 6. Variance demo -->
@@ -652,7 +684,7 @@
       <div class="chart-legend"><span><span class="sw" style="background:rgb(var(--c-accent))"></span>Budget</span><span><span class="sw" style="background:rgb(var(--c-warning))"></span>Actual</span></div>
     </div>
     <div class="card table-wrap" style="margin-top:12px"><table id="varianceTable"></table></div>
-    <div class="plain" id="plainVariance"></div>
+    <div class="plain plain-gated" id="plainVariance"></div>
   </div>
 
   <!-- 6b. Direct/indirect cash-flow tracker -->
@@ -663,9 +695,9 @@
     <div class="card"><div class="chartbox" id="cashflowTrendChart"></div>
       <div class="chart-legend"><span><span class="sw" style="background:rgb(var(--c-text-secondary))"></span>Plan</span><span><span class="sw" style="background:rgb(var(--c-accent))"></span>Forecast</span><span><span class="sw" style="background:rgb(var(--c-success))"></span>Actual</span></div>
     </div>
-    <div class="plain" id="plainCashflowTrend"></div>
+    <div class="plain plain-gated" id="plainCashflowTrend"></div>
     <div class="table-wrap card" style="margin-top:14px"><table id="cashflowBreakdownTable"></table></div>
-    <div class="plain" id="plainCashflowBreakdown"></div>
+    <div class="plain plain-gated" id="plainCashflowBreakdown"></div>
   </div>
 
   <!-- 6b2. Earned Value Management roll-up -->
@@ -675,7 +707,7 @@
     <button class="infoicon" data-tip="Deliberately not anchored to the real disclosed program-cost figures elsewhere on this page: the implied hardware-only bill and the whole-program cost cover different cost scope, so mixing them as BAC/AC would compare apples to oranges dressed up as one metric.">i</button></p>
     <div class="grid3" id="evmSummaryCards"></div>
     <div class="card" style="margin-top:12px" id="evmEacCard"></div>
-    <div class="plain" id="plainEvm"></div>
+    <div class="plain plain-gated" id="plainEvm"></div>
   </div>
 
   <!-- 6b3. EAC sensitivity -->
@@ -684,7 +716,7 @@
     <p class="section-sub">One driver swung &plusmn;10%/20% at a time, the other held at its actual value — pure formula recomputation on the EVM roll-up above, no new inputs.
     <button class="infoicon" data-tip="CPI and SPI produce the exact same EAC at every matching swing level, because eac_composite's formula only depends on their product (cpi x spi), not on which one moved -- one curve, not two, because the math genuinely collapses them, not because a driver was left out.">i</button></p>
     <div class="card"><div class="chartbox" id="eacSensitivityChart"></div></div>
-    <div class="plain" id="plainEacSensitivity"></div>
+    <div class="plain plain-gated" id="plainEacSensitivity"></div>
   </div>
 
   <!-- 6c. Cost-driver Pareto -->
@@ -692,7 +724,7 @@
     <h2>Cost-Driver Pareto <span class="src-tag illustrative" style="margin-left:6px">illustrative</span></h2>
     <p class="section-sub">Ranked, not just listed — a derived view of the breakdown above, never a separate data source. Which handful of the 21 subcategories actually explain this period's overrun.</p>
     <div class="card"><div class="chartbox" id="costDriverChart"></div></div>
-    <div class="plain" id="plainCostDriver"></div>
+    <div class="plain plain-gated" id="plainCostDriver"></div>
   </div>
 
   <!-- 6d. P&L waterfall -->
@@ -701,7 +733,7 @@
     <p class="section-sub">Revenue minus direct COGS minus indirect OpEx, for the same period as the breakdown above. Illustrative pre-commercial-launch framing — Leo has not launched full service in this scenario, so revenue is a small enterprise-pilot figure, not a claim about real Amazon revenue.
     <button class="infoicon" data-tip="Direct COGS and Indirect OpEx here are the same actual totals from the cash-flow breakdown above -- this bridge is derived from that data, not a second, disconnected model.">i</button></p>
     <div class="card"><div class="chartbox" id="pnlChart"></div></div>
-    <div class="plain" id="plainPnl"></div>
+    <div class="plain plain-gated" id="plainPnl"></div>
   </div>
 
   <!-- 7. Launch vehicle reliability -->
@@ -712,7 +744,7 @@
       <div class="chart-legend"><span><span class="sw" style="background:rgb(var(--c-success))"></span>Success</span><span><span class="sw" style="background:rgb(var(--c-warning))"></span>Delay</span><span><span class="sw" style="background:rgb(var(--c-danger))"></span>Failure</span></div>
     </div>
     <div class="card table-wrap" style="margin-top:12px"><table id="launchVehicleTable"></table></div>
-    <div class="plain" id="plainLaunch"></div>
+    <div class="plain plain-gated" id="plainLaunch"></div>
   </div>
 
   <!-- 8. Unlaunched inventory -->
@@ -720,7 +752,7 @@
     <h2>Built-but-Unlaunched Inventory <span class="src-tag illustrative" style="margin-left:6px">modeled range</span></h2>
     <p class="section-sub">Two scenarios from the two production-adjacent rates already disclosed: an upper bound (production never throttled down) and a lower bound (production throttled to track the realized deployment pace) — a range, not a false-precision single number.</p>
     <div class="card" id="inventoryCard"></div>
-    <div class="plain" id="plainInventory"></div>
+    <div class="plain plain-gated" id="plainInventory"></div>
   </div>
 
   <!-- 8a. Capitalized inventory roll-forward -->
@@ -728,7 +760,7 @@
     <h2>Capitalized Inventory Roll-Forward <span class="src-tag illustrative" style="margin-left:6px">modeled</span></h2>
     <p class="section-sub">The backlog range above, translated into a modeled dollar value at each real checkpoint and rolled forward — the capitalization angle this dashboard's own closing recommendation already flags as open.</p>
     <div class="table-wrap card"><table id="rollforwardTable"></table></div>
-    <div class="plain" id="plainRollforward"></div>
+    <div class="plain plain-gated" id="plainRollforward"></div>
   </div>
 
   <!-- 8b. Manufacturing-to-launch efficiency trend -->
@@ -747,7 +779,7 @@
         <div class="chart-legend"><span><span class="sw" style="background:rgb(var(--c-success))"></span>Actual deployed</span><span><span class="sw" style="background:rgb(var(--c-warning))"></span>Upper bound</span><span><span class="sw" style="background:rgb(var(--c-accent))"></span>Lower bound</span></div>
       </div>
     </div>
-    <div class="plain" id="plainEfficiencyTrend"></div>
+    <div class="plain plain-gated" id="plainEfficiencyTrend"></div>
   </div>
 
   <!-- 9. Supplier concentration -->
@@ -755,7 +787,7 @@
     <h2>Critical-Component Supplier Concentration</h2>
     <p class="section-sub">OISL terminals and rad-hardened semiconductors are real, publicly-identified bottleneck components; supplier counts and risk tiers are illustrative estimates.</p>
     <div class="card"><div class="table-wrap"><table id="supplierTable"></table></div></div>
-    <div class="plain" id="plainSupplier"></div>
+    <div class="plain plain-gated" id="plainSupplier"></div>
   </div>
 
   <!-- 10. Safety / coordination incidents -->
@@ -763,7 +795,7 @@
     <h2>Safety &amp; Coordination Incidents</h2>
     <p class="section-sub">Real, dated, sourced incident log — not a claimed pattern from a single event.</p>
     <div class="card" id="safetyCard"></div>
-    <div class="plain" id="plainSafety"></div>
+    <div class="plain plain-gated" id="plainSafety"></div>
   </div>
 
   <!-- 11. D2D regulatory pipeline -->
@@ -771,7 +803,7 @@
     <h2>Direct-to-Device Regulatory Pipeline</h2>
     <p class="section-sub">A second, larger regulatory front beyond the core Leo constellation.</p>
     <div class="card" id="d2dCard"></div>
-    <div class="plain" id="plainD2d"></div>
+    <div class="plain plain-gated" id="plainD2d"></div>
   </div>
 
   <!-- 12. Workforce scaling signal -->
@@ -779,7 +811,7 @@
     <h2>Workforce Scaling Signal</h2>
     <p class="section-sub">One snapshot, not a trend — reported honestly as a scaling signal since no layoff evidence was found in public reporting.</p>
     <div class="card" id="workforceCard"></div>
-    <div class="plain" id="plainWorkforce"></div>
+    <div class="plain plain-gated" id="plainWorkforce"></div>
   </div>
 
   <!-- 13. Operational KPI framework (all 9 domains) -->
@@ -787,7 +819,7 @@
     <h2>The Full Operational KPI Framework <span class="badge" style="font-size:10px">illustrative</span></h2>
     <p class="section-sub">54 KPIs across the 9 functional domains a program at this scale actually runs on — finance, accounting, production, launch, supply chain, systems engineering, commercial, vendor, and quality. Target benchmarks are a generic, industry-typical framework applied to this case, not figures Amazon has disclosed. Every row is checked against this project's own real, sourced marts where a comparable number exists; the rest are honestly marked <b>no public data</b> rather than a fabricated actual.</p>
     <div class="table-wrap card"><table id="kpiFrameworkTable"></table></div>
-    <div class="plain" id="plainKpiFramework"></div>
+    <div class="plain plain-gated" id="plainKpiFramework"></div>
   </div>
 
   <!-- 14. Program Delivery Risk Index -->
@@ -797,7 +829,7 @@
     <button class="infoicon" data-tip="Capacity utilization gap is deliberately not scored as a separate input here -- it and launch reliability both derive from the same realized-rate number, so scoring both would double-count one root cause.">i</button></p>
     <div class="card" id="riskIndexCard"></div>
     <div class="card" style="margin-top:12px"><div class="chartbox" id="riskDriverChart"></div></div>
-    <div class="plain" id="plainRiskIndex"></div>
+    <div class="plain plain-gated" id="plainRiskIndex"></div>
   </div>
 
   <!-- 14b. Risk Register -->
@@ -806,7 +838,7 @@
     <p class="section-sub">The 5 signals scored into the composite above, plus 2 real risk factors this project tracks but deliberately does not fold into that score, consolidated into one register: probability tier x impact tier &rarr; exposure tier. Probability reuses each signal's own already-computed percentage; impact reuses the composite's own 30/25/20/15/10 weights.
     <button class="infoicon" data-tip="Monitored-only rows (capacity gap, D2D regulatory timing) show a real probability proxy but are deliberately not assigned an impact tier -- the composite index that would justify one never scored them, so forcing a comparative judgment here would be inventing one.">i</button></p>
     <div class="table-wrap card"><table id="riskRegisterTable"></table></div>
-    <div class="plain" id="plainRiskRegister"></div>
+    <div class="plain plain-gated" id="plainRiskRegister"></div>
   </div>
 
   <!-- 14c. Launch Reliability Trend -->
@@ -814,7 +846,7 @@
     <h2>Launch Reliability Trend <span class="src-tag official" style="margin-left:6px">real</span></h2>
     <p class="section-sub">Cumulative adverse-event rate recomputed after each real, dated launch-vehicle event -- pure arithmetic on real dates and event types, nothing modeled.</p>
     <div class="card"><div class="chartbox" id="reliabilityTrendChart"></div></div>
-    <div class="plain" id="plainReliabilityTrend"></div>
+    <div class="plain plain-gated" id="plainReliabilityTrend"></div>
   </div>
 
   <!-- Chapter 4: Recommendation -->
@@ -838,12 +870,12 @@
     <h2 style="margin-top:32px">The 90-Day Plan <span class="src-tag illustrative" style="margin-left:6px">illustrative</span></h2>
     <p class="section-sub" id="roadmapIntro"></p>
     <div class="table-wrap card"><table id="roadmapTable"></table></div>
-    <div class="plain" id="plainRoadmap"></div>
+    <div class="plain plain-gated" id="plainRoadmap"></div>
 
     <h2 style="margin-top:32px">Finance Manager's 90-Day Accountability <span class="src-tag illustrative" style="margin-left:6px">illustrative</span></h2>
     <p class="section-sub">The same 7 rows above, re-read through one lens: not who in the org owns each operational fix, but what a Finance Manager specifically tracks, analyzes, and delivers across all of them -- regardless of which domain owns the fix. Mission-critical rows (the same 2 already flagged <code>critical</code> in the risk register, not a new classification) are called out first.</p>
     <div class="table-wrap card"><table id="fmAccountabilityTable"></table></div>
-    <div class="plain" id="plainFmAccountability"></div>
+    <div class="plain plain-gated" id="plainFmAccountability"></div>
 
     <h2 style="margin-top:32px">The Throughline <span class="src-tag illustrative" style="margin-left:6px">AI synthesis</span></h2>
     <p class="section-sub">Connects facts already shown above into one statement this page doesn't otherwise make explicit. Introduces nothing new -- every number here is pulled live from the same marts as the rest of this page, not typed by hand. Authored once, not live-generated.</p>
@@ -865,7 +897,7 @@
     <h2 style="margin-top:24px">Incident Log <span class="src-tag official" style="margin-left:6px">real</span></h2>
     <p class="section-sub">Two real incidents this project's own tests and a source audit already found and fixed, cited to this repo's own commits.</p>
     <div class="table-wrap card"><table id="dqIncidentTable"></table></div>
-    <div class="plain" id="plainDataQuality"></div>
+    <div class="plain plain-gated" id="plainDataQuality"></div>
   </div>
 
   <footer>
@@ -967,6 +999,21 @@
     closeBtn.addEventListener("click", close);
     overlay.addEventListener("click", function(e){ if (e.target === overlay) close(); });
     document.addEventListener("keydown", function(e){ if (e.key === "Escape" && overlay.classList.contains("show")) close(); });
+  })();
+
+  // ---- Plain English toggle -- shows/hides the 27 existing .plain-gated "In
+  // plain terms" narrator boxes via a single :root attribute (see CSS); OFF by
+  // default. No content is generated here -- every box's text was already
+  // written for the always-on narrator feature this reuses verbatim.
+  (function setupPlainEnglish(){
+    var btn = document.getElementById("plainToggle");
+    if (!btn) return;
+    btn.addEventListener("click", function(){
+      var on = document.documentElement.getAttribute("data-plain") === "on";
+      document.documentElement.setAttribute("data-plain", on ? "off" : "on");
+      btn.classList.toggle("on", !on);
+      btn.setAttribute("aria-pressed", String(!on));
+    });
   })();
 
   function fmtUSD(n){
@@ -1440,7 +1487,7 @@
         : either ? "one of the two is under 1.0, so the program is off-plan on one dimension but not the other."
         : "both at or above 1.0, so the program is on or ahead of plan on both cost and schedule.");
     return [
-      { id:"orbitWrap", title:"1 · Deployment progress", body:"The orbit ring at the top tracks satellites deployed against the FCC milestone schedule — the single number executives ask for first." },
+      { id:"heroDivergence", title:"1 · Deployment progress", body:"The divergence chart at the top tracks what could have been built at the factory ceiling vs. what's actually in orbit — the single gap number executives ask for first. It updates live if you change the RATE control in the header." },
       { id:"milestoneCards", title:"2 · Milestone risk", body:"Whether the current deployment pace clears the next FCC milestone date, and by how much shortfall if it doesn't." },
       { id:"capacityCard", title:"3 · Launch capacity", body:"How much of the factory's build-and-launch ceiling is actually being used — the constraint that caps every other number on this page." },
       { id:"costCard", title:"4 · Program cost estimate", body:"The disclosed cost range for the whole program, tagged by source (official disclosure vs. third-party estimate) so you always know how much to trust a figure." },
@@ -1720,36 +1767,84 @@
     // checkpoint_count / satellites_required from the same near-term milestone row the
     // page states in prose. Draws in once on load; final state shown directly (no tween)
     // under reduced-motion or on narrow mobile, where a small ring has no room to read.
-    (function renderOrbitRing(){
-      var wrap = document.getElementById("orbitWrap");
-      var fillEl = document.getElementById("orbitFill");
-      var labelEl = document.getElementById("orbitLabel");
-      var captionEl = document.getElementById("orbitCaption");
-      if (!wrap || !fillEl) return;
-      var target = Math.max(0, Math.min(1, near.checkpoint_count / near.satellites_required));
-      var circumference = 2 * Math.PI * 50;
-      fillEl.style.strokeDasharray = circumference.toFixed(1);
-      captionEl.textContent = Number(near.satellites_required).toLocaleString() + " required by " + near.milestone_date;
-      wrap.style.display = "flex";
-
-      var skip = prefersReducedMotion || window.innerWidth < 640;
-      if (skip){
-        fillEl.style.strokeDashoffset = (circumference * (1 - target)).toFixed(1);
-        labelEl.textContent = Number(near.checkpoint_count).toLocaleString();
-        return;
-      }
-      fillEl.style.strokeDashoffset = circumference.toFixed(1);
-      var start = null, duration = 1200;
-      function easeOutCubic(t){ return 1 - Math.pow(1 - t, 3); }
-      function step(ts){
-        if (start === null) start = ts;
-        var t = Math.min(1, (ts - start) / duration);
-        var eased = easeOutCubic(t);
-        fillEl.style.strokeDashoffset = (circumference * (1 - target * eased)).toFixed(1);
-        labelEl.textContent = Math.round(near.checkpoint_count * eased).toLocaleString();
-        if (t < 1) requestAnimationFrame(step);
-      }
-      requestAnimationFrame(step);
+    // ---- hero divergence chart: modelled build capacity (ceiling + whatever rate
+    // is currently selected in the header) vs. actual deployed satellites (real,
+    // dated checkpoints). Same methodology mart_unlaunched_inventory already uses
+    // (elapsed_days x rate = modeled cumulative production), just parameterized by
+    // the live-selected rate instead of the mart's two fixed scenarios -- so the
+    // gap number here always reconciles with modeled_unlaunched_inventory_lower/
+    // upper in the Unlaunched Inventory section below at the two preset rates.
+    function svgDivergenceChart(o){
+      var w=o.width||640, h=o.height||260, padL=44, padB=28, padT=16, padR=112;
+      var innerW=w-padL-padR, innerH=h-padT-padB;
+      function px(x){ return padL + x/o.xMax*innerW; }
+      function py(y){ return padT + (1-y/o.yMax)*innerH; }
+      var svg = '<svg viewBox="0 0 '+w+' '+h+'" xmlns="http://www.w3.org/2000/svg">';
+      [0,0.25,0.5,0.75,1].forEach(function(f){
+        var y = padT + innerH*(1-f);
+        svg += '<line x1="'+padL+'" y1="'+y+'" x2="'+(w-padR)+'" y2="'+y+'" stroke="currentColor" stroke-opacity="0.08" />';
+      });
+      var fccY = py(o.fccY);
+      svg += '<line x1="'+padL+'" y1="'+fccY+'" x2="'+(w-padR)+'" y2="'+fccY+'" style="stroke:rgb(var(--c-text-secondary))" stroke-opacity="0.5" stroke-dasharray="4 3" stroke-width="1.3" />';
+      svg += '<text x="'+padL+'" y="'+(fccY-6)+'" font-size="10" style="fill:rgb(var(--c-text-secondary))">FCC condition &middot; '+Number(o.fccY).toLocaleString()+' satellites</text>';
+      var ceilX2 = px(o.xMax), ceilY2 = py(o.ceilingY);
+      svg += '<path d="M '+px(0)+' '+py(0)+' L '+ceilX2+' '+ceilY2+' L '+ceilX2+' '+py(0)+' Z" fill="rgb(var(--c-accent) / .14)" />';
+      svg += '<polyline points="'+px(0)+','+py(0)+' '+ceilX2+','+ceilY2+'" fill="none" style="stroke:rgb(var(--c-accent))" stroke-width="2" stroke-opacity="0.55" />';
+      var selX2 = px(o.xMax), selY2 = py(o.selectedY);
+      svg += '<polyline points="'+px(0)+','+py(0)+' '+selX2+','+selY2+'" fill="none" style="stroke:rgb(var(--c-accent))" stroke-width="2" stroke-dasharray="6 4" />';
+      svg += '<text x="'+(ceilX2+6)+'" y="'+(ceilY2-6)+'" font-size="10" style="fill:rgb(var(--c-accent))" fill-opacity="0.8">Ceiling @ '+o.ceilingRate.toFixed(1)+'/day</text>';
+      svg += '<text x="'+(selX2+6)+'" y="'+(selY2+12)+'" font-size="10" style="fill:rgb(var(--c-accent))">Built @ '+o.selectedRate.toFixed(2)+'/day</text>';
+      var actualPts = o.actual.map(function(p){ return px(p.x)+','+py(p.y); }).join(' ');
+      svg += '<polyline points="'+actualPts+'" fill="none" style="stroke:rgb(var(--c-text-primary))" stroke-width="2.5" />';
+      o.actual.forEach(function(p){
+        svg += '<circle cx="'+px(p.x)+'" cy="'+py(p.y)+'" r="3.5" style="fill:rgb(var(--c-text-primary))"><title>'+esc(p.label||"")+'</title></circle>';
+      });
+      var lastActual = o.actual[o.actual.length-1];
+      svg += '<text x="'+(px(lastActual.x)+8)+'" y="'+(py(lastActual.y)+4)+'" font-size="10" style="fill:rgb(var(--c-text-primary))">In orbit</text>';
+      svg += '</svg>';
+      return svg;
+    }
+    function renderHeroDivergence(rate){
+      var uiD = data.unlaunched_inventory;
+      var obsD = deploymentCheckpoints.filter(function(c){ return c.checkpoint_type === 'observed'; });
+      var xMaxD = uiD.elapsed_days;
+      var actualPts = obsD.map(function(c){
+        return {x: daysBetween(uiD.production_start_date, c.as_of_date), y: c.cumulative_satellites,
+          label: c.as_of_date + ': ' + Number(c.cumulative_satellites).toLocaleString() + ' deployed'};
+      });
+      var ceilingRate = data.capacity_gap.capacity_ceiling_per_day;
+      var ceilingY = xMaxD * ceilingRate;
+      var selectedY = xMaxD * rate;
+      var yMaxD = niceMax(Math.max(ceilingY, near.satellites_required) * 1.08);
+      var container = document.getElementById("heroChart");
+      container.innerHTML = svgDivergenceChart({
+        width: 640, height: 260, xMax: xMaxD, yMax: yMaxD,
+        fccY: near.satellites_required, ceilingY: ceilingY, ceilingRate: ceilingRate,
+        selectedY: selectedY, selectedRate: rate, actual: actualPts
+      });
+      var gap = Math.round(selectedY - uiD.deployed_count);
+      document.getElementById("heroGapNum").textContent = gap.toLocaleString();
+      document.getElementById("heroMathBreakdown").innerHTML =
+        '<span class="eyebrow">The math</span>Modelled build at ' + rate.toFixed(2) + '/day &times; ' +
+        uiD.elapsed_days + ' elapsed days since ' + esc(uiD.production_start_date) + ' = ' +
+        Math.round(selectedY).toLocaleString() + ' satellite-equivalents. Actually deployed as of ' +
+        esc(uiD.latest_observed_date) + ': ' + Number(uiD.deployed_count).toLocaleString() + '. Gap: ' +
+        Math.round(selectedY).toLocaleString() + ' &minus; ' + Number(uiD.deployed_count).toLocaleString() +
+        ' = ' + gap.toLocaleString() + '.';
+      return container;
+    }
+    function updateHeroDivergence(rate){ renderHeroDivergence(rate); }
+    var heroChartEl = renderHeroDivergence(data.capacity_gap.realized_peak_per_day);
+    observeAndDrawIn(heroChartEl);
+    (function setupHeroShowMath(){
+      var btn = document.getElementById("heroShowMath");
+      var box = document.getElementById("heroMathBreakdown");
+      if (!btn || !box) return;
+      btn.addEventListener("click", function(){
+        var showing = box.style.display !== "none";
+        box.style.display = showing ? "none" : "block";
+        btn.textContent = showing ? "Show the math" : "Hide the math";
+      });
     })();
 
     // Plain-terms: milestone risk
@@ -1853,6 +1948,8 @@
       });
       document.getElementById("sliderOutput").innerHTML = out;
       updateTrajectoryChart(rate);
+      updateHeroDivergence(rate);
+      updateExecSummaryReactive(rate);
     }
     rateSlider.addEventListener("input", recomputeSlider);
     document.getElementById("rateReset").addEventListener("click", function(){
@@ -1860,6 +1957,33 @@
       recomputeSlider();
     });
     recomputeSlider();
+
+    // ---- header RATE presets -- Low/Base/High drive the SAME rate state as the
+    // milestone card's fine slider above (never a second, parallel computation).
+    // Low = programme-average realized pace (deployed_count/elapsed_days over
+    // the whole program), Base = the same dbt-default peak rate the slider
+    // already defaults to, High = the stated factory ceiling. All three are
+    // real fields off `data`, never hand-typed numbers.
+    (function setupRatePresets(){
+      var opts = document.querySelectorAll("[data-rate-preset]");
+      if (!opts.length) return;
+      var ui2 = data.unlaunched_inventory;
+      var rateFor = {
+        low: ui2.deployed_count / ui2.elapsed_days,
+        base: defaultRate,
+        high: data.capacity_gap.capacity_ceiling_per_day
+      };
+      opts.forEach(function(btn){
+        btn.addEventListener("click", function(){
+          var preset = btn.getAttribute("data-rate-preset");
+          opts.forEach(function(b){ b.classList.toggle("active", b === btn); });
+          rateSlider.value = rateFor[preset];
+          recomputeSlider();
+          updateHeroDivergence(rateFor[preset]);
+          updateExecSummaryReactive(rateFor[preset]);
+        });
+      });
+    })();
 
     // 2. Capacity gap
     var cg = data.capacity_gap;
@@ -2453,11 +2577,32 @@
     // of the page for the reader who won't scroll to Chapter 4.
     document.getElementById("execSummaryCards").innerHTML =
       '<div class="card"><div class="kpi label">Program Risk</div><div class="kpi val"><span class="status ' + tierClass + '">' + esc(tierLabel) + '</span></div><div class="kpi note">' + risk.composite_score_pct + '% composite score</div></div>' +
-      '<div class="card"><div class="kpi label">Near-Term Milestone</div><div class="kpi val">' + (nearOk ? 'On track' : 'Short by ' + Number(near.modeled_projected_shortfall).toLocaleString()) + '</div><div class="kpi note">' + (nearOk ? 'clears the ' + Number(near.satellites_required).toLocaleString() + '-satellite target' : 'satellites vs. the ' + esc(near.milestone_date) + ' deadline') + '</div></div>' +
+      '<div class="card" id="execMilestoneCard"></div>' +
       '<div class="card"><div class="kpi label">Cost Trajectory</div><div class="kpi val">+' + (lastCum.pct_change_from_prior*100).toFixed(0) + '%</div><div class="kpi note">since ' + esc(firstCum.as_of_date) + ', Amazon\'s own stated figures</div></div>';
     document.getElementById("execSummaryAction").innerHTML =
       '<span class="eyebrow">If you read nothing else</span><b>' + esc(topDriver.label) + '</b> is the single largest driver of the ' + esc(tierLabel) + ' risk read (' + topDriver.value.toFixed(1) + '% of the composite score) — that\'s the one conversation to have first. Full reasoning is below, chapter by chapter.';
     document.getElementById("execSummary").style.display = "block";
+
+    // ---- exec summary reactivity -- "every card is live" (per the header's RATE
+    // control): the Near-Term Milestone card recomputes with the SAME formula
+    // recomputeSlider() already uses for the milestone cards below, never a
+    // second independent calculation.
+    function updateExecSummaryReactive(rate){
+      // Guarded: recomputeSlider() calls this on its own initial synchronous run,
+      // which happens BEFORE the exec-summary section below has painted its cards
+      // -- callable at any point in render(), never assumes the DOM is ready.
+      var el = document.getElementById("execMilestoneCard");
+      if (!el) return;
+      var projected = Math.round(near.checkpoint_count + near.days_remaining_at_checkpoint * rate);
+      var shortfall = near.satellites_required - projected;
+      var ok = projected >= near.satellites_required;
+      el.innerHTML =
+        '<div class="kpi label">Near-Term Milestone</div><div class="kpi val">' +
+        (ok ? 'On track' : 'Short by ' + shortfall.toLocaleString()) + '</div><div class="kpi note">' +
+        (ok ? 'clears the ' + Number(near.satellites_required).toLocaleString() + '-satellite target' : 'satellites vs. the ' + esc(near.milestone_date) + ' deadline') +
+        ' at ' + rate.toFixed(2) + '/day</div>';
+    }
+    updateExecSummaryReactive(data.capacity_gap.realized_peak_per_day);
 
     // Closing recommendation summary -- synthesized from the same data, never hardcoded.
     document.getElementById("recommendationSummary").innerHTML =
