@@ -193,3 +193,19 @@ seeds:
         target_qualify_count: integer
         target_qualitative: varchar
         rationale_note: varchar
+    raw_data_quality_routing:
+      +column_types:
+        category: varchar
+        description: varchar
+        routes_to: varchar
+        authority_note: varchar
+    raw_data_quality_incidents:
+      +column_types:
+        incident_date: date
+        category: varchar
+        title: varchar
+        root_cause: varchar
+        detection_method: varchar
+        regression_safeguard: varchar
+        commit_sha: varchar
+        commit_url: varchar

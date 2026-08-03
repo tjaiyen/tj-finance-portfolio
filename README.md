@@ -76,7 +76,7 @@ concentration risk, safety/coordination incidents, a second regulatory front, an
 built using any internal Amazon data** — every figure describing the real program is sourced to public
 reporting (Amazon's own 10-K/earnings disclosures and FCC filings, third-party market analysis, cited inline
 per row with an evidence-tier badge); every figure describing an internal decision (make-vs-buy, variance
-drivers, supplier counts) is fully synthetic and flagged `is_illustrative`. Twenty-seven **dbt** marts — including a
+drivers, supplier counts) is fully synthetic and flagged `is_illustrative`. Twenty-nine **dbt** marts — including a
 multi-year OP1/OP2 OpEx/CapEx/headcount roadmap, an ROI/payback framework, a 54-KPI operational scorecard,
 a 3-level direct/indirect cash-flow tracker (Plan/Forecast/Actual, forecast computed from the elapsed-period
 run-rate) with per-subcategory **Earned Value Management** (EV/CPI/SPI) rolling up to a program-level
@@ -104,8 +104,13 @@ and an honest "no action needed" row for the one signal that was never actually 
 Throughline"** — an AI-synthesized paragraph connecting facts already on the page (two of seven register risks
 share one root cause; the 90-day plan's own domain grouping already reflects it) — guarded not by a post-hoc
 fact-checker but architecturally: every number renders through the same live data-interpolation every other
-narrator box on this page already uses, so there's no code path for a hand-typed figure to slip in.
-266 tests pass, enforced in CI on every push (not just run locally before committing), with a full column-level
+narrator box on this page already uses, so there's no code path for a hand-typed figure to slip in. Ends with
+**"How This Page Verifies Itself"** — a real, dated log of the two data-quality incidents this project's own
+testing has actually found and fixed (a nondeterminism bug, a full source-hallucination audit), each cited to
+its own real, checkable GitHub commit, plus a category-to-role routing map for what would happen if it happened
+again. Not a live monitoring system — the honest version of "the system learns to prevent future errors" for a
+static analytics pipeline: tests accumulate, they don't forget.
+288 tests pass, enforced in CI on every push (not just run locally before committing), with a full column-level
 lineage graph published alongside the dashboard; singular tests enforce that every illustrative mart's rows are
 explicitly flagged and that every risk in the register has an owner, making the grounded-vs-illustrative
 separation a tested property of the project, not just a README claim.

@@ -236,6 +236,19 @@ def main():
         order by roadmap_id
     """))
 
+    data_quality_routing = rows_as_dicts(con.execute("""
+        select category, description, routes_to, authority_note, is_illustrative, notes
+        from main.mart_data_quality_routing
+        order by category
+    """))
+
+    data_quality_incidents = rows_as_dicts(con.execute("""
+        select incident_date, category, title, root_cause, detection_method,
+               regression_safeguard, commit_sha, commit_url
+        from main.mart_data_quality_incidents
+        order by incident_date
+    """))
+
     payload = {
         "project": "dbt_leo_program_finance",
         "disclaimer": (
@@ -274,6 +287,8 @@ def main():
         "capitalized_inventory_rollforward": capitalized_inventory_rollforward,
         "eac_sensitivity": eac_sensitivity,
         "roadmap_90day": roadmap_90day,
+        "data_quality_routing": data_quality_routing,
+        "data_quality_incidents": data_quality_incidents,
     }
 
     def default(o):

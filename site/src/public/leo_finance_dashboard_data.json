@@ -1,7 +1,7 @@
 {
   "project": "dbt_leo_program_finance",
   "disclaimer": "Independent illustrative project. Not affiliated with, endorsed by, or built using any internal Amazon data. Figures describing the real program are sourced to public reporting (see source/source_url per row); figures describing an Amazon internal decision (make-vs-buy, variance drivers) are fully synthetic and flagged is_illustrative.",
-  "generated_at": "2026-08-02T23:42:06.037491+00:00",
+  "generated_at": "2026-08-03T00:34:29.113353+00:00",
   "deployment_checkpoints": [
     {
       "as_of_date": "2025-04-28",
@@ -2092,6 +2092,70 @@
       "rationale_note": "Targets the one real, publicly-named high-concentration-risk component (OISL terminals) -- the rad-hardened semiconductor is tracked separately at medium concentration risk, not this tier.",
       "is_illustrative": true,
       "notes": "A proposed 90-day plan, not an executed one -- there is no real \"actual progress\" for something that has not happened, so every target here is a stated goal, never a fabricated completion status. Baselines are pulled from the same marts mart_risk_register itself draws from; the only new inputs are target_improvement_pct/target_qualify_count, one illustrative planning assumption per row."
+    }
+  ],
+  "data_quality_routing": [
+    {
+      "category": "pipeline_nondeterminism",
+      "description": "A computed value or row order changes between identical rebuilds with no underlying data change",
+      "routes_to": "VP Data Governance",
+      "authority_note": "Owns this project's build-reproducibility contracts (dbt tests, deterministic SQL)",
+      "is_illustrative": true,
+      "notes": "Generic role assignments, same convention as mart_90day_roadmap -- not a claim about a real Amazon org chart."
+    },
+    {
+      "category": "referential_integrity",
+      "description": "A row references an entity that does not exist elsewhere in the data",
+      "routes_to": "VP Data Governance",
+      "authority_note": "Owns cross-mart consistency (relationships and completeness tests)",
+      "is_illustrative": true,
+      "notes": "Generic role assignments, same convention as mart_90day_roadmap -- not a claim about a real Amazon org chart."
+    },
+    {
+      "category": "source_fact_discrepancy",
+      "description": "A cited real-world fact does not match what its source actually states",
+      "routes_to": "The domain owner already named for that risk in the 90-day roadmap",
+      "authority_note": "Owns the business narrative for that specific domain -- reuses existing accountability, no parallel structure invented",
+      "is_illustrative": true,
+      "notes": "Generic role assignments, same convention as mart_90day_roadmap -- not a claim about a real Amazon org chart."
+    },
+    {
+      "category": "staleness",
+      "description": "A cited source or figure has not been re-checked past an acceptable window",
+      "routes_to": "VP Data Governance",
+      "authority_note": "Owns the re-verification cadence for previously-sourced facts",
+      "is_illustrative": true,
+      "notes": "Generic role assignments, same convention as mart_90day_roadmap -- not a claim about a real Amazon org chart."
+    },
+    {
+      "category": "test_regression",
+      "description": "A previously-passing test starts failing",
+      "routes_to": "VP Data Governance",
+      "authority_note": "Owns the CI gate and the test suite itself",
+      "is_illustrative": true,
+      "notes": "Generic role assignments, same convention as mart_90day_roadmap -- not a claim about a real Amazon org chart."
+    }
+  ],
+  "data_quality_incidents": [
+    {
+      "incident_date": "2026-08-02",
+      "category": "pipeline_nondeterminism",
+      "title": "mart_risk_register's risk_id assignment was nondeterministic",
+      "root_cause": "ORDER BY had no tiebreaker for a real tie in probability_pct between two risk-register rows",
+      "detection_method": "Detected via 3 repeated rebuilds showing 2 different row orderings with no code change between them; fix confirmed stable across 5 further rebuilds",
+      "regression_safeguard": "Explicit risk_name asc tiebreaker added to the ORDER BY, documented in-code",
+      "commit_sha": "3eed30402da87daf8ca5a5af76c9dc6201c21298",
+      "commit_url": "https://github.com/tjaiyen/tj-finance-portfolio/commit/3eed30402da87daf8ca5a5af76c9dc6201c21298"
+    },
+    {
+      "incident_date": "2026-08-02",
+      "category": "source_fact_discrepancy",
+      "title": "A full source audit found AI-generated content citing events after the model's training cutoff, never independently verified",
+      "root_cause": "Facts authored about real-world events postdating the training cutoff were never checked against their actual cited sources",
+      "detection_method": "15 originally-cited sources fetched live and checked verbatim against their claims; unsupported items triggered targeted follow-up research to find real sources or confirm none exist",
+      "regression_safeguard": "Corrected sources, dates, and figures across 8 seed files; swapped a formula's role assumptions where the real data inverted a fabricated one; removed 2 claims with zero real support rather than replacing them with different invented numbers",
+      "commit_sha": "6227adc3c77d8e57814f889dc3b0ce4b40d13e0c",
+      "commit_url": "https://github.com/tjaiyen/tj-finance-portfolio/commit/6227adc3c77d8e57814f889dc3b0ce4b40d13e0c"
     }
   ]
 }

@@ -134,9 +134,25 @@ number.
     materially different act than citing a real person's public statement (already done
     correctly elsewhere on this page). Not an executed plan: every target is a stated goal,
     never a fabricated completion status -- there is no real "actual progress" for something
-    that has not happened. Phase dates anchor to the real 2026-07-15 checkpoint, 15 days
-    before the near-term FCC deadline -- honestly framed as targeting the 2029 trajectory,
-    not a fix for an outcome that's already effectively decided.
+    that has not happened. Phase dates anchor to the real latest observed checkpoint
+    (2026-07-02, computed dynamically -- not hardcoded, since the underlying checkpoint
+    data has already changed once since this mart was first built), well before the
+    near-term FCC deadline -- honestly framed as targeting the 2029 trajectory, not a fix
+    for an outcome that's already effectively decided.
+  - `mart_data_quality_routing` -- a fully synthetic anomaly-category -> role routing
+    table (5 categories). Generic role titles only, same convention as the 90-day
+    roadmap -- not a claim about Amazon's real org chart. 4 of 5 categories are this
+    project's own pipeline concerns (a new "VP Data Governance" role); only
+    source_fact_discrepancy is about the Leo business content itself, and that one reuses
+    the domain ownership already established in mart_90day_roadmap rather than inventing
+    a parallel structure.
+  - `mart_data_quality_incidents` -- a real, dated history of this project's own
+    data-quality incidents (2 rows), cited to this repo's own git commits -- a
+    self-referential source that's fully checkable, same discipline as every external
+    citation elsewhere in this project. No is_illustrative column (100% real, nothing
+    modeled). Not a live monitoring system: the actual record of a nondeterminism bug and
+    a full source-hallucination audit this project's own tests and verification process
+    already found and fixed, each with the specific regression safeguard now in place.
 - **tests**
   - data tests -- not_null/unique, `accepted_values` on every categorical/status column,
     a `relationships` test tying mart_90day_roadmap's risk_name back to mart_risk_register
@@ -170,10 +186,10 @@ dbt_leo_program_finance/
            raw_safety_incidents.csv, raw_d2d_regulatory_pipeline.csv, raw_workforce_signal.csv,
            raw_op1_op2_plan.csv, raw_roi_payback_scenarios.csv, raw_operational_kpi_framework.csv,
            raw_cashflow_breakdown.csv, raw_cashflow_trend.csv, raw_pnl_assumptions.csv,
-           raw_90day_roadmap.csv
+           raw_90day_roadmap.csv, raw_data_quality_routing.csv, raw_data_quality_incidents.csv
   models/
-    staging/   19 typed staging models + staging.yml
-    marts/     27 marts + marts.yml
+    staging/   21 typed staging models + staging.yml
+    marts/     29 marts + marts.yml
   tests/   assert_variance_drivers_reconcile.sql, assert_illustrative_marts_are_flagged.sql,
            assert_unlaunched_inventory_range_ordered.sql, assert_every_risk_has_a_roadmap_action.sql
   scripts/ export_dashboard_data.py -- exports all marts to the site dashboard's JSON

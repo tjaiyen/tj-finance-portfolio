@@ -226,3 +226,19 @@ models:
           - accepted_values:
               arguments:
                 values: ['percent_improvement', 'qualify_count', 'threshold_zero_new', 'milestone_checkpoint', 'monitor_only']
+
+  - name: stg_data_quality_routing
+    description: "Fully synthetic anomaly-category -> role routing table -- generic role titles only, not a claim about Amazon's real org chart."
+    columns:
+      - name: category
+        tests: [not_null, unique]
+      - name: routes_to
+        tests: [not_null]
+
+  - name: stg_data_quality_incidents
+    description: "Real, dated history of this project's own data-quality incidents, cited to this repo's own git commits."
+    columns:
+      - name: commit_sha
+        tests: [not_null, unique]
+      - name: category
+        tests: [not_null]
