@@ -118,7 +118,14 @@ static analytics pipeline: tests accumulate, they don't forget.
 lineage graph published alongside the dashboard; singular tests enforce that every illustrative mart's rows are
 explicitly flagged and that every risk in the register has an owner, making the grounded-vs-illustrative
 separation a tested property of the project, not just a README claim.
-🔗 Live: **https://tjaiyen.github.io/tj-finance-portfolio/leo-program-finance.html**
+
+A second page, **`leo-operations-map.html`**, redraws the same marts as one relational graph instead of a scrolling
+narrative — 11 operating domains (the union of the risk register's and the KPI framework's domain taxonomies,
+computed at runtime, not hand-listed), the 7 register risks, their 7 90-day actions, 9 KPI-summary rollups, and
+8 hand-picked grounding facts, all click-to-expand with a who/what/when/where/why/how detail panel per node, a
+search box, and a flat-table accessibility fallback. No new data — same exported JSON as the narrative page.
+🔗 Live: **https://tjaiyen.github.io/tj-finance-portfolio/leo-program-finance.html** ·
+**https://tjaiyen.github.io/tj-finance-portfolio/leo-operations-map.html**
 
 ## [`agentic_ops_skeleton/`](./agentic_ops_skeleton) — guardrailed multi-agent orchestration
 The verify-before-trust discipline, applied to **agent autonomy**. A sanitized, stdlib-only skeleton of an
