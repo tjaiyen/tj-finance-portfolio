@@ -411,6 +411,24 @@
   .recommend h2{color:rgb(var(--c-success))}
   .recommend ol{margin:14px 0 0; padding-left:22px; line-height:1.8}
   .recommend li{margin-bottom:6px}
+
+  /* ---- KPI table filter/sort bar -- operates only on the already-rendered
+     data.operational_kpi_framework rows; filtering/sorting never changes a
+     value, only which already-real rows are shown and in what order. */
+  .kpi-filter-bar{display:flex; flex-wrap:wrap; gap:14px; margin-bottom:10px}
+  .kpi-filter-group{display:flex; flex-wrap:wrap; align-items:center; gap:6px}
+  .kpi-filter-label{font:600 10px/1 ui-monospace,Menlo,monospace; letter-spacing:.06em; text-transform:uppercase; color:rgb(var(--c-text-secondary)); margin-right:2px}
+  .kpi-chip{
+    display:inline-flex; align-items:center; padding:4px 10px; border-radius:99px;
+    font:600 11px/1.2 inherit; color:rgb(var(--c-text-secondary)); cursor:pointer;
+    border:1px solid rgb(var(--c-text-secondary) / .3); background:transparent;
+  }
+  .kpi-chip:hover{border-color:rgb(var(--c-accent) / .5)}
+  .kpi-chip.on{color:rgb(var(--c-accent)); border-color:rgb(var(--c-accent) / .6); background:rgb(var(--c-accent) / .1)}
+  .kpi-chip-reset{color:rgb(var(--c-text-secondary)); text-decoration:underline}
+  th.kpi-sortable{cursor:pointer; user-select:none; white-space:nowrap}
+  th.kpi-sortable:hover{color:rgb(var(--c-accent))}
+  th.kpi-sortable.active{color:rgb(var(--c-accent))}
 </style>
 </head>
 <body>
@@ -1461,9 +1479,128 @@
     });
   }
 
+  // ---- KPI table sort + filter -- operates on the SAME data.operational_kpi_framework
+  // array the initial render() already painted; filtering/sorting only changes which
+  // already-real rows are shown and in what order, never a displayed value.
+  function setupKpiFilters(data){
+    var rows = data.operational_kpi_framework;
+    var table = document.getElementById("kpiFrameworkTable");
+    var wrap = table && table.closest(".table-wrap");
+    if (!wrap) return;
+
+    var domains = [];
+    rows.forEach(function(r){ if (domains.indexOf(r.domain) < 0) domains.push(r.domain); });
+    var statusMeta = {
+      meets: { cls:"ok", label:"✓ Meets", rank:0 },
+      below: { cls:"risk", label:"⚠ Below", rank:1 },
+      no_data: { cls:"muted", label:"No public data", rank:2 }
+    };
+    var statusKeys = Object.keys(statusMeta);
+    var state = { domains: domains.slice(), statuses: statusKeys.slice(), sortKey: null, sortDir: 1 };
+
+    var barHtml = '<div class="kpi-filter-bar">' +
+      '<div class="kpi-filter-group"><span class="kpi-filter-label">Domain</span>' +
+      domains.map(function(d){ return '<button class="kpi-chip on" data-kfilter-domain="'+escAttr(d)+'">'+esc(d)+'</button>'; }).join("") +
+      '</div>' +
+      '<div class="kpi-filter-group"><span class="kpi-filter-label">Status</span>' +
+      statusKeys.map(function(s){ return '<button class="kpi-chip on" data-kfilter-status="'+escAttr(s)+'">'+esc(statusMeta[s].label)+'</button>'; }).join("") +
+      '<button class="kpi-chip kpi-chip-reset" id="kpiFilterReset">Reset</button>' +
+      '</div></div>';
+    wrap.insertAdjacentHTML("beforebegin", barHtml);
+    var bar = wrap.previousElementSibling;
+
+    function abbrTitle(k){ return k.definition + " — Objective: " + k.strategic_objective; }
+    function signalCell(k){
+      var sm = statusMeta[k.status] || statusMeta.no_data;
+      return '<span class="status ' + sm.cls + '">' + sm.label + '</span>' +
+        (k.actual_signal ? '<div style="margin-top:4px;font-size:11.5px;color:rgb(var(--c-text-secondary))">' + esc(k.actual_signal) + '</div>' : '');
+    }
+    function rowHtml(k, withDomainCol){
+      return '<tr>' + (withDomainCol ? '<td>'+esc(k.domain)+'</td>' : '') +
+        '<td class="kpi-def"><abbr title="'+escAttr(abbrTitle(k))+'">'+esc(k.kpi_name)+'</abbr></td>' +
+        '<td>' + esc(k.target_benchmark) + '</td><td>' + esc(k.frequency) + '</td>' +
+        '<td class="kpi-def">' + signalCell(k) + '</td></tr>';
+    }
+    function arrow(key){ return state.sortKey === key ? (state.sortDir === 1 ? " ▲" : " ▼") : ""; }
+    function th(label, key){
+      return '<th class="kpi-sortable' + (state.sortKey===key ? " active":"") + '" data-sort-key="'+key+'">' + esc(label) + arrow(key) + '</th>';
+    }
+
+    function renderTable(){
+      var visible = rows.filter(function(r){
+        return state.domains.indexOf(r.domain) >= 0 && state.statuses.indexOf(r.status) >= 0;
+      });
+      var head = '<thead><tr>' + th("Domain","domain") + th("KPI","kpi_name") + th("Target Benchmark","target_benchmark") + th("Frequency","frequency") + th("Actual Signal","status") + '</tr></thead>';
+      var body;
+      if (!visible.length){
+        body = '<tbody><tr><td colspan="5" style="text-align:center;color:rgb(var(--c-text-secondary));padding:20px">No KPIs match the current filters.</td></tr></tbody>';
+      } else if (state.sortKey === null){
+        var lastDomain = null, rowsHtml = "";
+        visible.forEach(function(k){
+          if (k.domain !== lastDomain){
+            rowsHtml += '<tr class="domain-row"><td colspan="5">' + esc(k.domain) + '</td></tr>';
+            lastDomain = k.domain;
+          }
+          rowsHtml += rowHtml(k, true);
+        });
+        body = "<tbody>" + rowsHtml + "</tbody>";
+      } else {
+        var key = state.sortKey, dir = state.sortDir;
+        var sorted = visible.slice().sort(function(a,b){
+          var av, bv;
+          if (key === "status"){ av = (statusMeta[a.status]||statusMeta.no_data).rank; bv = (statusMeta[b.status]||statusMeta.no_data).rank; }
+          else { av = String(a[key]).toLowerCase(); bv = String(b[key]).toLowerCase(); }
+          if (av < bv) return -1 * dir;
+          if (av > bv) return 1 * dir;
+          return 0;
+        });
+        body = "<tbody>" + sorted.map(function(k){ return rowHtml(k, true); }).join("") + "</tbody>";
+      }
+      table.innerHTML = head + body;
+    }
+
+    bar.addEventListener("click", function(e){
+      var dbtn = e.target.closest("[data-kfilter-domain]");
+      if (dbtn){
+        var d = dbtn.getAttribute("data-kfilter-domain");
+        var idx = state.domains.indexOf(d);
+        if (idx >= 0) state.domains.splice(idx,1); else state.domains.push(d);
+        dbtn.classList.toggle("on", idx < 0);
+        renderTable();
+        return;
+      }
+      var sbtn = e.target.closest("[data-kfilter-status]");
+      if (sbtn){
+        var s = sbtn.getAttribute("data-kfilter-status");
+        var sidx = state.statuses.indexOf(s);
+        if (sidx >= 0) state.statuses.splice(sidx,1); else state.statuses.push(s);
+        sbtn.classList.toggle("on", sidx < 0);
+        renderTable();
+        return;
+      }
+      if (e.target.id === "kpiFilterReset"){
+        state.domains = domains.slice();
+        state.statuses = statusKeys.slice();
+        state.sortKey = null; state.sortDir = 1;
+        bar.querySelectorAll(".kpi-chip[data-kfilter-domain], .kpi-chip[data-kfilter-status]").forEach(function(c){ c.classList.add("on"); });
+        renderTable();
+      }
+    });
+    table.addEventListener("click", function(e){
+      var head = e.target.closest("[data-sort-key]");
+      if (!head) return;
+      var key = head.getAttribute("data-sort-key");
+      if (state.sortKey === key) state.sortDir = -state.sortDir;
+      else { state.sortKey = key; state.sortDir = 1; }
+      renderTable();
+    });
+
+    renderTable();
+  }
+
   fetch("./leo_finance_dashboard_data.json")
     .then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
-    .then(function(data){ render(data); setupPinTray(data); setupTour(data); })
+    .then(function(data){ render(data); setupPinTray(data); setupTour(data); setupKpiFilters(data); })
     .catch(function(err){
       document.getElementById("loadErr").style.display = "block";
       document.getElementById("loadErr").innerHTML =
