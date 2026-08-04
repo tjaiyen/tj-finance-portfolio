@@ -76,7 +76,7 @@ jobs:
       - name: Set up dbt profile
         run: cp profiles.example.yml profiles.yml
 
-      - name: dbt build (seeds + 24 marts + 236 data/singular tests)
+      - name: dbt build (seeds + 29 marts + 219 data/singular tests)
         env:
           DBT_PROFILES_DIR: .
         run: dbt build
