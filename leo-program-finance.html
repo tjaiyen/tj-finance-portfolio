@@ -803,7 +803,24 @@ textarea.input { min-height: 90px; resize: vertical; }
 p:has(.tm),div:has(>.tm),span:has(>.tm){position:relative}
 .tm>.tmd{position:absolute;left:0;right:auto;bottom:calc(100% + 8px);z-index:60;width:max-content;max-width:min(320px,100%);padding:10px 12px;background:var(--color-surface);border:1px solid var(--color-neutral-800);border-radius:var(--radius-md);box-shadow:var(--shadow-md);font:400 12px/1.55 var(--font-body);color:var(--color-neutral-300);text-transform:none;letter-spacing:normal;opacity:0;visibility:hidden}
 .tm:hover>.tmd,.tm:focus>.tmd,.tm:focus-within>.tmd{opacity:1;visibility:visible}
-#prov[hidden]{display:none}\n#prov .prov-in{max-width:1180px;margin:0 auto;padding:18px clamp(16px,4vw,40px) 40px;display:flex;flex-wrap:wrap;align-items:baseline;gap:10px 26px;border-top:1px solid var(--color-divider)}\n#prov .prov-it{display:inline-flex;align-items:baseline;gap:7px}\n#prov .prov-it em{font-style:normal;font:500 9.5px/1.4 var(--font-body);letter-spacing:.07em;text-transform:uppercase;color:var(--color-neutral-600)}\n#prov .prov-it b{font:500 12px/1.4 var(--font-body);font-variant-numeric:tabular-nums;color:var(--color-neutral-300)}\n#prov .prov-lk{margin-left:auto;font:500 11px/1.4 var(--font-body);color:var(--color-neutral-400);text-decoration:none;border-bottom:1px solid var(--color-neutral-800)}\n#prov .prov-lk:hover{color:var(--color-text);border-color:var(--color-accent-700)}\n#cmdk[hidden]{display:none}\n#cmdk{position:fixed;inset:0;z-index:200;display:flex;align-items:flex-start;justify-content:center}\n#cmdk .cmdk-bd{position:absolute;inset:0;background:rgb(0 0 0 / .55);backdrop-filter:blur(2px)}\n#cmdk .cmdk-pn{position:relative;margin-top:12vh;width:min(560px,92vw);background:var(--color-surface);border:1px solid var(--color-neutral-800);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);overflow:hidden}\n#cmdk .cmdk-in{width:100%;box-sizing:border-box;padding:14px 16px;background:transparent;border:0;border-bottom:1px solid var(--color-divider);font:400 14px/1.4 var(--font-body);color:var(--color-text);outline:none}\n#cmdk .cmdk-ls{margin:0;padding:6px;list-style:none;max-height:46vh;overflow-y:auto}\n#cmdk .cmdk-it{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:9px 10px;border-radius:var(--radius-sm);font:400 13px/1.4 var(--font-body);color:var(--color-neutral-300);cursor:pointer}\n#cmdk .cmdk-it.on{background:color-mix(in srgb, var(--color-accent) 18%, transparent);color:var(--color-text)}\n#cmdk .cmdk-it em{font-style:normal;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--color-neutral-600)}\n#cmdk .cmdk-ft{padding:9px 14px;border-top:1px solid var(--color-divider);font:400 10.5px/1 var(--font-body);letter-spacing:.04em;color:var(--color-neutral-600)}\n@media (max-width:560px){
+#prov[hidden]{display:none}
+#prov .prov-in{max-width:1180px;margin:0 auto;padding:18px clamp(16px,4vw,40px) 40px;display:flex;flex-wrap:wrap;align-items:baseline;gap:10px 26px;border-top:1px solid var(--color-divider)}
+#prov .prov-it{display:inline-flex;align-items:baseline;gap:7px}
+#prov .prov-it em{font-style:normal;font:500 9.5px/1.4 var(--font-body);letter-spacing:.07em;text-transform:uppercase;color:var(--color-neutral-600)}
+#prov .prov-it b{font:500 12px/1.4 var(--font-body);font-variant-numeric:tabular-nums;color:var(--color-neutral-300)}
+#prov .prov-lk{margin-left:auto;font:500 11px/1.4 var(--font-body);color:var(--color-neutral-400);text-decoration:none;border-bottom:1px solid var(--color-neutral-800)}
+#prov .prov-lk:hover{color:var(--color-text);border-color:var(--color-accent-700)}
+#cmdk[hidden]{display:none}
+#cmdk{position:fixed;inset:0;z-index:200;display:flex;align-items:flex-start;justify-content:center}
+#cmdk .cmdk-bd{position:absolute;inset:0;background:rgb(0 0 0 / .55);backdrop-filter:blur(2px)}
+#cmdk .cmdk-pn{position:relative;margin-top:12vh;width:min(560px,92vw);background:var(--color-surface);border:1px solid var(--color-neutral-800);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);overflow:hidden}
+#cmdk .cmdk-in{width:100%;box-sizing:border-box;padding:14px 16px;background:transparent;border:0;border-bottom:1px solid var(--color-divider);font:400 14px/1.4 var(--font-body);color:var(--color-text);outline:none}
+#cmdk .cmdk-ls{margin:0;padding:6px;list-style:none;max-height:46vh;overflow-y:auto}
+#cmdk .cmdk-it{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:9px 10px;border-radius:var(--radius-sm);font:400 13px/1.4 var(--font-body);color:var(--color-neutral-300);cursor:pointer}
+#cmdk .cmdk-it.on{background:color-mix(in srgb, var(--color-accent) 18%, transparent);color:var(--color-text)}
+#cmdk .cmdk-it em{font-style:normal;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--color-neutral-600)}
+#cmdk .cmdk-ft{padding:9px 14px;border-top:1px solid var(--color-divider);font:400 10.5px/1 var(--font-body);letter-spacing:.04em;color:var(--color-neutral-600)}
+@media (max-width:560px){
 [style*="minmax(200px,2fr) minmax(120px,1fr)"],
 [style*="minmax(150px,1.5fr) minmax(160px,1.6fr)"],
 [style*="26px minmax(150px,1.8fr)"]{grid-template-columns:1fr !important}
@@ -1650,7 +1667,7 @@ function __tpl(V, __h, __e, __g, __u, __a){ with(__scope(V)){ return `<div data-
 
       <h1 style="font:500 clamp(30px,5.4vw,62px)/1.04 var(--font-heading);letter-spacing:-.035em;margin:0;max-width:20ch;text-wrap:balance">A satellite constellation is a finance problem before it's a rocket problem.</h1>
 
-      <p style="margin:22px 0 0;max-width:66ch;font-size:clamp(15px,1.5vw,18px);line-height:1.6;color:var(--color-neutral-300);text-wrap:pretty">Amazon Leo is producing hardware faster than it can launch it, against a regulatory deadline and an escalating bill. This is what a Finance Manager would actually build to see that clearly, plan around it, and recommend a way through it — milestone governance, multi-year OpEx/CapEx/headcount planning, ROI frameworks, rolling variance, and make-vs-buy <span class="tm" tabindex="0" role="note" aria-label="TCO: Unit price plus everything unit price hides: tooling, qualification, yield loss, carrying cost, switching cost">TCO<span class="tmd">Unit price plus everything unit price hides: tooling, qualification, yield loss, carrying cost, switching cost.</span></span>, applied to Amazon's own public reporting.</p>
+      <p style="margin:22px 0 0;max-width:66ch;font-size:clamp(15px,1.5vw,18px);line-height:1.6;color:var(--color-neutral-300);text-wrap:pretty">Amazon Leo is producing hardware faster than it can launch it, against a regulatory deadline and an escalating bill. This is what a Finance Manager would actually build to see that clearly, plan around it, and recommend a way through it — milestone governance, multi-year OpEx/CapEx/headcount planning, ROI frameworks, rolling variance, and make-vs-buy <span class="tm" tabindex="0" aria-describedby="tmd-tco">TCO<span class="tmd" id="tmd-tco" role="tooltip">Unit price plus everything unit price hides: tooling, qualification, yield loss, carrying cost, switching cost.</span></span>, applied to Amazon's own public reporting.</p>
 
       <div style="margin-top:clamp(30px,4vw,48px);background:var(--color-surface);border-radius:var(--radius-lg);box-shadow:var(--shadow-md);overflow:hidden">
         <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:18px 22px 4px">
@@ -2074,7 +2091,7 @@ function __tpl(V, __h, __e, __g, __u, __a){ with(__scope(V)){ return `<div data-
       <div style="margin-top:14px"><button style="padding:7px 12px;background:transparent;border:1px solid var(--color-neutral-800);border-radius:var(--radius-sm);font:500 11.5px/1 var(--font-body);color:var(--color-neutral-400);cursor:pointer" data-ev-click="${__h(__g(function(){return mth.op}))}" class="h3">Why this metric</button></div>
       ${(__g(function(){return mOn.op}))?`
         <div data-k="if30" style="margin-top:12px;padding:18px 20px;border-radius:var(--radius-md);background:#1c1f2e;border:1px solid var(--color-neutral-800);font-size:13px;line-height:1.65;color:var(--color-neutral-300)">
-          <p style="margin:0 0 9px"><strong style="color:var(--color-text);font-weight:500"><span class="tm" tabindex="0" role="note" aria-label="OP1: Amazon's annual planning cycle — OP1 in the autumn, OP2 as the January reset. The documents a Finance Manager ">OP1<span class="tmd">Amazon's annual planning cycle — OP1 in the autumn, OP2 as the January reset. The documents a Finance Manager is measured on.</span></span>/OP2</strong> is Amazon's own annual planning cadence — OP1 in the autumn, OP2 as the January reset. A multi-year roadmap in that format is the document a Finance Manager is judged on, which is why it leads this chapter.</p>
+          <p style="margin:0 0 9px"><strong style="color:var(--color-text);font-weight:500"><span class="tm" tabindex="0" aria-describedby="tmd-op1">OP1<span class="tmd" id="tmd-op1" role="tooltip">Amazon's annual planning cycle — OP1 in the autumn, OP2 as the January reset. The documents a Finance Manager is measured on.</span></span>/OP2</strong> is Amazon's own annual planning cadence — OP1 in the autumn, OP2 as the January reset. A multi-year roadmap in that format is the document a Finance Manager is judged on, which is why it leads this chapter.</p>
           <p style="margin:0"><strong style="color:var(--color-text);font-weight:500">Why the CapEx curve is the interesting line.</strong> The declining CapEx assumption embeds a belief that the build-out completes on schedule. Chapter 1 gives you reason to test that: if launch, not manufacturing, is the constraint, the curve should be re-baselined against a launch-constrained scenario. That is recommendation 2 in Chapter 4.</p>
         </div>
       `:""}
@@ -2354,9 +2371,9 @@ function __tpl(V, __h, __e, __g, __u, __a){ with(__scope(V)){ return `<div data-
       <div style="padding:18px 20px;border-radius:var(--radius-lg);background:color-mix(in srgb, var(--color-accent) 6%, transparent);border:1px solid var(--color-accent-800);margin-bottom:14px">
         <div style="font:500 10px/1 var(--font-body);letter-spacing:.11em;text-transform:uppercase;color:var(--color-accent-300);margin-bottom:12px">What these three numbers actually are</div>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;font-size:13px;line-height:1.6;color:var(--color-neutral-300)">
-          <p style="margin:0"><strong style="color:var(--color-text);font-weight:500"><span class="tm" tabindex="0" role="note" aria-label="BAC: What you said the whole thing would cost. The number in the approved plan.">BAC<span class="tmd">What you said the whole thing would cost. The number in the approved plan.</span></span> — what you said it would cost.</strong> The budget at completion. The number in the plan.</p>
-          <p style="margin:0"><strong style="color:var(--color-text);font-weight:500"><span class="tm" tabindex="0" role="note" aria-label="AC: Money genuinely spent to date. No judgement attached about whether it bought anything.">AC<span class="tmd">Money genuinely spent to date. No judgement attached about whether it bought anything.</span></span> — what you have actually spent.</strong> Cash out the door to date, no judgement attached.</p>
-          <p style="margin:0"><strong style="color:var(--color-text);font-weight:500"><span class="tm" tabindex="0" role="note" aria-label="EV: The budgeted value of work actually finished. The bridge between spend and progress, and the number most repor">EV<span class="tmd">The budgeted value of work actually finished. The bridge between spend and progress, and the number most reports quietly skip.</span></span> — what you have actually finished.</strong> The budgeted value of completed work. This is the one people skip, and it is the only one that turns spend into progress.</p>
+          <p style="margin:0"><strong style="color:var(--color-text);font-weight:500"><span class="tm" tabindex="0" aria-describedby="tmd-bac">BAC<span class="tmd" id="tmd-bac" role="tooltip">What you said the whole thing would cost. The number in the approved plan.</span></span> — what you said it would cost.</strong> The budget at completion. The number in the plan.</p>
+          <p style="margin:0"><strong style="color:var(--color-text);font-weight:500"><span class="tm" tabindex="0" aria-describedby="tmd-ac">AC<span class="tmd" id="tmd-ac" role="tooltip">Money genuinely spent to date. No judgement attached about whether it bought anything.</span></span> — what you have actually spent.</strong> Cash out the door to date, no judgement attached.</p>
+          <p style="margin:0"><strong style="color:var(--color-text);font-weight:500"><span class="tm" tabindex="0" aria-describedby="tmd-ev">EV<span class="tmd" id="tmd-ev" role="tooltip">The budgeted value of work actually finished. The bridge between spend and progress, and the number most reports quietly skip.</span></span> — what you have actually finished.</strong> The budgeted value of completed work. This is the one people skip, and it is the only one that turns spend into progress.</p>
         </div>
       </div>
 
@@ -2444,7 +2461,7 @@ function __tpl(V, __h, __e, __g, __u, __a){ with(__scope(V)){ return `<div data-
       <div style="margin-top:14px"><button style="padding:7px 12px;background:transparent;border:1px solid var(--color-neutral-800);border-radius:var(--radius-sm);font:500 11.5px/1 var(--font-body);color:var(--color-neutral-400);cursor:pointer" data-ev-click="${__h(__g(function(){return mth.eac}))}" class="h3">Why the swings are symmetric</button></div>
       ${(__g(function(){return mOn.eac}))?`
         <div data-k="if47" style="margin-top:12px;padding:18px 20px;border-radius:var(--radius-md);background:#1c1f2e;border:1px solid var(--color-neutral-800);font-size:13px;line-height:1.65;color:var(--color-neutral-300)">
-          <p style="margin:0 0 9px"><span class="tm" tabindex="0" role="note" aria-label="CPI: EV ÷ AC. Below 1.0 means every dollar bought less than a dollar of progress. At 0.86 you are getting 86 cents ">CPI<span class="tmd">EV ÷ AC. Below 1.0 means every dollar bought less than a dollar of progress. At 0.86 you are getting 86 cents of work per dollar spent.</span></span> and SPI produce the <strong style="color:var(--color-text);font-weight:500">identical</strong> EAC at every matching swing level, because <code style="font-family:ui-monospace,monospace;font-size:12px;color:var(--color-accent-200)">eac_composite</code> depends only on the product <code style="font-family:ui-monospace,monospace;font-size:12px;color:var(--color-accent-200)">cpi × spi</code>, not on which factor moved. That is a property of the formula, not a bug in the table — and it is worth knowing before someone asks which driver matters more.</p>
+          <p style="margin:0 0 9px"><span class="tm" tabindex="0" aria-describedby="tmd-cpi">CPI<span class="tmd" id="tmd-cpi" role="tooltip">EV ÷ AC. Below 1.0 means every dollar bought less than a dollar of progress. At 0.86 you are getting 86 cents of work per dollar spent.</span></span> and SPI produce the <strong style="color:var(--color-text);font-weight:500">identical</strong> EAC at every matching swing level, because <code style="font-family:ui-monospace,monospace;font-size:12px;color:var(--color-accent-200)">eac_composite</code> depends only on the product <code style="font-family:ui-monospace,monospace;font-size:12px;color:var(--color-accent-200)">cpi × spi</code>, not on which factor moved. That is a property of the formula, not a bug in the table — and it is worth knowing before someone asks which driver matters more.</p>
           <p style="margin:0">A single-variable sensitivity is deliberately not a Monte Carlo. It answers "how wrong is this if one assumption is wrong", which is the question that actually gets asked in a review.</p>
         </div>
       `:""}
@@ -3026,7 +3043,7 @@ function __tpl(V, __h, __e, __g, __u, __a){ with(__scope(V)){ return `<div data-
         </div>
         <div style="background:var(--color-surface);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);padding:18px 20px;display:grid;grid-template-columns:34px 1fr;gap:16px;align-items:start">
           <span style="font:600 15px/1.5 var(--font-heading);color:var(--color-accent);font-variant-numeric:tabular-nums">02</span>
-          <p style="margin:0;font-size:13.5px;line-height:1.65;color:var(--color-neutral-300);text-wrap:pretty"><strong style="color:var(--color-text);font-weight:500">Re-baseline the multi-year CapEx curve to the realised deployment rate</strong>, not the theoretical one. If capacity was never really the constraint, the OP1/<span class="tm" tabindex="0" role="note" aria-label="OP2: Amazon's annual planning cycle — OP1 in the autumn, OP2 as the January reset. The documents a Finance Manager ">OP2<span class="tmd">Amazon's annual planning cycle — OP1 in the autumn, OP2 as the January reset. The documents a Finance Manager is measured on.</span></span> plan's CapEx-decline assumption should be tested against a launch-constrained scenario, not a manufacturing-constrained one.</p>
+          <p style="margin:0;font-size:13.5px;line-height:1.65;color:var(--color-neutral-300);text-wrap:pretty"><strong style="color:var(--color-text);font-weight:500">Re-baseline the multi-year CapEx curve to the realised deployment rate</strong>, not the theoretical one. If capacity was never really the constraint, the OP1/<span class="tm" tabindex="0" aria-describedby="tmd-op2">OP2<span class="tmd" id="tmd-op2" role="tooltip">Amazon's annual planning cycle — OP1 in the autumn, OP2 as the January reset. The documents a Finance Manager is measured on.</span></span> plan's CapEx-decline assumption should be tested against a launch-constrained scenario, not a manufacturing-constrained one.</p>
         </div>
         <div style="background:var(--color-surface);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);padding:18px 20px;display:grid;grid-template-columns:34px 1fr;gap:16px;align-items:start">
           <span style="font:600 15px/1.5 var(--font-heading);color:var(--color-accent);font-variant-numeric:tabular-nums">03</span>
@@ -3273,7 +3290,7 @@ function __tpl(V, __h, __e, __g, __u, __a){ with(__scope(V)){ return `<div data-
           <div><div style="font:500 13px/1.3 var(--font-heading);color:var(--color-accent-200);margin-bottom:5px">Capitalised inventory</div><p style="margin:0;font-size:12.5px;line-height:1.6;color:var(--color-neutral-400)">Finished goods carried on the balance sheet at cost rather than expensed. Fine while they are worth what you paid; a write-down when they are not.</p></div>
           <div><div style="font:500 13px/1.3 var(--font-heading);color:var(--color-accent-200);margin-bottom:5px">Priority status (FCC)</div><p style="margin:0;font-size:12.5px;line-height:1.6;color:var(--color-neutral-400)">First claim on an orbit and a frequency. Losing it is not losing the licence — it is losing your place in the queue, which is close to the same thing commercially.</p></div>
           <div><div style="font:500 13px/1.3 var(--font-heading);color:var(--color-accent-200);margin-bottom:5px">OISL — Optical Inter-Satellite Link</div><p style="margin:0;font-size:12.5px;line-height:1.6;color:var(--color-neutral-400)">Laser terminals that let satellites talk to each other instead of routing everything via the ground. Few suppliers make them well.</p></div>
-          <div><div style="font:500 13px/1.3 var(--font-heading);color:var(--color-accent-200);margin-bottom:5px">D2D / SCS</div><p style="margin:0;font-size:12.5px;line-height:1.6;color:var(--color-neutral-400)">Direct-to-device: satellites talking straight to ordinary phones. <span class="tm" tabindex="0" role="note" aria-label="SCS: Direct-to-device: satellites talking straight to ordinary phones. SCS is the FCC framework that regulates it.">SCS<span class="tmd">Direct-to-device: satellites talking straight to ordinary phones. SCS is the FCC framework that regulates it.</span></span> is the FCC framework that regulates it.</p></div>
+          <div><div style="font:500 13px/1.3 var(--font-heading);color:var(--color-accent-200);margin-bottom:5px">D2D / SCS</div><p style="margin:0;font-size:12.5px;line-height:1.6;color:var(--color-neutral-400)">Direct-to-device: satellites talking straight to ordinary phones. SCS is the FCC framework that regulates it.</p></div>
           <div><div style="font:500 13px/1.3 var(--font-heading);color:var(--color-accent-200);margin-bottom:5px">Exposure tier</div><p style="margin:0;font-size:12.5px;line-height:1.6;color:var(--color-neutral-400)">Probability crossed with impact, expressed as a band rather than a false-precision number. A tier admits what a percentage pretends to know.</p></div>
         </div>
       </aside>
@@ -3416,9 +3433,16 @@ function __u(thunk){
 // hash is attacker-controllable, so every value is validated against a closed
 // set or clamped before it reaches state (B13: a URL is data, not instruction).
 var URL_ENUMS = {
-  scen:    ['low', 'base', 'high'],
+  // 'custom' is what onRate sets the moment the slider moves (logic.js) --
+  // omitting it meant the page's OWN hash was rejected on reload: rate
+  // restored correctly but scen fell back to 'base', so the label and every
+  // dependent figure disagreed with the number on screen.
+  scen:    ['low', 'base', 'high', 'custom'],
   kpiSort: ['domain', 'name', 'status'],
-  rrSort:  ['exposure', 'cat', 'name']
+  // logic.js's real values are exposure/prob/cat; 'name' was never one of
+  // them and 'prob' was missing, so clicking Probability wrote a hash the
+  // page then refused to restore.
+  rrSort:  ['exposure', 'prob', 'cat']
 };
 var URL_KEYS = ['scen', 'rate', 'plain', 'kpiDom', 'kpiStat', 'kpiSort', 'rrSort'];
 
@@ -3477,6 +3501,29 @@ function writeHash(state){
     }
   }
   applyUrl();
+  // The page also has four native #ch1..#ch4 chapter anchors that share the
+  // same location.hash slot but carry no state. Without this listener, three
+  // things went wrong: hand-editing the hash while the page was open did
+  // nothing (readHash only ran once, at mount); the browser Back button could
+  // land on an old state-bearing hash with the page never picking it back up;
+  // and after a state change, hitting Back could land the page on a hash and
+  // a state that plainly disagreed with each other.
+  //
+  // Bare chapter anchors (no '=') are left alone -- they carry no state and
+  // scroll-spy already owns which chapter is "active" independently of the
+  // hash (see V.act in logic.js). Note this does not extend to Back/Forward
+  // through a rapid sequence of filter/rate changes: writeHash deliberately
+  // uses replaceState (see below) rather than pushState so that dragging a
+  // slider does not spam history with one entry per pixel, which means those
+  // intermediate states are not individually steppable. That is the accepted
+  // cost of not spamming history, not something this listener attempts to fix.
+  window.addEventListener('hashchange', function(){
+    if (location.hash.indexOf('=') < 0) return;
+    fromUrl = readHash();
+    urlDirty = false;                // the URL is authoritative again
+    applyUrl();
+    inst.__render();
+  });
   var first = true;
   inst.__render = function(){
     // Build into a LOCAL handler array and publish it only once the whole
@@ -3633,10 +3680,11 @@ function writeHash(state){
   function open(){
     restoreTo = document.activeElement;
     all = collect(); input.value = ''; cursor = 0;
-    root.hidden = false; render(); input.focus();
+    root.hidden = false; document.getElementById('leo-app').inert = true;
+    render(); input.focus();
   }
   function close(){
-    root.hidden = true;
+    root.hidden = true; document.getElementById('leo-app').inert = false;
     if (restoreTo && restoreTo.isConnected && restoreTo.focus) restoreTo.focus();
     restoreTo = null;
   }
@@ -3650,6 +3698,12 @@ function writeHash(state){
     var openable = (e.key === 'k' || e.key === 'K') && (e.metaKey || e.ctrlKey);
     if (openable) { e.preventDefault(); root.hidden ? open() : close(); return; }
     if (root.hidden) return;
+    // The palette owns every keystroke while it is open. The tour listens
+    // on window, not document, so it always fires AFTER this handler in the
+    // bubble phase -- without stopping propagation, opening the palette
+    // during an active tour and pressing ArrowRight advanced the tour behind
+    // the modal, and one Escape closed both the palette and the tour.
+    e.stopPropagation();
     if (e.key === 'Escape') { e.preventDefault(); close(); }
     else if (e.key === 'ArrowDown') { e.preventDefault(); if (shown.length) { cursor = (cursor + 1) % shown.length; render(); } }
     else if (e.key === 'ArrowUp') { e.preventDefault(); if (shown.length) { cursor = (cursor - 1 + shown.length) % shown.length; render(); } }
@@ -3661,10 +3715,6 @@ function writeHash(state){
   document.addEventListener('click', function(e){
     var t = e.target.closest && e.target.closest('[data-cmdk-open]');
     if (t) { e.preventDefault(); root.hidden ? open() : close(); }
-  });
-  // keep focus inside the dialog while it is open
-  document.addEventListener('focusin', function(e){
-    if (!root.hidden && !root.contains(e.target)) input.focus();
   });
 })();
 
@@ -3685,7 +3735,10 @@ function writeHash(state){
   window.__fillProvenance = function(d){
     if (!d || el.dataset.done) return;
     var marts = 0, k;
-    for (k in d) { if (Object.prototype.hasOwnProperty.call(d, k) && Array.isArray(d[k])) marts++; }
+    var meta = { project: 1, disclaimer: 1, generated_at: 1 };
+    for (k in d) {
+      if (Object.prototype.hasOwnProperty.call(d, k) && !meta[k] && d[k] && typeof d[k] === 'object') marts++;
+    }
     var when = '';
     if (d.generated_at) {
       var t = new Date(d.generated_at);
