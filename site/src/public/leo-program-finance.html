@@ -1624,6 +1624,8 @@ function __tpl(V, __h, __e, __g, __u, __a){ with(__scope(V)){ return `<div data-
 
         <a href="leo-dbt-docs/" style="padding:7px 11px;background:transparent;border:1px solid var(--color-neutral-800);border-radius:999px;font:500 11px/1 var(--font-body);color:var(--color-neutral-400);cursor:pointer;text-decoration:none;display:inline-flex;align-items:center" class="h3">Data Lineage</a>
 
+        <button type="button" data-cmdk-open="1" aria-label="Open command palette" style="padding:7px 11px;background:transparent;border:1px solid var(--color-neutral-800);border-radius:999px;font:500 11px/1 var(--font-body);color:var(--color-neutral-400);cursor:pointer;display:inline-flex;align-items:center;gap:6px" class="h3">Jump to&#8230;</button>
+
         <button aria-pressed="${__e(function(){return gloss ? 'true' : 'false'})}" style="padding:7px 11px;background:transparent;border:1px solid var(--color-neutral-800);border-radius:999px;font:500 11px/1 var(--font-body);color:var(--color-neutral-400);cursor:pointer" data-ev-click="${__h(__g(function(){return onGloss}))}" class="h3">Glossary</button>
 
         <button aria-pressed="${__e(function(){return tour ? 'true' : 'false'})}" style="padding:7px 13px;background:transparent;border:1px solid var(--color-accent);border-radius:999px;font:500 11px/1 var(--font-body);color:var(--color-accent-200);cursor:pointer" style-active="background:color-mix(in srgb, var(--color-accent) 30%, transparent)" data-ev-click="${__h(__g(function(){return onTour}))}" class="h4">Walk me through it</button>
@@ -3651,6 +3653,11 @@ function writeHash(state){
   });
   input.addEventListener('input', function(){ cursor = 0; render(); });
   root.querySelector('.cmdk-bd').addEventListener('click', close);
+  // a keyboard-only feature nobody can see is a feature nobody uses
+  document.addEventListener('click', function(e){
+    var t = e.target.closest && e.target.closest('[data-cmdk-open]');
+    if (t) { e.preventDefault(); root.hidden ? open() : close(); }
+  });
   // keep focus inside the dialog while it is open
   document.addEventListener('focusin', function(e){
     if (!root.hidden && !root.contains(e.target)) input.focus();
