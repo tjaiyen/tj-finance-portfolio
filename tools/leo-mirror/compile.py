@@ -177,6 +177,24 @@ def rewrite_tag(tag_src: str) -> str:
     return '<' + name + (' ' + ' '.join(out_attrs) if out_attrs else '') + selfclose + '>'
 
 
+_if_seq = [0]
+
+
+def key_body(body_src: str, key_expr: str) -> str:
+    """Stamp data-k on the body's first element.
+
+    morph() diffs children by position, which is wrong the moment siblings are
+    added, removed or reordered: three sc-if siblings (the tour's Back/Next/
+    Finish) realign so the node you focused as Next renders Back, and a
+    shrinking list leaves focus on a node holding someone else's data. A stable
+    key per element lets morph match by identity and fall back to position when
+    there is none."""
+    m = re.search(r'<([\w-]+)(?=[\s/>])', body_src)
+    if not m or m.group(1).startswith('sc-'):
+        return body_src          # no single element root; positional is all we have
+    return body_src[:m.end(1)] + ' data-k="%s"' % key_expr + body_src[m.end(1):]
+
+
 OPEN_FOR = re.compile(r'<sc-for(?=[\s/>])')
 OPEN_IF = re.compile(r'<sc-if(?=[\s/>])')
 
@@ -209,7 +227,7 @@ def compile_frag(src: str) -> str:
                 raise SystemExit('<sc-for list=...> must be a single {{ expr }}, got %r'
                                  % attrs.get('list', '')[:60])
             it = attrs.get('as', 'item')
-            body = compile_frag(src[body_start:body_end])
+            body = compile_frag(key_body(src[body_start:body_end], '{{ %s.key }}' % it))
             out.append('${(__g(function(){return %s})||[]).map(function(%s,%s_i){return `%s`}).join("")}'
                        % (lst, it, it, body))
             i = body_end + len('</sc-for>')
@@ -222,7 +240,8 @@ def compile_frag(src: str) -> str:
             if cond is None:
                 raise SystemExit('<sc-if value=...> must be a single {{ expr }}, got %r'
                                  % attrs.get('value', '')[:60])
-            body = compile_frag(src[body_start:body_end])
+            _if_seq[0] += 1
+            body = compile_frag(key_body(src[body_start:body_end], 'if%d' % _if_seq[0]))
             out.append('${(__g(function(){return %s}))?`%s`:""}' % (cond, body))
             i = body_end + len('</sc-if>')
     return ''.join(out)

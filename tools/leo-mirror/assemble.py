@@ -303,6 +303,24 @@ for handler, flag in (('kpiSortDom', 'kpiSort.domain'),
         needle,
         needle + ' aria-sort="{{ %s ? \'ascending\' : \'none\' }}"' % flag, 1)
 
+# ---- 3e. mobile: three grids are wider than a phone ---------------------------
+# Risk Register (200+120+80+80 = 564px), Mitigation Roadmap (538px) and Cost
+# Pareto (390px) declare column minimums that cannot fit 375px, so the whole
+# document scrolled sideways. The reference has no media queries and every grid
+# is an inline style, so this targets the inline style by substring and collapses
+# those three to a single column -- no markup surgery, and nothing changes at any
+# width where the row already fitted. Headers stay visible: hiding them would
+# drop the columnheader roles out of the accessibility tree.
+STACK_AT = [
+    'minmax(200px,2fr) minmax(120px,1fr)',              # Risk Register
+    'minmax(150px,1.5fr) minmax(160px,1.6fr)',          # Mitigation Roadmap
+    '26px minmax(150px,1.8fr)',                         # Cost-Driver Pareto
+]
+for _sel in STACK_AT:
+    require(_sel in markup, 'mobile stack target not found: %s' % _sel)
+MOBILE_CSS = '@media (max-width:560px){\n%s{grid-template-columns:1fr !important}\n}' % (
+    ',\n'.join('[style*="%s"]' % _sel for _sel in STACK_AT))
+
 # ---- 4. compile the template -------------------------------------------------
 tpl_body = C.compile_frag(markup)
 hover_css = '\n'.join('.%s:hover{%s}' % (cls, rules) for rules, cls in C.hover_rules.items())
@@ -369,18 +387,38 @@ function morph(oldEl, newEl, isRoot){
     var nv = newEl.getAttribute('value');
     if (nv != null && oldEl.value !== nv && document.activeElement !== oldEl) oldEl.value = nv;
   }
-  // children
-  var o = oldEl.firstChild, n = newEl.firstChild, oNext, nNext;
+  // children -- keyed where compile.py stamped a data-k, positional otherwise.
+  // Position alone is wrong as soon as siblings are added, removed or reordered:
+  // the tour's Back/Next/Finish realign so the node focused as Next renders
+  // Back, and unpinning leaves focus on a node now holding a different pin.
+  var keyed = null, ki, kv;
+  for (ki = 0; ki < oldEl.children.length; ki++){
+    kv = oldEl.children[ki].getAttribute('data-k');
+    if (kv) { (keyed || (keyed = {}))[kv] = oldEl.children[ki]; }
+  }
+  var o = oldEl.firstChild, n = newEl.firstChild, oNext, nNext, match;
   while (o || n){
     oNext = o && o.nextSibling; nNext = n && n.nextSibling;
     if (!n){ oldEl.removeChild(o); }
     else if (!o){ oldEl.appendChild(n); }
-    else if (o.nodeType !== n.nodeType || o.nodeName !== n.nodeName){
-      oldEl.replaceChild(n, o);
-    } else if (o.nodeType === 3){
-      if (o.nodeValue !== n.nodeValue) o.nodeValue = n.nodeValue;
-    } else if (o.nodeType === 1){
-      morph(o, n, false);
+    else {
+      kv = n.nodeType === 1 ? n.getAttribute('data-k') : null;
+      if (kv && keyed && keyed[kv] && keyed[kv] !== o){
+        // this identity already exists further along -- move it here rather
+        // than overwriting whatever happens to sit at this position
+        match = keyed[kv];
+        oldEl.insertBefore(match, o);
+        morph(match, n, false);
+        n = nNext;
+        continue;                       // o still needs a partner
+      }
+      if (o.nodeType !== n.nodeType || o.nodeName !== n.nodeName){
+        oldEl.replaceChild(n, o);
+      } else if (o.nodeType === 3){
+        if (o.nodeValue !== n.nodeValue) o.nodeValue = n.nodeValue;
+      } else if (o.nodeType === 1){
+        morph(o, n, false);
+      }
     }
     o = oNext; n = nNext;
   }
@@ -517,7 +555,7 @@ html = (
     + HEAD_EXTRA + '\n'
     '<style>\n' + font_css + '\n</style>\n'
     '<style>\n' + page_css + '\n</style>\n'
-    '<style>\n' + hover_css + '\n</style>\n'
+    '<style>\n' + hover_css + '\n' + MOBILE_CSS + '\n</style>\n'
     '</head>\n<body>\n'
     '<div id="leo-app"></div>\n'
     '<script>\n'
