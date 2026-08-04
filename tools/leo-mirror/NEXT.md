@@ -145,11 +145,16 @@ Still owed:
   console is the current proxy.
 - Slider range is 0.5–5.0 — values above 5 clamp and look like a frozen control.
 
-## 5. Ship — staged, needs TJ
+## 5. Ship — DONE, live
 
-Local steps are done: secret scan, `git fetch` + drift check, commit. **Nothing is pushed.**
-Push, CI watch and live-URL verification (including that `fonts/*.woff2` and `fonts/inter.css`
-actually deploy) are TJ's call — see the handoff at the end of the session.
+Shipped and verified in production. `origin/main` and `gh-pages` both carry it; the live page
+serves 0 CDN references, exactly 49 `@font-face` rules (deduped), and `fonts/inter.css`,
+`leo-operations-map.html` and `leo-dbt-docs/` all return 200. A clean shallow clone rebuilds the
+page **byte-identically** and its tests pass, so the chain really is self-contained.
+
+Note on pushing: there is no auto-push. Earlier pushes came from a second interactive session
+working in the same checkout. With that session idle, `main` sat 5 commits ahead until pushed
+explicitly — do not assume a commit ships itself.
 
 ## 6. Stress test of the build chain (2026-08-03)
 
@@ -179,8 +184,8 @@ were reproduced live in a browser, not read off the source:
 | # | Sev | Defect | Trigger | Status |
 |---|---|---|---|---|
 | 13 | **CRIT** | A render-time throw left the page **looking loaded and completely inert** — `__handlers` was cleared *before* `renderVals()`, so all 34 `data-ev-*` indices pointed into an empty array, and no banner appeared (`hasErr` only covered a failed fetch/parse, not a failed render) | drop `d2d_pipeline` from the marts JSON → 0 KPI rows, every figure blank, clicking "Plain English" does nothing, no error shown | fixed: build into a local handler array, publish only on success, `catch` → clears `d` and sets `err` so the banner renders. Verified: banner shows, toggles respond |
-| 14 | HIGH | **Tour footer keyboard trap.** Three sibling `sc-if`s (Back/Next/Finish) change the child count, and the positional diff realigns them: the node you focused as "Next" becomes "Back" | Tab to Next, Enter, Enter → you go *backwards*, oscillating between steps 1 and 2 forever | **NOT FIXED** — needs a keyed diff or unconditional buttons toggled with `hidden` |
-| 15 | MED | A shrinking list retargets the control under focus; `PRESERVE_ATTRS['data-in']` pins the reveal flag to the *position*, not the row | unpin the first of three chips → focus stays on a node now showing a different pin; a second Enter removes something you never chose | **NOT FIXED** — same keyed-diff fix |
+| 14 | HIGH | **Tour footer keyboard trap.** Three sibling `sc-if`s (Back/Next/Finish) change the child count, and the positional diff realigns them: the node you focused as "Next" becomes "Back" | Tab to Next, Enter, Enter → you go *backwards*, oscillating between steps 1 and 2 forever | **FIXED** — keyed diff (§8). Measured: focus stays on "Next" across the step where the footer grows from [Next,×] to [Back,Next,×] |
+| 15 | MED | A shrinking list retargets the control under focus; `PRESERVE_ATTRS['data-in']` pins the reveal flag to the *position*, not the row | unpin the first of three chips → focus stays on a node now showing a different pin; a second Enter removes something you never chose | **FIXED** — same keyed diff; 527 keyed elements, 0 duplicate keys across 183 parents |
 | 16 | MED | A control that removes itself on activation dropped focus to `<body>`, restarting Tab from the top of a 4,200-line document | KPI filter → focus "Clear" → activate | fixed: record the ancestor path before the patch, land on the nearest survivor. Verified: `BODY` → `DIV (restored)` |
 | 17 | MED | A **loudly failed build still rewrote the output tree** — fonts and `inter.css` were written before the first guard ran, leaving HTML at the previous build | mutate the Glossary style → `SystemExit`, but 8 font files written | fixed: writes buffered until every guard passes. Verified: failed build now leaves the directory empty |
 | 18 | LOW | `PRESERVE_ATTRS['id']` was applied at every recursion level, not just the mount host, so any descendant that legitimately drops an `id` keeps a stale one | not reachable today (all 37 ids are unconditional) | fixed: root-scoped |
@@ -204,25 +209,29 @@ page **0 geometry diffs across 2,564 elements** vs the pre-fix build · console 
 KPI re-sort produces 54 correctly-ordered rows with no ragged or blank cells · map still loads Inter
 from `fonts/inter.css` with no CDN.
 
-## 7. Open: `morph` needs a keyed diff (findings 14 & 15)
+## 7. Keyed diff — DONE (was §7 "open")
 
-The renderer diffs children strictly by position. That is correct for text-only updates — the KPI
-re-sort produces 54 correctly-ordered rows — but wrong whenever the *number* or *order* of sibling
-elements changes. Two live consequences, both measured:
+`compile.py` stamps `data-k` on every `sc-for` body (from the item key `logic.js` already
+computed but never rendered) and a synthetic per-site key on every `sc-if`; `morph` matches
+children by key before falling back to position. Closes findings 14 and 15.
 
-- The tour footer becomes a keyboard trap: Back/Next/Finish are three independent `sc-if`s, so
-  advancing a step shifts the row and the node you focused as "Next" now renders "Back".
-- Unpinning from the pinned-summary bar leaves focus on a node that now holds a *different* pin,
-  and `data-in` stays pinned to the position rather than the row.
+## 8. UX layer shipped on top
 
-**Fix:** emit a `data-k` key on conditional siblings and on `sc-for` bodies (`logic.js` already
-computes a `key` for every row — `'k'+i`, `'sp'+i` — it is simply never rendered), then in `morph`
-index `newEl.children` by key before falling back to position. Cheaper interim fix for the tour
-alone: render all three buttons unconditionally and toggle `hidden`, which removes the sibling-count
-change entirely.
-
-Not attempted here: it is a change to the reconciliation model, and it wants its own verification
-pass rather than being bolted onto a stress-test round.
+- **Mobile stacking** — Risk Register / Mitigation Roadmap / Cost Pareto collapse to one column
+  under 560px. Document overflow at 375px: 752 → 375, zero unclipped leaks, column headers still
+  in the accessibility tree.
+- **Shareable URL state** — scenario, rate, plain-English and the KPI/risk filters and sorts
+  round-trip through `location.hash`. Hostile input rejected (closed enums, rate clamped to
+  0.5–5.0, unknown keys dropped). The link wins until the reader interacts, then they do.
+- **Inline concept cards** — first prose mention of each glossary acronym carries its own
+  definition. Anchored to the *text block*, not the term: anchored to the term, a mention near
+  the right edge pushed a 320px card outside its container (reported by TJ, fixed).
+- **Command palette** — ⌘K/Ctrl-K plus a visible "Jump to…" button. Mounted outside `#leo-app`
+  so `morph` never sees it; drives the page by clicking existing controls.
+- **Provenance strip** — *Data as of · Marts loaded · basis*, both values read from the payload
+  so there is no second number to drift. Deliberately no dbt test count: the only source would
+  be a hardcoded copy of a figure that already went stale once on the landing page.
+- **Default scenario is Base**, not the reference's High (its 5.0/day ceiling). Opens at 3.6.
 
 ## Accepted limitations
 
