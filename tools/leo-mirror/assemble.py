@@ -584,9 +584,11 @@ function writeHash(state){
 (function mount(){
   var host = document.getElementById('leo-app');
   var inst = new Component({
-    // the exported prop schema's declared defaults -- 'high' is what the
-    // reference itself boots into (5.0/day ceiling, 100% utilisation)
-    defaultScenario: 'high', plainEnglishDefault: false,
+    // The reference boots into 'high' (its 5.0/day ceiling, 100% utilisation).
+    // This page opens on 'base' instead: the ceiling case overstates the
+    // programme on first read, and a reader who has not touched the slider
+    // should be seeing the central case, not the best one. Deliberate deviation.
+    defaultScenario: 'base', plainEnglishDefault: false,
     motion: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'reduced' : 'full'
   });
   var fromUrl = readHash(), urlDirty = false;
