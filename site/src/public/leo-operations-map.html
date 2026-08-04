@@ -90,7 +90,7 @@
   .icobtn{
     display:inline-flex; align-items:center; gap:var(--c-space-2); height:32px; padding:0 calc(var(--c-space-3) * 1.2); border-radius:var(--c-radius-md);
     border:1px solid rgb(var(--c-accent) / .3); background:transparent; color:rgb(var(--c-text-secondary));
-    font:600 13px/1.3 inherit; cursor:pointer; transition:all .15s;
+    font:600 13px/1.3 var(--c-font-body); cursor:pointer; transition:all .15s;
   }
   .icobtn:hover{color:rgb(var(--c-text-primary)); border-color:rgb(var(--c-accent) / .55)}
   .icobtn.on{color:rgb(var(--c-accent)); border-color:rgb(var(--c-accent) / .6); background:rgb(var(--c-accent) / .1)}
@@ -174,7 +174,7 @@
   .searchbox input{
     width:100%; height:34px; padding:0 var(--c-space-4); border-radius:var(--c-radius-md);
     border:1px solid rgb(var(--c-accent) / .3); background:rgb(var(--c-bg-card));
-    color:rgb(var(--c-text-primary)); font:13px inherit;
+    color:rgb(var(--c-text-primary)); font:13px var(--c-font-body);
   }
   .searchbox input::placeholder{color:rgb(var(--c-text-secondary))}
   .zoomrow{display:flex; align-items:center; gap:var(--c-space-3); color:rgb(var(--c-text-secondary)); font-size:12.5px}
@@ -375,6 +375,11 @@
       svg.style.transform = "scale(" + (pct/100) + ")";
     });
 
+    document.addEventListener("keydown", function(e){
+      if (e.key === "Escape" && highlightedNodeId){
+        highlightedNodeId = null; hidePop(); render();
+      }
+    });
     mapWrap.addEventListener("click", function(e){
       var g = e.target.closest("[data-node-id]");
       if (!g){ highlightedNodeId = null; hidePop(); render(); return; }
@@ -382,6 +387,9 @@
       var node = model.byId[id];
       if (node.type === "domain"){
         node.expanded = !node.expanded;
+        // collapsing a domain removes its children from the map; without this
+        // an open popover outlives the node it describes
+        if (!node.expanded){ highlightedNodeId = null; hidePop(); }
         render();
         return;
       }
@@ -671,7 +679,7 @@
     var shapeParts = visibleNodes.map(function(v){
       var n = v.node;
       var shape = n.type==="risk" ? shapePath("risk", v.x, v.y, n.exposure_tier) : shapePath(n.type, v.x, v.y);
-      return '<g class="'+nodeClasses(n)+'" data-node-id="'+n.id+'">'+shape+'</g>';
+      return '<g class="'+nodeClasses(n)+'" data-node-id="'+escAttr(n.id)+'">'+shape+'</g>';
     });
 
     // Wrap width per type is calibrated to that type's actual shape width at
@@ -688,7 +696,7 @@
       else { lines = wrapLabel(n.name, 10); lineHeight = 10; } // kpi ("N KPIs") / leaf
       var yStart = v.y - (lines.length-1)*lineHeight/2;
       var txt = lines.map(function(l,i){ return '<text class="'+labelCls+'" x="'+v.x+'" y="'+(yStart+i*lineHeight)+'">'+esc(l)+'</text>'; }).join("");
-      return '<g class="'+nodeClasses(n)+'" data-node-id="'+n.id+'">'+txt+'</g>';
+      return '<g class="'+nodeClasses(n)+'" data-node-id="'+escAttr(n.id)+'">'+txt+'</g>';
     });
 
     // viewBox large enough for the widest expanded state (bigger shapes +
