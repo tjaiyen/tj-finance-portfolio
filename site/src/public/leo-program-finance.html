@@ -3404,6 +3404,56 @@ function __u(thunk){
   return __esc(s);
 }
 
+// --- shareable state ---------------------------------------------------------
+// The whole point of a scenario slider is being able to send someone what you
+// were looking at. State goes in the hash, and comes back out of it -- but the
+// hash is attacker-controllable, so every value is validated against a closed
+// set or clamped before it reaches state (B13: a URL is data, not instruction).
+var URL_ENUMS = {
+  scen:    ['low', 'base', 'high'],
+  kpiSort: ['domain', 'name', 'status'],
+  rrSort:  ['exposure', 'cat', 'name']
+};
+var URL_KEYS = ['scen', 'rate', 'plain', 'kpiDom', 'kpiStat', 'kpiSort', 'rrSort'];
+
+function readHash(){
+  var out = {}, h = location.hash.replace(/^#/, '');
+  if (!h) return out;
+  h.split('&').forEach(function(pair){
+    var i = pair.indexOf('='); if (i < 0) return;
+    var k, v;
+    try { k = decodeURIComponent(pair.slice(0, i)); v = decodeURIComponent(pair.slice(i + 1)); }
+    catch (e) { return; }                       // malformed escape: ignore the pair
+    if (URL_KEYS.indexOf(k) < 0) return;
+    if (URL_ENUMS[k]) { if (URL_ENUMS[k].indexOf(v) >= 0) out[k] = v; return; }
+    if (k === 'plain') { out[k] = v === '1'; return; }
+    if (k === 'rate') {
+      var n = parseFloat(v);
+      if (isFinite(n)) out[k] = Math.min(5, Math.max(0.5, n));   // clamp to the slider's range
+      return;
+    }
+    // kpiDom / kpiStat are matched with === against real values, so an unknown
+    // string simply filters to nothing rather than doing anything interesting
+    if (v.length <= 60) out[k] = v;
+  });
+  return out;
+}
+
+function writeHash(state){
+  var parts = [];
+  URL_KEYS.forEach(function(k){
+    var v = state[k];
+    if (v == null) return;
+    if (k === 'plain') { if (v) parts.push('plain=1'); return; }
+    parts.push(encodeURIComponent(k) + '=' + encodeURIComponent(v));
+  });
+  var h = '#' + parts.join('&');
+  if (h !== location.hash) {
+    // replaceState, not a hash assignment: no scroll jump, no history spam
+    history.replaceState(null, '', location.pathname + location.search + h);
+  }
+}
+
 (function mount(){
   var host = document.getElementById('leo-app');
   var inst = new Component({
@@ -3412,6 +3462,13 @@ function __u(thunk){
     defaultScenario: 'high', plainEnglishDefault: false,
     motion: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'reduced' : 'full'
   });
+  var fromUrl = readHash(), urlDirty = false;
+  function applyUrl(){
+    for (var k in fromUrl) {
+      if (Object.prototype.hasOwnProperty.call(fromUrl, k)) inst.state[k] = fromUrl[k];
+    }
+  }
+  applyUrl();
   var first = true;
   inst.__render = function(){
     // Build into a LOCAL handler array and publish it only once the whole
@@ -3420,6 +3477,10 @@ function __u(thunk){
     // completely inert: every data-ev-* index pointed into an empty array, no
     // control responded, and no banner appeared -- hasErr only covers a failed
     // fetch or JSON parse, not a failed render.
+    // The link wins until the reader changes something. A one-shot re-apply was
+    // not enough: the marts setState runs afterData(), which re-derives rate
+    // from the scenario and clobbered it (measured -- #rate=1.25 came back 5).
+    if (!urlDirty) applyUrl();
     var local = [], V, html;
     try {
       V = inst.renderVals();
@@ -3460,6 +3521,7 @@ function __u(thunk){
         }
       }
     }
+    if (urlDirty) writeHash(inst.state);
     if (inst.componentDidUpdate) inst.componentDidUpdate();
   };
   // One delegated listener for every data-ev-* the template emitted, so no
@@ -3469,7 +3531,7 @@ function __u(thunk){
       var el = ev.target.closest('[data-ev-' + type + ']');
       if (!el) return;
       var fn = __handlers[+el.getAttribute('data-ev-' + type)];
-      if (typeof fn === 'function') fn(ev);
+      if (typeof fn === 'function') { urlDirty = true; fn(ev); }
     });
   });
   // run() derives its target by reading the element it is animating. The original
