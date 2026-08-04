@@ -367,8 +367,10 @@ for _tok in sorted(TERMS, key=len, reverse=True):
 require(len(_wrapped) >= 4, 'no prose mentions found to wrap (%d)' % len(_wrapped))
 
 TERM_CSS = (
-    '.tm{position:relative;border-bottom:1px dotted var(--color-accent-700);cursor:help}\n'
-    '.tm>.tmd{position:absolute;left:0;bottom:calc(100% + 8px);z-index:60;width:max(220px,min(320px,72vw));'
+    '.tm{border-bottom:1px dotted var(--color-accent-700);cursor:help}\n'
+    'p:has(.tm),div:has(>.tm),span:has(>.tm){position:relative}\n'
+    '.tm>.tmd{position:absolute;left:0;right:auto;bottom:calc(100% + 8px);z-index:60;'
+    'width:max-content;max-width:min(320px,100%);'
     'padding:10px 12px;background:var(--color-surface);border:1px solid var(--color-neutral-800);'
     'border-radius:var(--radius-md);box-shadow:var(--shadow-md);'
     'font:400 12px/1.55 var(--font-body);color:var(--color-neutral-300);text-transform:none;'
