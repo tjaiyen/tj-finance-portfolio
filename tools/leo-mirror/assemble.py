@@ -303,6 +303,69 @@ for handler, flag in (('kpiSortDom', 'kpiSort.domain'),
         needle,
         needle + ' aria-sort="{{ %s ? \'ascending\' : \'none\' }}"' % flag, 1)
 
+# ---- 3f. inline concept cards -------------------------------------------------
+# The page already defines every term it uses -- in a glossary drawer nobody
+# opens. This lifts those definitions to where the term is actually read: the
+# first mention of each in prose becomes a hoverable/focusable inline card.
+# Build-time, because injecting after render would fight morph (it diffs against
+# template output and would strip anything the template did not emit). CSS-only,
+# so no new state and nothing to keep in sync.
+GLOSS_ENTRY = re.compile(
+    r'<div><div style="font:500 13px[^"]*">(.*?)</div><p style="[^"]*">(.*?)</p></div>', re.S)
+_entries = GLOSS_ENTRY.findall(markup)
+require(len(_entries) >= 8, 'glossary entries not found (%d)' % len(_entries))
+
+def _plain(t):
+    return re.sub(r'\s+', ' ', re.sub(r'<[^>]+>', '', t)).strip()
+
+TERMS = {}                       # token -> definition
+for _head, _def in _entries:
+    _head, _def = _plain(_head), _plain(_def)
+    _lhs = _head.split('—')[0].strip() if '—' in _head else _head
+    for _tok in [x.strip() for x in _lhs.split('/')]:
+        # only unambiguous tokens: an acronym, not a phrase that reads as prose
+        if re.fullmatch(r'[A-Z][A-Za-z0-9]{1,5}', _tok) and _tok not in TERMS:
+            TERMS[_tok] = _def
+require(len(TERMS) >= 6, 'too few glossary tokens usable (%d)' % len(TERMS))
+
+# the glossary drawer itself must not be rewritten -- it is where the text came from
+_gloss_from = markup.find('Every term this page uses')
+require(_gloss_from > 0, 'glossary panel not found')
+_gloss_to = markup.rindex('</p></div>', _gloss_from) + len('</p></div>')
+
+TERM_OPEN = ('<span class="tm" tabindex="0" role="note" aria-label="%s: %s">%s'
+             '<span class="tmd">%s</span></span>')
+_wrapped = []
+for _tok in sorted(TERMS, key=len, reverse=True):
+    _pat = re.compile(r'(?<![\w-])' + re.escape(_tok) + r'(?![\w-])')
+    for _m in re.finditer(r'<p\b[^>]*>(.*?)</p>', markup, re.S):
+        if _m.start() >= _gloss_from and _m.start() <= _gloss_to:
+            continue                                   # inside the glossary drawer
+        _inner = _m.group(1)
+        if '{{' in _inner or 'class="tm"' in _inner:
+            continue                                   # interpolated or already wrapped
+        _hit = _pat.search(_inner)
+        if not _hit or '<' in _inner[_hit.start():_hit.end()]:
+            continue
+        _rep = TERM_OPEN % (_tok, TERMS[_tok][:110].replace('"', '&quot;'), _tok, TERMS[_tok])
+        _new_inner = _inner[:_hit.start()] + _rep + _inner[_hit.end():]
+        markup = markup[:_m.start(1)] + _new_inner + markup[_m.end(1):]
+        _wrapped.append(_tok)
+        break                                          # first mention only
+require(len(_wrapped) >= 4, 'no prose mentions found to wrap (%d)' % len(_wrapped))
+
+TERM_CSS = (
+    '.tm{position:relative;border-bottom:1px dotted var(--color-accent-700);cursor:help}\n'
+    '.tm>.tmd{position:absolute;left:0;bottom:calc(100% + 8px);z-index:60;width:max(220px,min(320px,72vw));'
+    'padding:10px 12px;background:var(--color-surface);border:1px solid var(--color-neutral-800);'
+    'border-radius:var(--radius-md);box-shadow:var(--shadow-md);'
+    'font:400 12px/1.55 var(--font-body);color:var(--color-neutral-300);text-transform:none;'
+    'letter-spacing:normal;opacity:0;visibility:hidden}\n'
+    # no transition: with one, the reveal left opacity at 0 while visibility had
+    # already flipped, so focusing a term showed an invisible card. Not worth a
+    # fade -- :focus must reveal it synchronously for keyboard users.
+    '.tm:hover>.tmd,.tm:focus>.tmd,.tm:focus-within>.tmd{opacity:1;visibility:visible}\n')
+
 # ---- 3e. mobile: three grids are wider than a phone ---------------------------
 # Risk Register (200+120+80+80 = 564px), Mitigation Roadmap (538px) and Cost
 # Pareto (390px) declare column minimums that cannot fit 375px, so the whole
@@ -617,7 +680,7 @@ html = (
     + HEAD_EXTRA + '\n'
     '<style>\n' + font_css + '\n</style>\n'
     '<style>\n' + page_css + '\n</style>\n'
-    '<style>\n' + hover_css + '\n' + MOBILE_CSS + '\n</style>\n'
+    '<style>\n' + hover_css + '\n' + TERM_CSS + MOBILE_CSS + '\n</style>\n'
     '</head>\n<body>\n'
     '<div id="leo-app"></div>\n'
     '<script>\n'
@@ -640,5 +703,6 @@ open(path, 'w', encoding='utf-8').write(html)
 print('wrote %s  (%d bytes)' % (path, len(html)))
 print('fonts self-hosted: %d' % written)
 print('hover classes: %d' % len(C.hover_rules))
+print('concept cards: %d of %d tokens (%s)' % (len(_wrapped), len(TERMS), ', '.join(_wrapped)))
 for bad in ['unpkg.com', 'fonts.googleapis', 'fonts.gstatic', 'cdn.']:
     print('  %-18s %d' % (bad, html.count(bad)))
