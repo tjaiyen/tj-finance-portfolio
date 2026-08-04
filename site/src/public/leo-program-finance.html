@@ -802,7 +802,7 @@ textarea.input { min-height: 90px; resize: vertical; }
 .tm{position:relative;border-bottom:1px dotted var(--color-accent-700);cursor:help}
 .tm>.tmd{position:absolute;left:0;bottom:calc(100% + 8px);z-index:60;width:max(220px,min(320px,72vw));padding:10px 12px;background:var(--color-surface);border:1px solid var(--color-neutral-800);border-radius:var(--radius-md);box-shadow:var(--shadow-md);font:400 12px/1.55 var(--font-body);color:var(--color-neutral-300);text-transform:none;letter-spacing:normal;opacity:0;visibility:hidden}
 .tm:hover>.tmd,.tm:focus>.tmd,.tm:focus-within>.tmd{opacity:1;visibility:visible}
-@media (max-width:560px){
+#cmdk[hidden]{display:none}\n#cmdk{position:fixed;inset:0;z-index:200;display:flex;align-items:flex-start;justify-content:center}\n#cmdk .cmdk-bd{position:absolute;inset:0;background:rgb(0 0 0 / .55);backdrop-filter:blur(2px)}\n#cmdk .cmdk-pn{position:relative;margin-top:12vh;width:min(560px,92vw);background:var(--color-surface);border:1px solid var(--color-neutral-800);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);overflow:hidden}\n#cmdk .cmdk-in{width:100%;box-sizing:border-box;padding:14px 16px;background:transparent;border:0;border-bottom:1px solid var(--color-divider);font:400 14px/1.4 var(--font-body);color:var(--color-text);outline:none}\n#cmdk .cmdk-ls{margin:0;padding:6px;list-style:none;max-height:46vh;overflow-y:auto}\n#cmdk .cmdk-it{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:9px 10px;border-radius:var(--radius-sm);font:400 13px/1.4 var(--font-body);color:var(--color-neutral-300);cursor:pointer}\n#cmdk .cmdk-it.on{background:color-mix(in srgb, var(--color-accent) 18%, transparent);color:var(--color-text)}\n#cmdk .cmdk-it em{font-style:normal;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--color-neutral-600)}\n#cmdk .cmdk-ft{padding:9px 14px;border-top:1px solid var(--color-divider);font:400 10.5px/1 var(--font-body);letter-spacing:.04em;color:var(--color-neutral-600)}\n@media (max-width:560px){
 [style*="minmax(200px,2fr) minmax(120px,1fr)"],
 [style*="minmax(150px,1.5fr) minmax(160px,1.6fr)"],
 [style*="26px minmax(150px,1.8fr)"]{grid-template-columns:1fr !important}
@@ -3553,6 +3553,107 @@ function writeHash(state){
   if (inst.componentDidMount) inst.componentDidMount();
   window.addEventListener('beforeunload', function(){
     if (inst.componentWillUnmount) inst.componentWillUnmount();
+  });
+})();
+
+// --- command palette ---------------------------------------------------------
+// Deliberately mounted OUTSIDE #leo-app: morph diffs the host against template
+// output and would delete anything the template never emitted. It also drives
+// the page by clicking the controls that already exist rather than reaching
+// into component state, so it cannot drift out of sync with them.
+(function palette(){
+  var root = document.createElement('div');
+  root.id = 'cmdk'; root.hidden = true;
+  root.innerHTML =
+    '<div class="cmdk-bd"></div>' +
+    '<div class="cmdk-pn" role="dialog" aria-modal="true" aria-label="Command palette">' +
+      '<input class="cmdk-in" type="text" role="combobox" aria-expanded="true"' +
+      ' aria-controls="cmdk-ls" aria-autocomplete="list" autocomplete="off"' +
+      ' placeholder="Jump to a section, or run a control...">' +
+      '<ul class="cmdk-ls" id="cmdk-ls" role="listbox" aria-label="Results"></ul>' +
+      '<div class="cmdk-ft">up/down move &middot; enter open &middot; esc close</div>' +
+    '</div>';
+  document.body.appendChild(root);
+  var input = root.querySelector('.cmdk-in'), list = root.querySelector('.cmdk-ls');
+  var all = [], shown = [], cursor = 0, restoreTo = null;
+
+  function collect(){
+    var out = [], seen = {};
+    document.querySelectorAll('#leo-app section[id]').forEach(function(sec){
+      var h = sec.querySelector('h2, h3');
+      if (!h) return;
+      var label = h.textContent.trim().replace(/\s+/g, ' ');
+      if (!label || seen['s' + label]) return;
+      seen['s' + label] = 1;
+      out.push({ label: label, kind: 'Section', run: function(){
+        sec.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'start' });
+        var t = sec.querySelector('h2, h3');
+        if (t) { t.setAttribute('tabindex', '-1'); t.focus({ preventScroll: true }); }
+      }});
+    });
+    // the page's own controls, found by their visible label -- no coupling
+    document.querySelectorAll('#leo-app button, #leo-app a[href]').forEach(function(el){
+      var label = (el.textContent || '').trim().replace(/\s+/g, ' ');
+      if (!label || label.length > 34 || seen['c' + label]) return;
+      if (!/^(Plain English|Glossary|Walk me through it|Operations Map|Data Lineage|Low|Base|High|Clear all)$/.test(label)) return;
+      seen['c' + label] = 1;
+      out.push({ label: label, kind: el.tagName === 'A' ? 'Link' : 'Control', run: function(){ el.click(); }});
+    });
+    return out;
+  }
+  function reduced(){ return window.matchMedia('(prefers-reduced-motion: reduce)').matches; }
+
+  function render(){
+    var q = input.value.trim().toLowerCase();
+    shown = q ? all.filter(function(i){ return i.label.toLowerCase().indexOf(q) >= 0; }) : all.slice();
+    if (cursor >= shown.length) cursor = Math.max(0, shown.length - 1);
+    list.innerHTML = '';
+    shown.forEach(function(it, i){
+      var li = document.createElement('li');
+      li.className = 'cmdk-it' + (i === cursor ? ' on' : '');
+      li.id = 'cmdk-o' + i;
+      li.setAttribute('role', 'option');
+      li.setAttribute('aria-selected', i === cursor ? 'true' : 'false');
+      li.innerHTML = '<span></span><em></em>';
+      li.firstChild.textContent = it.label;
+      li.lastChild.textContent = it.kind;
+      li.addEventListener('mousedown', function(e){ e.preventDefault(); cursor = i; go(); });
+      list.appendChild(li);
+    });
+    input.setAttribute('aria-activedescendant', shown.length ? 'cmdk-o' + cursor : '');
+    var on = list.children[cursor];
+    if (on && on.scrollIntoView) on.scrollIntoView({ block: 'nearest' });
+  }
+  function open(){
+    restoreTo = document.activeElement;
+    all = collect(); input.value = ''; cursor = 0;
+    root.hidden = false; render(); input.focus();
+  }
+  function close(){
+    root.hidden = true;
+    if (restoreTo && restoreTo.isConnected && restoreTo.focus) restoreTo.focus();
+    restoreTo = null;
+  }
+  function go(){
+    var it = shown[cursor];
+    close();
+    if (it) it.run();
+  }
+
+  document.addEventListener('keydown', function(e){
+    var openable = (e.key === 'k' || e.key === 'K') && (e.metaKey || e.ctrlKey);
+    if (openable) { e.preventDefault(); root.hidden ? open() : close(); return; }
+    if (root.hidden) return;
+    if (e.key === 'Escape') { e.preventDefault(); close(); }
+    else if (e.key === 'ArrowDown') { e.preventDefault(); if (shown.length) { cursor = (cursor + 1) % shown.length; render(); } }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); if (shown.length) { cursor = (cursor - 1 + shown.length) % shown.length; render(); } }
+    else if (e.key === 'Enter' && shown.length) { e.preventDefault(); go(); }
+  });
+  input.addEventListener('input', function(){ cursor = 0; render(); });
+  root.querySelector('.cmdk-bd').addEventListener('click', close);
+  // keep focus inside the dialog while it is open
+  document.addEventListener('focusin', function(e){
+    if (!root.hidden && !root.contains(e.target)) input.focus();
   });
 })();
 })();
