@@ -799,7 +799,10 @@ textarea.input { min-height: 90px; resize: vertical; }
 .h6:hover{background:#1c1f2e}
 .h7:hover{color:var(--color-text)}
 .h8:hover{border-color:var(--color-accent-700)}
-@media (max-width:560px){
+.tm{position:relative;border-bottom:1px dotted var(--color-accent-700);cursor:help}
+.tm>.tmd{position:absolute;left:0;bottom:calc(100% + 8px);z-index:60;width:max(220px,min(320px,72vw));padding:10px 12px;background:var(--color-surface);border:1px solid var(--color-neutral-800);border-radius:var(--radius-md);box-shadow:var(--shadow-md);font:400 12px/1.55 var(--font-body);color:var(--color-neutral-300);text-transform:none;letter-spacing:normal;opacity:0;visibility:hidden}
+.tm:hover>.tmd,.tm:focus>.tmd,.tm:focus-within>.tmd{opacity:1;visibility:visible}
+#prov[hidden]{display:none}\n#prov .prov-in{max-width:1180px;margin:0 auto;padding:18px clamp(16px,4vw,40px) 40px;display:flex;flex-wrap:wrap;align-items:baseline;gap:10px 26px;border-top:1px solid var(--color-divider)}\n#prov .prov-it{display:inline-flex;align-items:baseline;gap:7px}\n#prov .prov-it em{font-style:normal;font:500 9.5px/1.4 var(--font-body);letter-spacing:.07em;text-transform:uppercase;color:var(--color-neutral-600)}\n#prov .prov-it b{font:500 12px/1.4 var(--font-body);font-variant-numeric:tabular-nums;color:var(--color-neutral-300)}\n#prov .prov-lk{margin-left:auto;font:500 11px/1.4 var(--font-body);color:var(--color-neutral-400);text-decoration:none;border-bottom:1px solid var(--color-neutral-800)}\n#prov .prov-lk:hover{color:var(--color-text);border-color:var(--color-accent-700)}\n#cmdk[hidden]{display:none}\n#cmdk{position:fixed;inset:0;z-index:200;display:flex;align-items:flex-start;justify-content:center}\n#cmdk .cmdk-bd{position:absolute;inset:0;background:rgb(0 0 0 / .55);backdrop-filter:blur(2px)}\n#cmdk .cmdk-pn{position:relative;margin-top:12vh;width:min(560px,92vw);background:var(--color-surface);border:1px solid var(--color-neutral-800);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);overflow:hidden}\n#cmdk .cmdk-in{width:100%;box-sizing:border-box;padding:14px 16px;background:transparent;border:0;border-bottom:1px solid var(--color-divider);font:400 14px/1.4 var(--font-body);color:var(--color-text);outline:none}\n#cmdk .cmdk-ls{margin:0;padding:6px;list-style:none;max-height:46vh;overflow-y:auto}\n#cmdk .cmdk-it{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:9px 10px;border-radius:var(--radius-sm);font:400 13px/1.4 var(--font-body);color:var(--color-neutral-300);cursor:pointer}\n#cmdk .cmdk-it.on{background:color-mix(in srgb, var(--color-accent) 18%, transparent);color:var(--color-text)}\n#cmdk .cmdk-it em{font-style:normal;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--color-neutral-600)}\n#cmdk .cmdk-ft{padding:9px 14px;border-top:1px solid var(--color-divider);font:400 10.5px/1 var(--font-body);letter-spacing:.04em;color:var(--color-neutral-600)}\n@media (max-width:560px){
 [style*="minmax(200px,2fr) minmax(120px,1fr)"],
 [style*="minmax(150px,1.5fr) minmax(160px,1.6fr)"],
 [style*="26px minmax(150px,1.8fr)"]{grid-template-columns:1fr !important}
@@ -1621,6 +1624,8 @@ function __tpl(V, __h, __e, __g, __u, __a){ with(__scope(V)){ return `<div data-
 
         <a href="leo-dbt-docs/" style="padding:7px 11px;background:transparent;border:1px solid var(--color-neutral-800);border-radius:999px;font:500 11px/1 var(--font-body);color:var(--color-neutral-400);cursor:pointer;text-decoration:none;display:inline-flex;align-items:center" class="h3">Data Lineage</a>
 
+        <button type="button" data-cmdk-open="1" aria-label="Open command palette" style="padding:7px 11px;background:transparent;border:1px solid var(--color-neutral-800);border-radius:999px;font:500 11px/1 var(--font-body);color:var(--color-neutral-400);cursor:pointer;display:inline-flex;align-items:center;gap:6px" class="h3">Jump to&#8230;</button>
+
         <button aria-pressed="${__e(function(){return gloss ? 'true' : 'false'})}" style="padding:7px 11px;background:transparent;border:1px solid var(--color-neutral-800);border-radius:999px;font:500 11px/1 var(--font-body);color:var(--color-neutral-400);cursor:pointer" data-ev-click="${__h(__g(function(){return onGloss}))}" class="h3">Glossary</button>
 
         <button aria-pressed="${__e(function(){return tour ? 'true' : 'false'})}" style="padding:7px 13px;background:transparent;border:1px solid var(--color-accent);border-radius:999px;font:500 11px/1 var(--font-body);color:var(--color-accent-200);cursor:pointer" style-active="background:color-mix(in srgb, var(--color-accent) 30%, transparent)" data-ev-click="${__h(__g(function(){return onTour}))}" class="h4">Walk me through it</button>
@@ -1644,7 +1649,7 @@ function __tpl(V, __h, __e, __g, __u, __a){ with(__scope(V)){ return `<div data-
 
       <h1 style="font:500 clamp(30px,5.4vw,62px)/1.04 var(--font-heading);letter-spacing:-.035em;margin:0;max-width:20ch;text-wrap:balance">A satellite constellation is a finance problem before it's a rocket problem.</h1>
 
-      <p style="margin:22px 0 0;max-width:66ch;font-size:clamp(15px,1.5vw,18px);line-height:1.6;color:var(--color-neutral-300);text-wrap:pretty">Amazon Leo is producing hardware faster than it can launch it, against a regulatory deadline and an escalating bill. This is what a Finance Manager would actually build to see that clearly, plan around it, and recommend a way through it — milestone governance, multi-year OpEx/CapEx/headcount planning, ROI frameworks, rolling variance, and make-vs-buy TCO, applied to Amazon's own public reporting.</p>
+      <p style="margin:22px 0 0;max-width:66ch;font-size:clamp(15px,1.5vw,18px);line-height:1.6;color:var(--color-neutral-300);text-wrap:pretty">Amazon Leo is producing hardware faster than it can launch it, against a regulatory deadline and an escalating bill. This is what a Finance Manager would actually build to see that clearly, plan around it, and recommend a way through it — milestone governance, multi-year OpEx/CapEx/headcount planning, ROI frameworks, rolling variance, and make-vs-buy <span class="tm" tabindex="0" role="note" aria-label="TCO: Unit price plus everything unit price hides: tooling, qualification, yield loss, carrying cost, switching cost">TCO<span class="tmd">Unit price plus everything unit price hides: tooling, qualification, yield loss, carrying cost, switching cost.</span></span>, applied to Amazon's own public reporting.</p>
 
       <div style="margin-top:clamp(30px,4vw,48px);background:var(--color-surface);border-radius:var(--radius-lg);box-shadow:var(--shadow-md);overflow:hidden">
         <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:18px 22px 4px">
@@ -2068,7 +2073,7 @@ function __tpl(V, __h, __e, __g, __u, __a){ with(__scope(V)){ return `<div data-
       <div style="margin-top:14px"><button style="padding:7px 12px;background:transparent;border:1px solid var(--color-neutral-800);border-radius:var(--radius-sm);font:500 11.5px/1 var(--font-body);color:var(--color-neutral-400);cursor:pointer" data-ev-click="${__h(__g(function(){return mth.op}))}" class="h3">Why this metric</button></div>
       ${(__g(function(){return mOn.op}))?`
         <div data-k="if30" style="margin-top:12px;padding:18px 20px;border-radius:var(--radius-md);background:#1c1f2e;border:1px solid var(--color-neutral-800);font-size:13px;line-height:1.65;color:var(--color-neutral-300)">
-          <p style="margin:0 0 9px"><strong style="color:var(--color-text);font-weight:500">OP1/OP2</strong> is Amazon's own annual planning cadence — OP1 in the autumn, OP2 as the January reset. A multi-year roadmap in that format is the document a Finance Manager is judged on, which is why it leads this chapter.</p>
+          <p style="margin:0 0 9px"><strong style="color:var(--color-text);font-weight:500"><span class="tm" tabindex="0" role="note" aria-label="OP1: Amazon's annual planning cycle — OP1 in the autumn, OP2 as the January reset. The documents a Finance Manager ">OP1<span class="tmd">Amazon's annual planning cycle — OP1 in the autumn, OP2 as the January reset. The documents a Finance Manager is measured on.</span></span>/OP2</strong> is Amazon's own annual planning cadence — OP1 in the autumn, OP2 as the January reset. A multi-year roadmap in that format is the document a Finance Manager is judged on, which is why it leads this chapter.</p>
           <p style="margin:0"><strong style="color:var(--color-text);font-weight:500">Why the CapEx curve is the interesting line.</strong> The declining CapEx assumption embeds a belief that the build-out completes on schedule. Chapter 1 gives you reason to test that: if launch, not manufacturing, is the constraint, the curve should be re-baselined against a launch-constrained scenario. That is recommendation 2 in Chapter 4.</p>
         </div>
       `:""}
@@ -2348,9 +2353,9 @@ function __tpl(V, __h, __e, __g, __u, __a){ with(__scope(V)){ return `<div data-
       <div style="padding:18px 20px;border-radius:var(--radius-lg);background:color-mix(in srgb, var(--color-accent) 6%, transparent);border:1px solid var(--color-accent-800);margin-bottom:14px">
         <div style="font:500 10px/1 var(--font-body);letter-spacing:.11em;text-transform:uppercase;color:var(--color-accent-300);margin-bottom:12px">What these three numbers actually are</div>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;font-size:13px;line-height:1.6;color:var(--color-neutral-300)">
-          <p style="margin:0"><strong style="color:var(--color-text);font-weight:500">BAC — what you said it would cost.</strong> The budget at completion. The number in the plan.</p>
-          <p style="margin:0"><strong style="color:var(--color-text);font-weight:500">AC — what you have actually spent.</strong> Cash out the door to date, no judgement attached.</p>
-          <p style="margin:0"><strong style="color:var(--color-text);font-weight:500">EV — what you have actually finished.</strong> The budgeted value of completed work. This is the one people skip, and it is the only one that turns spend into progress.</p>
+          <p style="margin:0"><strong style="color:var(--color-text);font-weight:500"><span class="tm" tabindex="0" role="note" aria-label="BAC: What you said the whole thing would cost. The number in the approved plan.">BAC<span class="tmd">What you said the whole thing would cost. The number in the approved plan.</span></span> — what you said it would cost.</strong> The budget at completion. The number in the plan.</p>
+          <p style="margin:0"><strong style="color:var(--color-text);font-weight:500"><span class="tm" tabindex="0" role="note" aria-label="AC: Money genuinely spent to date. No judgement attached about whether it bought anything.">AC<span class="tmd">Money genuinely spent to date. No judgement attached about whether it bought anything.</span></span> — what you have actually spent.</strong> Cash out the door to date, no judgement attached.</p>
+          <p style="margin:0"><strong style="color:var(--color-text);font-weight:500"><span class="tm" tabindex="0" role="note" aria-label="EV: The budgeted value of work actually finished. The bridge between spend and progress, and the number most repor">EV<span class="tmd">The budgeted value of work actually finished. The bridge between spend and progress, and the number most reports quietly skip.</span></span> — what you have actually finished.</strong> The budgeted value of completed work. This is the one people skip, and it is the only one that turns spend into progress.</p>
         </div>
       </div>
 
@@ -2438,7 +2443,7 @@ function __tpl(V, __h, __e, __g, __u, __a){ with(__scope(V)){ return `<div data-
       <div style="margin-top:14px"><button style="padding:7px 12px;background:transparent;border:1px solid var(--color-neutral-800);border-radius:var(--radius-sm);font:500 11.5px/1 var(--font-body);color:var(--color-neutral-400);cursor:pointer" data-ev-click="${__h(__g(function(){return mth.eac}))}" class="h3">Why the swings are symmetric</button></div>
       ${(__g(function(){return mOn.eac}))?`
         <div data-k="if47" style="margin-top:12px;padding:18px 20px;border-radius:var(--radius-md);background:#1c1f2e;border:1px solid var(--color-neutral-800);font-size:13px;line-height:1.65;color:var(--color-neutral-300)">
-          <p style="margin:0 0 9px">CPI and SPI produce the <strong style="color:var(--color-text);font-weight:500">identical</strong> EAC at every matching swing level, because <code style="font-family:ui-monospace,monospace;font-size:12px;color:var(--color-accent-200)">eac_composite</code> depends only on the product <code style="font-family:ui-monospace,monospace;font-size:12px;color:var(--color-accent-200)">cpi × spi</code>, not on which factor moved. That is a property of the formula, not a bug in the table — and it is worth knowing before someone asks which driver matters more.</p>
+          <p style="margin:0 0 9px"><span class="tm" tabindex="0" role="note" aria-label="CPI: EV ÷ AC. Below 1.0 means every dollar bought less than a dollar of progress. At 0.86 you are getting 86 cents ">CPI<span class="tmd">EV ÷ AC. Below 1.0 means every dollar bought less than a dollar of progress. At 0.86 you are getting 86 cents of work per dollar spent.</span></span> and SPI produce the <strong style="color:var(--color-text);font-weight:500">identical</strong> EAC at every matching swing level, because <code style="font-family:ui-monospace,monospace;font-size:12px;color:var(--color-accent-200)">eac_composite</code> depends only on the product <code style="font-family:ui-monospace,monospace;font-size:12px;color:var(--color-accent-200)">cpi × spi</code>, not on which factor moved. That is a property of the formula, not a bug in the table — and it is worth knowing before someone asks which driver matters more.</p>
           <p style="margin:0">A single-variable sensitivity is deliberately not a Monte Carlo. It answers "how wrong is this if one assumption is wrong", which is the question that actually gets asked in a review.</p>
         </div>
       `:""}
@@ -3020,7 +3025,7 @@ function __tpl(V, __h, __e, __g, __u, __a){ with(__scope(V)){ return `<div data-
         </div>
         <div style="background:var(--color-surface);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);padding:18px 20px;display:grid;grid-template-columns:34px 1fr;gap:16px;align-items:start">
           <span style="font:600 15px/1.5 var(--font-heading);color:var(--color-accent);font-variant-numeric:tabular-nums">02</span>
-          <p style="margin:0;font-size:13.5px;line-height:1.65;color:var(--color-neutral-300);text-wrap:pretty"><strong style="color:var(--color-text);font-weight:500">Re-baseline the multi-year CapEx curve to the realised deployment rate</strong>, not the theoretical one. If capacity was never really the constraint, the OP1/OP2 plan's CapEx-decline assumption should be tested against a launch-constrained scenario, not a manufacturing-constrained one.</p>
+          <p style="margin:0;font-size:13.5px;line-height:1.65;color:var(--color-neutral-300);text-wrap:pretty"><strong style="color:var(--color-text);font-weight:500">Re-baseline the multi-year CapEx curve to the realised deployment rate</strong>, not the theoretical one. If capacity was never really the constraint, the OP1/<span class="tm" tabindex="0" role="note" aria-label="OP2: Amazon's annual planning cycle — OP1 in the autumn, OP2 as the January reset. The documents a Finance Manager ">OP2<span class="tmd">Amazon's annual planning cycle — OP1 in the autumn, OP2 as the January reset. The documents a Finance Manager is measured on.</span></span> plan's CapEx-decline assumption should be tested against a launch-constrained scenario, not a manufacturing-constrained one.</p>
         </div>
         <div style="background:var(--color-surface);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);padding:18px 20px;display:grid;grid-template-columns:34px 1fr;gap:16px;align-items:start">
           <span style="font:600 15px/1.5 var(--font-heading);color:var(--color-accent);font-variant-numeric:tabular-nums">03</span>
@@ -3267,7 +3272,7 @@ function __tpl(V, __h, __e, __g, __u, __a){ with(__scope(V)){ return `<div data-
           <div><div style="font:500 13px/1.3 var(--font-heading);color:var(--color-accent-200);margin-bottom:5px">Capitalised inventory</div><p style="margin:0;font-size:12.5px;line-height:1.6;color:var(--color-neutral-400)">Finished goods carried on the balance sheet at cost rather than expensed. Fine while they are worth what you paid; a write-down when they are not.</p></div>
           <div><div style="font:500 13px/1.3 var(--font-heading);color:var(--color-accent-200);margin-bottom:5px">Priority status (FCC)</div><p style="margin:0;font-size:12.5px;line-height:1.6;color:var(--color-neutral-400)">First claim on an orbit and a frequency. Losing it is not losing the licence — it is losing your place in the queue, which is close to the same thing commercially.</p></div>
           <div><div style="font:500 13px/1.3 var(--font-heading);color:var(--color-accent-200);margin-bottom:5px">OISL — Optical Inter-Satellite Link</div><p style="margin:0;font-size:12.5px;line-height:1.6;color:var(--color-neutral-400)">Laser terminals that let satellites talk to each other instead of routing everything via the ground. Few suppliers make them well.</p></div>
-          <div><div style="font:500 13px/1.3 var(--font-heading);color:var(--color-accent-200);margin-bottom:5px">D2D / SCS</div><p style="margin:0;font-size:12.5px;line-height:1.6;color:var(--color-neutral-400)">Direct-to-device: satellites talking straight to ordinary phones. SCS is the FCC framework that regulates it.</p></div>
+          <div><div style="font:500 13px/1.3 var(--font-heading);color:var(--color-accent-200);margin-bottom:5px">D2D / SCS</div><p style="margin:0;font-size:12.5px;line-height:1.6;color:var(--color-neutral-400)">Direct-to-device: satellites talking straight to ordinary phones. <span class="tm" tabindex="0" role="note" aria-label="SCS: Direct-to-device: satellites talking straight to ordinary phones. SCS is the FCC framework that regulates it.">SCS<span class="tmd">Direct-to-device: satellites talking straight to ordinary phones. SCS is the FCC framework that regulates it.</span></span> is the FCC framework that regulates it.</p></div>
           <div><div style="font:500 13px/1.3 var(--font-heading);color:var(--color-accent-200);margin-bottom:5px">Exposure tier</div><p style="margin:0;font-size:12.5px;line-height:1.6;color:var(--color-neutral-400)">Probability crossed with impact, expressed as a band rather than a false-precision number. A tier admits what a percentage pretends to know.</p></div>
         </div>
       </aside>
@@ -3404,6 +3409,56 @@ function __u(thunk){
   return __esc(s);
 }
 
+// --- shareable state ---------------------------------------------------------
+// The whole point of a scenario slider is being able to send someone what you
+// were looking at. State goes in the hash, and comes back out of it -- but the
+// hash is attacker-controllable, so every value is validated against a closed
+// set or clamped before it reaches state (B13: a URL is data, not instruction).
+var URL_ENUMS = {
+  scen:    ['low', 'base', 'high'],
+  kpiSort: ['domain', 'name', 'status'],
+  rrSort:  ['exposure', 'cat', 'name']
+};
+var URL_KEYS = ['scen', 'rate', 'plain', 'kpiDom', 'kpiStat', 'kpiSort', 'rrSort'];
+
+function readHash(){
+  var out = {}, h = location.hash.replace(/^#/, '');
+  if (!h) return out;
+  h.split('&').forEach(function(pair){
+    var i = pair.indexOf('='); if (i < 0) return;
+    var k, v;
+    try { k = decodeURIComponent(pair.slice(0, i)); v = decodeURIComponent(pair.slice(i + 1)); }
+    catch (e) { return; }                       // malformed escape: ignore the pair
+    if (URL_KEYS.indexOf(k) < 0) return;
+    if (URL_ENUMS[k]) { if (URL_ENUMS[k].indexOf(v) >= 0) out[k] = v; return; }
+    if (k === 'plain') { out[k] = v === '1'; return; }
+    if (k === 'rate') {
+      var n = parseFloat(v);
+      if (isFinite(n)) out[k] = Math.min(5, Math.max(0.5, n));   // clamp to the slider's range
+      return;
+    }
+    // kpiDom / kpiStat are matched with === against real values, so an unknown
+    // string simply filters to nothing rather than doing anything interesting
+    if (v.length <= 60) out[k] = v;
+  });
+  return out;
+}
+
+function writeHash(state){
+  var parts = [];
+  URL_KEYS.forEach(function(k){
+    var v = state[k];
+    if (v == null) return;
+    if (k === 'plain') { if (v) parts.push('plain=1'); return; }
+    parts.push(encodeURIComponent(k) + '=' + encodeURIComponent(v));
+  });
+  var h = '#' + parts.join('&');
+  if (h !== location.hash) {
+    // replaceState, not a hash assignment: no scroll jump, no history spam
+    history.replaceState(null, '', location.pathname + location.search + h);
+  }
+}
+
 (function mount(){
   var host = document.getElementById('leo-app');
   var inst = new Component({
@@ -3412,6 +3467,13 @@ function __u(thunk){
     defaultScenario: 'high', plainEnglishDefault: false,
     motion: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'reduced' : 'full'
   });
+  var fromUrl = readHash(), urlDirty = false;
+  function applyUrl(){
+    for (var k in fromUrl) {
+      if (Object.prototype.hasOwnProperty.call(fromUrl, k)) inst.state[k] = fromUrl[k];
+    }
+  }
+  applyUrl();
   var first = true;
   inst.__render = function(){
     // Build into a LOCAL handler array and publish it only once the whole
@@ -3420,6 +3482,10 @@ function __u(thunk){
     // completely inert: every data-ev-* index pointed into an empty array, no
     // control responded, and no banner appeared -- hasErr only covers a failed
     // fetch or JSON parse, not a failed render.
+    // The link wins until the reader changes something. A one-shot re-apply was
+    // not enough: the marts setState runs afterData(), which re-derives rate
+    // from the scenario and clobbered it (measured -- #rate=1.25 came back 5).
+    if (!urlDirty) applyUrl();
     var local = [], V, html;
     try {
       V = inst.renderVals();
@@ -3460,6 +3526,8 @@ function __u(thunk){
         }
       }
     }
+    if (urlDirty) writeHash(inst.state);
+    if (inst.state.d && window.__fillProvenance) window.__fillProvenance(inst.state.d);
     if (inst.componentDidUpdate) inst.componentDidUpdate();
   };
   // One delegated listener for every data-ev-* the template emitted, so no
@@ -3469,7 +3537,7 @@ function __u(thunk){
       var el = ev.target.closest('[data-ev-' + type + ']');
       if (!el) return;
       var fn = __handlers[+el.getAttribute('data-ev-' + type)];
-      if (typeof fn === 'function') fn(ev);
+      if (typeof fn === 'function') { urlDirty = true; fn(ev); }
     });
   });
   // run() derives its target by reading the element it is animating. The original
@@ -3489,6 +3557,159 @@ function __u(thunk){
   window.addEventListener('beforeunload', function(){
     if (inst.componentWillUnmount) inst.componentWillUnmount();
   });
+})();
+
+// --- command palette ---------------------------------------------------------
+// Deliberately mounted OUTSIDE #leo-app: morph diffs the host against template
+// output and would delete anything the template never emitted. It also drives
+// the page by clicking the controls that already exist rather than reaching
+// into component state, so it cannot drift out of sync with them.
+(function palette(){
+  var root = document.createElement('div');
+  root.id = 'cmdk'; root.hidden = true;
+  root.innerHTML =
+    '<div class="cmdk-bd"></div>' +
+    '<div class="cmdk-pn" role="dialog" aria-modal="true" aria-label="Command palette">' +
+      '<input class="cmdk-in" type="text" role="combobox" aria-expanded="true"' +
+      ' aria-controls="cmdk-ls" aria-autocomplete="list" autocomplete="off"' +
+      ' placeholder="Jump to a section, or run a control...">' +
+      '<ul class="cmdk-ls" id="cmdk-ls" role="listbox" aria-label="Results"></ul>' +
+      '<div class="cmdk-ft">up/down move &middot; enter open &middot; esc close</div>' +
+    '</div>';
+  document.body.appendChild(root);
+  var input = root.querySelector('.cmdk-in'), list = root.querySelector('.cmdk-ls');
+  var all = [], shown = [], cursor = 0, restoreTo = null;
+
+  function collect(){
+    var out = [], seen = {};
+    document.querySelectorAll('#leo-app section[id]').forEach(function(sec){
+      var h = sec.querySelector('h2, h3');
+      if (!h) return;
+      var label = h.textContent.trim().replace(/\s+/g, ' ');
+      if (!label || seen['s' + label]) return;
+      seen['s' + label] = 1;
+      out.push({ label: label, kind: 'Section', run: function(){
+        sec.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'start' });
+        var t = sec.querySelector('h2, h3');
+        if (t) { t.setAttribute('tabindex', '-1'); t.focus({ preventScroll: true }); }
+      }});
+    });
+    // the page's own controls, found by their visible label -- no coupling
+    document.querySelectorAll('#leo-app button, #leo-app a[href]').forEach(function(el){
+      var label = (el.textContent || '').trim().replace(/\s+/g, ' ');
+      if (!label || label.length > 34 || seen['c' + label]) return;
+      if (!/^(Plain English|Glossary|Walk me through it|Operations Map|Data Lineage|Low|Base|High|Clear all)$/.test(label)) return;
+      seen['c' + label] = 1;
+      out.push({ label: label, kind: el.tagName === 'A' ? 'Link' : 'Control', run: function(){ el.click(); }});
+    });
+    return out;
+  }
+  function reduced(){ return window.matchMedia('(prefers-reduced-motion: reduce)').matches; }
+
+  function render(){
+    var q = input.value.trim().toLowerCase();
+    shown = q ? all.filter(function(i){ return i.label.toLowerCase().indexOf(q) >= 0; }) : all.slice();
+    if (cursor >= shown.length) cursor = Math.max(0, shown.length - 1);
+    list.innerHTML = '';
+    shown.forEach(function(it, i){
+      var li = document.createElement('li');
+      li.className = 'cmdk-it' + (i === cursor ? ' on' : '');
+      li.id = 'cmdk-o' + i;
+      li.setAttribute('role', 'option');
+      li.setAttribute('aria-selected', i === cursor ? 'true' : 'false');
+      li.innerHTML = '<span></span><em></em>';
+      li.firstChild.textContent = it.label;
+      li.lastChild.textContent = it.kind;
+      li.addEventListener('mousedown', function(e){ e.preventDefault(); cursor = i; go(); });
+      list.appendChild(li);
+    });
+    input.setAttribute('aria-activedescendant', shown.length ? 'cmdk-o' + cursor : '');
+    var on = list.children[cursor];
+    if (on && on.scrollIntoView) on.scrollIntoView({ block: 'nearest' });
+  }
+  function open(){
+    restoreTo = document.activeElement;
+    all = collect(); input.value = ''; cursor = 0;
+    root.hidden = false; render(); input.focus();
+  }
+  function close(){
+    root.hidden = true;
+    if (restoreTo && restoreTo.isConnected && restoreTo.focus) restoreTo.focus();
+    restoreTo = null;
+  }
+  function go(){
+    var it = shown[cursor];
+    close();
+    if (it) it.run();
+  }
+
+  document.addEventListener('keydown', function(e){
+    var openable = (e.key === 'k' || e.key === 'K') && (e.metaKey || e.ctrlKey);
+    if (openable) { e.preventDefault(); root.hidden ? open() : close(); return; }
+    if (root.hidden) return;
+    if (e.key === 'Escape') { e.preventDefault(); close(); }
+    else if (e.key === 'ArrowDown') { e.preventDefault(); if (shown.length) { cursor = (cursor + 1) % shown.length; render(); } }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); if (shown.length) { cursor = (cursor - 1 + shown.length) % shown.length; render(); } }
+    else if (e.key === 'Enter' && shown.length) { e.preventDefault(); go(); }
+  });
+  input.addEventListener('input', function(){ cursor = 0; render(); });
+  root.querySelector('.cmdk-bd').addEventListener('click', close);
+  // a keyboard-only feature nobody can see is a feature nobody uses
+  document.addEventListener('click', function(e){
+    var t = e.target.closest && e.target.closest('[data-cmdk-open]');
+    if (t) { e.preventDefault(); root.hidden ? open() : close(); }
+  });
+  // keep focus inside the dialog while it is open
+  document.addEventListener('focusin', function(e){
+    if (!root.hidden && !root.contains(e.target)) input.focus();
+  });
+})();
+
+// --- provenance strip --------------------------------------------------------
+// Every figure on this page is modelled from public disclosures, so the page
+// should say when the data was built and how much of it there is. Both come
+// from the payload itself -- generated_at and the mart count -- so there is no
+// second number to go stale. Deliberately NOT shown: a dbt test count. The only
+// available source would be a hardcoded copy of a figure that already drifted
+// once on the landing page, and one source of truth beats two.
+// Mounted outside #leo-app so morph never sees it.
+(function provenance(){
+  var el = document.createElement('div');
+  el.id = 'prov';
+  el.hidden = true;
+  var host = document.getElementById('leo-app');
+  host.parentNode.insertBefore(el, host.nextSibling);
+  window.__fillProvenance = function(d){
+    if (!d || el.dataset.done) return;
+    var marts = 0, k;
+    for (k in d) { if (Object.prototype.hasOwnProperty.call(d, k) && Array.isArray(d[k])) marts++; }
+    var when = '';
+    if (d.generated_at) {
+      var t = new Date(d.generated_at);
+      if (!isNaN(t)) when = t.toISOString().slice(0, 10);      // UTC, unambiguous
+    }
+    if (!when && !marts) return;
+    el.innerHTML = '';
+    var wrap = document.createElement('div');
+    wrap.className = 'prov-in';
+    function item(label, value){
+      var s = document.createElement('span');
+      s.className = 'prov-it';
+      s.innerHTML = '<em></em><b></b>';
+      s.firstChild.textContent = label;
+      s.lastChild.textContent = value;
+      wrap.appendChild(s);
+    }
+    if (when) item('Data as of', when);
+    if (marts) item('Marts loaded', String(marts));
+    item('Basis', 'modelled from public disclosures');
+    var a = document.createElement('a');
+    a.href = 'leo-dbt-docs/'; a.className = 'prov-lk'; a.textContent = 'Lineage →';
+    wrap.appendChild(a);
+    el.appendChild(wrap);
+    el.hidden = false;
+    el.dataset.done = '1';
+  };
 })();
 })();
 </script>
