@@ -83,29 +83,34 @@ jobs:
 
   dbt-build-snowflake-finops:
     runs-on: ubuntu-latest
-    # Skips cleanly (not a failure) until real Snowflake credentials exist as repo secrets --
-    # keeps this job from breaking the overall workflow's green status for the other,
-    # already-live dbt projects above while this one is still pre-account.
-    if: ${{ secrets.SNOWFLAKE_ACCOUNT != '' }}
+    # GitHub Actions disallows `secrets` in a job-level `if:` (only github/needs/vars/inputs are
+    # permitted there -- referencing secrets there fails the whole workflow at parse time, not
+    # just this job). The documented workaround: gate via a job-level env var instead, checked on
+    # every step, so the job reports "skipped" (not "failed") until real credentials exist.
+    env:
+      SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
     defaults:
       run:
         working-directory: dbt_snowflake_finops
     steps:
       - name: Check out
+        if: ${{ env.SNOWFLAKE_ACCOUNT != '' }}
         uses: actions/checkout@v4
 
       - name: Set up Python
+        if: ${{ env.SNOWFLAKE_ACCOUNT != '' }}
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
       - name: Install dbt-snowflake
+        if: ${{ env.SNOWFLAKE_ACCOUNT != '' }}
         run: pip install dbt-snowflake
 
       - name: dbt build (seed + bronze/silver/gold + data/unit/singular tests)
+        if: ${{ env.SNOWFLAKE_ACCOUNT != '' }}
         env:
           DBT_PROFILES_DIR: .
-          SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
           SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
           SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
           SNOWFLAKE_ROLE: ${{ secrets.SNOWFLAKE_ROLE }}
