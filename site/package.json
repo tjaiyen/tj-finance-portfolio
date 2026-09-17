@@ -5,7 +5,9 @@
   "private": true,
   "scripts": {
     "dev": "vite",
+    "prebuild": "node tools/ob-mobile-patch.mjs --check",
     "build": "vite build",
+    "patch:mobile": "node tools/ob-mobile-patch.mjs",
     "preview": "vite preview"
   },
   "devDependencies": {

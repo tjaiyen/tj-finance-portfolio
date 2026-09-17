@@ -51,14 +51,29 @@
     @apply inline-block rounded-md border border-accent/40 bg-accent/10 px-2.5 py-1 text-xs font-mono text-text-code;
   }
   .btn-primary {
-    @apply inline-block rounded-md bg-accent px-4 py-2 font-medium text-bg-primary transition hover:brightness-110;
+    @apply inline-flex items-center justify-center min-h-[44px] rounded-md bg-accent px-4 py-2 font-medium text-bg-primary transition hover:brightness-110;
   }
   .btn-secondary {
-    @apply inline-block rounded-md border border-accent px-4 py-2 font-medium text-text-primary transition hover:bg-accent/10;
+    @apply inline-flex items-center justify-center min-h-[44px] rounded-md border border-accent px-4 py-2 font-medium text-text-primary transition hover:bg-accent/10;
   }
   .field-label { @apply block text-xs font-medium uppercase tracking-wide text-text-secondary mb-1; }
+  /* text-base (16px) is load-bearing, not cosmetic: iOS Safari force-zooms the page
+     whenever a focused input's font-size is under 16px. */
   .field-input {
-    @apply w-full rounded-md border border-accent/30 bg-bg-primary px-3 py-2 text-text-primary
+    @apply w-full rounded-md border border-accent/30 bg-bg-primary px-3 py-2 text-base text-text-primary
            focus:outline-none focus:ring-2 focus:ring-accent;
+  }
+  /* Horizontal-scroll containers: edge shadows that appear only when that side actually
+     overflows (local/scroll background-attachment trick) — no JS, and no false affordance
+     on content that already fits. */
+  .scroll-x {
+    @apply overflow-x-auto;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    background:
+      linear-gradient(to right, rgb(var(--c-bg-primary)), transparent) 0 0 / 24px 100% no-repeat local,
+      linear-gradient(to left, rgb(var(--c-bg-primary)), transparent) 100% 0 / 24px 100% no-repeat local,
+      radial-gradient(farthest-side at 0 50%, rgb(var(--c-accent) / 0.35), transparent) 0 0 / 12px 100% no-repeat scroll,
+      radial-gradient(farthest-side at 100% 50%, rgb(var(--c-accent) / 0.35), transparent) 100% 0 / 12px 100% no-repeat scroll;
   }
 }
