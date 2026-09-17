@@ -19,7 +19,8 @@ instead of a GL.
 ## Medallion architecture
 - **Bronze** (`models/bronze/`) — raw usage, pricing, and contract rows, typed and cast. Usage
   rows carry a semi-structured `tags_json` field (env/team/cost_center) ingested via Snowflake's
-  **VARIANT** type and unpacked with `parse_json(...)::variant` and colon-notation field access —
+  **VARIANT** type (`parse_json()`'s native return type, no explicit cast needed) and unpacked
+  with colon-notation field access —
   the same shape a real AWS Cost & Usage Report or Azure Cost Management export requires, since
   tag schemas vary per resource and can't be flattened into a fixed CSV column set upstream.
 - **Silver** (`models/silver/`) — usage joined to the rate card and priced, deduplicated via

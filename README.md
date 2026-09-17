@@ -75,9 +75,9 @@ The cost-accounting discipline pointed at multi-tenant cloud cost, run on **Snow
 the platform target JDs in this job search actually name. A **medallion-architecture** (bronze/silver/gold)
 **dbt** pipeline: bronze ingests usage tags as Snowflake's semi-structured **VARIANT** type; silver
 deduplicates and prices usage against a rate card; gold computes per-tenant chargeback margin (with a
-**margin zone**) and **month-over-month cost variance** via `lag()`. Three test tiers guard it — 28 data
+**margin zone**) and **month-over-month cost variance** via `lag()`. Three test tiers guard it — 29 data
 tests, a **unit test** on the discount/markup/margin logic (three tenants, all three margin zones), and 2
-singular tests (no negative costs; chargeback can never fall below cost) — 31 tests total. On the synthetic
+singular tests (no negative costs; chargeback can never fall below cost) — 32 tests total. On the synthetic
 data it surfaces a tenant's cost jumping **+79% month-over-month** (an egress spike) — the *whose spend
 moved, and why* question, answered by tested models instead of a spreadsheet. Needs a free Snowflake trial
 account (no credit card, $400/30-day credit, single-digit-dollar actual usage) — see the project's own

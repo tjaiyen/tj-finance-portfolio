@@ -107,6 +107,10 @@ jobs:
         if: ${{ env.SNOWFLAKE_ACCOUNT != '' }}
         run: pip install dbt-snowflake
 
+      - name: Set up dbt profile
+        if: ${{ env.SNOWFLAKE_ACCOUNT != '' }}
+        run: cp profiles.example.yml profiles.yml
+
       - name: dbt build (seed + bronze/silver/gold + data/unit/singular tests)
         if: ${{ env.SNOWFLAKE_ACCOUNT != '' }}
         env:

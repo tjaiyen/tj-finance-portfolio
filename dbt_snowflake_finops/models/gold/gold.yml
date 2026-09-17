@@ -17,6 +17,8 @@ models:
         tests: [not_null]
       - name: chargeback_revenue
         tests: [not_null]
+      - name: gross_margin_pct
+        tests: [not_null]
       - name: margin_zone
         description: "warning (<15%) / standard (15-30%) / best_in_class (>30%)."
         tests:
