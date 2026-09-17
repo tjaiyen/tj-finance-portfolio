@@ -10,7 +10,10 @@ snowflake_finops:
       user: "{{ env_var('SNOWFLAKE_USER') }}"
       # Password auth for local dev; CI uses key-pair or OIDC (see .github/workflows/dbt-ci.yml).
       password: "{{ env_var('SNOWFLAKE_PASSWORD', '') }}"
-      role: "{{ env_var('SNOWFLAKE_ROLE', 'ACCOUNTADMIN') }}"
+      # Scoped role from setup.sql -- run that once against a fresh account before this default
+      # matters. Never ACCOUNTADMIN for the pipeline's day-to-day role (that's only needed to run
+      # setup.sql itself).
+      role: "{{ env_var('SNOWFLAKE_ROLE', 'finops_ci_role') }}"
       database: "{{ env_var('SNOWFLAKE_DATABASE', 'FINOPS_DEV') }}"
       warehouse: "{{ env_var('SNOWFLAKE_WAREHOUSE', 'FINOPS_XS') }}"
       schema: "{{ env_var('SNOWFLAKE_SCHEMA', 'PUBLIC') }}"

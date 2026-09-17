@@ -69,6 +69,14 @@ days, no payment method required to start. Set the warehouse to auto-suspend aft
 inactivity (a real "cost management on Snowflake" practice, not just a demo shortcut). A project
 this size, run on an X-Small warehouse with auto-suspend, typically burns single-digit dollars.
 
+**Right after signup, before the first `dbt build`**, run `setup.sql` once as `ACCOUNTADMIN` (via
+Snowsight's worksheet editor, or `snowsql`) — replace `<SNOWFLAKE_USER>` in the file with the real
+username first. It creates a resource monitor (hard credit cap, notify at 75%, suspend at 100%) and
+a scoped `finops_ci_role` with only the grants this pipeline actually needs — least-privilege,
+matching Snowflake's own dbt-access-control guidance, not the `ACCOUNTADMIN` default that would
+otherwise apply. **Not yet run against a live account** — this project's own first one — so treat it
+as ready, not proven, until the first real run confirms it.
+
 ## What the synthetic data shows
 Three tenants, spanning a partial August and a partial September. The model surfaces that
 **`tenant_beta`'s actual cost jumps +79% month-over-month** (an egress-cost spike) and
