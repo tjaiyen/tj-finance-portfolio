@@ -2,7 +2,7 @@
 
 [![dbt CI](https://github.com/tjaiyen/tj-finance-portfolio/actions/workflows/dbt-ci.yml/badge.svg)](https://github.com/tjaiyen/tj-finance-portfolio/actions/workflows/dbt-ci.yml)
 
-Eight small, runnable projects that show how I work: a cost accountant who builds the data, orchestration,
+Nine small, runnable projects that show how I work: a cost accountant who builds the data, orchestration,
 and AI layers behind finance reporting, with correctness and governance built in — not bolted on.
 
 **Business context:** every month-end close asks the same question — *which accounts moved, are the moves
@@ -16,6 +16,8 @@ raw GL (seed) ──> dbt_finance_variance ──> fct_account_variance (tested 
         (per-model tasks & retries)         Claude variance agent
                         ▲                  (narrative + exception flags, guardrailed)
 GPU events (seed) ──> dbt_gpu_cost_attribution ──> gpu_cost_by_tenant
+
+cloud usage (seed) ──> dbt_snowflake_finops (Snowflake, medallion) ──> tenant margin + MoM variance
 
 site/ ──> interactive sandbox (same variance + margin math, runs client-side)
 ```
@@ -67,6 +69,19 @@ method used to spread shared factory cost in job-order costing — and per-tenan
 logic, and **singular tests** (allocation ratios must sum to 1; no negative costs). On the synthetic data it
 surfaces a tenant running at a negative margin — the *which customer is unprofitable, and why* question, answered
 by tested models. Runs locally on **DuckDB**: `pip install dbt-duckdb` then `dbt build` → 33 tests pass.
+
+## [`dbt_snowflake_finops/`](./dbt_snowflake_finops) — the same discipline, on a cloud data warehouse
+The cost-accounting discipline pointed at multi-tenant cloud cost, run on **Snowflake** instead of DuckDB —
+the platform target JDs in this job search actually name. A **medallion-architecture** (bronze/silver/gold)
+**dbt** pipeline: bronze ingests usage tags as Snowflake's semi-structured **VARIANT** type; silver
+deduplicates and prices usage against a rate card; gold computes per-tenant chargeback margin (with a
+**margin zone**) and **month-over-month cost variance** via `lag()`. Three test tiers guard it — 28 data
+tests, a **unit test** on the discount/markup/margin logic (three tenants, all three margin zones), and 2
+singular tests (no negative costs; chargeback can never fall below cost) — 31 tests total. On the synthetic
+data it surfaces a tenant's cost jumping **+79% month-over-month** (an egress spike) — the *whose spend
+moved, and why* question, answered by tested models instead of a spreadsheet. Needs a free Snowflake trial
+account (no credit card, $400/30-day credit, single-digit-dollar actual usage) — see the project's own
+README for setup; CI is wired to skip cleanly until real credentials exist as repo secrets.
 
 ## [`dbt_leo_program_finance/`](./dbt_leo_program_finance) — cross-functional capital-program visibility, applied to a public case
 The same cost-accounting discipline pointed at a large hardware/capital program's full operational picture —
@@ -150,21 +165,23 @@ by rule, never by a live model. Materiality-band and EVM-variance sliders re-fla
 palette, guided tour, and light/dark theme round it out. Synthetic, illustrative food-manufacturing data.
 🔗 Live: **https://tjaiyen.github.io/tj-finance-portfolio/operations-bridge.html**
 
-## Why these eight together
-Eight pieces, same discipline: three dbt projects for the modeled numbers (finance variance, GPU cost
-attribution, and Leo program finance), Airflow/Cosmos for reliable scheduling and recovery, a Claude agent
-for the narrative layer, an agentic-ops skeleton for guardrailed multi-agent autonomy, site/ to tie it
-together for a hiring reviewer, and Operations Bridge to show the same rigor at dashboard scale —
-deterministic thresholds and rule-based narration, never a generated claim about a number. All three dbt
-tracks use the same method — tested models, deterministic math, orchestrated runs — with Leo program finance
-adding a third discipline: sourcing every real-world figure to a citation, and testing that illustrative data
-is never presented as real. The AI layers touch only judgment and language: the variance agent's guardrail
-rejects any output that references an account not in the source, and the agentic skeleton treats all fetched
-content as data, never instructions, with a human gate before any irreversible action.
+## Why these nine together
+Nine pieces, same discipline: four dbt projects for the modeled numbers (finance variance, GPU cost
+attribution, Snowflake FinOps, and Leo program finance), Airflow/Cosmos for reliable scheduling and
+recovery, a Claude agent for the narrative layer, an agentic-ops skeleton for guardrailed multi-agent
+autonomy, site/ to tie it together for a hiring reviewer, and Operations Bridge to show the same rigor at
+dashboard scale — deterministic thresholds and rule-based narration, never a generated claim about a number.
+All four dbt tracks use the same method — tested models, deterministic math, orchestrated runs — with
+Snowflake FinOps adding cloud-warehouse execution (VARIANT ingestion, medallion layering) to the same logic,
+and Leo program finance adding a further discipline: sourcing every real-world figure to a citation, and
+testing that illustrative data is never presented as real. The AI layers touch only judgment and language:
+the variance agent's guardrail rejects any output that references an account not in the source, and the
+agentic skeleton treats all fetched content as data, never instructions, with a human gate before any
+irreversible action.
 
-*Data in the finance-variance, GPU-cost, orchestration, agent, and agentic-ops projects is synthetic — no
-employer or confidential information is included anywhere. The Leo program finance project is the one
-exception with real data: figures describing the public program are sourced to public reporting (cited
+*Data in the finance-variance, GPU-cost, Snowflake-FinOps, orchestration, agent, and agentic-ops projects is
+synthetic — no employer or confidential information is included anywhere. The Leo program finance project is
+the one exception with real data: figures describing the public program are sourced to public reporting (cited
 inline); figures describing an internal decision are synthetic and flagged as such — see that project's
 README for the full sourcing discipline.*
 

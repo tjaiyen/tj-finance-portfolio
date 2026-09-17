@@ -1,0 +1,54 @@
+name: 'snowflake_finops'
+version: '1.0.0'
+config-version: 2
+
+profile: 'snowflake_finops'
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+vars:
+  # Override with --vars at run time without touching SQL.
+  margin_warning_below: 0.15     # < 15% gross margin  -> warning zone
+  margin_best_above: 0.30        # > 30% gross margin  -> best-in-class zone
+
+models:
+  snowflake_finops:
+    bronze:
+      +materialized: view
+    silver:
+      +materialized: view
+    gold:
+      +materialized: table
+
+seeds:
+  snowflake_finops:
+    raw_cloud_usage:
+      +column_types:
+        usage_date: date
+        tenant_id: varchar
+        service: varchar
+        resource_type: varchar
+        region: varchar
+        quantity: double
+        unit: varchar
+        tags_json: varchar
+    raw_cloud_pricing:
+      +column_types:
+        service: varchar
+        resource_type: varchar
+        region: varchar
+        unit: varchar
+        list_unit_price: double
+    raw_tenant_contracts:
+      +column_types:
+        tenant_id: varchar
+        contract_type: varchar
+        committed_use_discount: double
+        chargeback_markup: double

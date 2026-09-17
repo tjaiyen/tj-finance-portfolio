@@ -1,0 +1,63 @@
+version: 2
+
+models:
+  - name: fct_daily_tenant_margin
+    description: >
+      Per-tenant, per-day fully-loaded actual cost, chargeback revenue, gross margin, and a
+      margin zone. Grain: one row per tenant per usage_date. Governance: every tenant must
+      exist in contracts (relationship test enforced upstream in silver); no figure is
+      produced outside dbt.
+    columns:
+      - name: cost_sk
+        description: "Surrogate key: md5(tenant_id | usage_date)."
+        tests:
+          - not_null
+          - unique
+      - name: tenant_id
+        tests: [not_null]
+      - name: chargeback_revenue
+        tests: [not_null]
+      - name: margin_zone
+        description: "warning (<15%) / standard (15-30%) / best_in_class (>30%)."
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['warning', 'standard', 'best_in_class']
+
+  - name: fct_tenant_cost_mom_variance
+    description: "Month-over-month actual-cost variance per tenant, via lag() over tenant history."
+    columns:
+      - name: tenant_id
+        tests: [not_null]
+      - name: cost_month
+        tests: [not_null]
+      - name: monthly_actual_cost
+        tests: [not_null]
+
+# ---------------------------------------------------------------------------
+# Unit test (dbt 1.8+): validates the discount/markup/margin *logic* against mocked
+# silver-layer input in CI -- independent of the seed. Data tests above guard the
+# data; this guards the math (a regression in the discount or markup calc, or the
+# zone thresholds, fails here before it reaches the warehouse).
+# ---------------------------------------------------------------------------
+unit_tests:
+  - name: test_tenant_margin_and_zone
+    description: >
+      Three tenants with different discount/markup pairs, exercising all three margin
+      zones off one day of mocked silver-layer input.
+    model: fct_daily_tenant_margin
+    given:
+      - input: ref('silver_daily_tenant_cost')
+        rows:
+          - { usage_date: "2026-09-01", tenant_id: "tenant_x", total_list_cost: 1000, contract_type: "on-demand", committed_use_discount: 0.20, chargeback_markup: 1.10, actual_cost: 800.0, chargeback_revenue: 880.0 }
+          - { usage_date: "2026-09-01", tenant_id: "tenant_y", total_list_cost: 500, contract_type: "committed-use", committed_use_discount: 0.10, chargeback_markup: 1.30, actual_cost: 450.0, chargeback_revenue: 585.0 }
+          - { usage_date: "2026-09-01", tenant_id: "tenant_z", total_list_cost: 200, contract_type: "committed-use", committed_use_discount: 0.05, chargeback_markup: 1.50, actual_cost: 190.0, chargeback_revenue: 285.0 }
+    expect:
+      rows:
+        # (880-800)/880 = 0.0909 -> warning
+        - { tenant_id: "tenant_x", actual_cost: 800.0, chargeback_revenue: 880.0, gross_margin_pct: 0.0909, margin_zone: "warning" }
+        # (585-450)/585 = 0.2308 -> standard
+        - { tenant_id: "tenant_y", actual_cost: 450.0, chargeback_revenue: 585.0, gross_margin_pct: 0.2308, margin_zone: "standard" }
+        # (285-190)/285 = 0.3333 -> best_in_class
+        - { tenant_id: "tenant_z", actual_cost: 190.0, chargeback_revenue: 285.0, gross_margin_pct: 0.3333, margin_zone: "best_in_class" }

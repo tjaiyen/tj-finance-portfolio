@@ -1,0 +1,41 @@
+version: 2
+
+models:
+  - name: stg_cloud_usage
+    description: "Typed cloud usage rows; tags_json unpacked from Snowflake VARIANT into named tag columns."
+    columns:
+      - name: usage_date
+        tests: [not_null]
+      - name: tenant_id
+        tests: [not_null]
+      - name: service
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['compute', 'storage', 'network']
+      - name: quantity
+        tests: [not_null]
+      - name: tag_env
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['prod', 'staging']
+
+  - name: stg_cloud_pricing
+    description: "List price per service/resource/region, before tenant discount."
+    columns:
+      - name: service
+        tests: [not_null]
+      - name: list_unit_price
+        tests: [not_null]
+
+  - name: stg_tenant_contracts
+    description: "Per-tenant committed-use discount and internal chargeback markup."
+    columns:
+      - name: tenant_id
+        tests: [not_null, unique]
+      - name: committed_use_discount
+        tests: [not_null]
+      - name: chargeback_markup
+        tests: [not_null]

@@ -1,0 +1,4 @@
+tenant_id,contract_type,committed_use_discount,chargeback_markup
+tenant_alpha,committed-use,0.22,1.10
+tenant_beta,on-demand,0.00,1.15
+tenant_gamma,committed-use,0.12,1.05

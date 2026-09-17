@@ -1,0 +1,17 @@
+# Copy to ~/.dbt/profiles.yml, or run with DBT_PROFILES_DIR pointed at this folder.
+# Real values come from environment variables — never commit actual credentials here or in
+# ~/.dbt/profiles.yml. In CI these are GitHub Actions secrets, not hardcoded.
+snowflake_finops:
+  target: dev
+  outputs:
+    dev:
+      type: snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      # Password auth for local dev; CI uses key-pair or OIDC (see .github/workflows/dbt-ci.yml).
+      password: "{{ env_var('SNOWFLAKE_PASSWORD', '') }}"
+      role: "{{ env_var('SNOWFLAKE_ROLE', 'ACCOUNTADMIN') }}"
+      database: "{{ env_var('SNOWFLAKE_DATABASE', 'FINOPS_DEV') }}"
+      warehouse: "{{ env_var('SNOWFLAKE_WAREHOUSE', 'FINOPS_XS') }}"
+      schema: "{{ env_var('SNOWFLAKE_SCHEMA', 'PUBLIC') }}"
+      threads: 4

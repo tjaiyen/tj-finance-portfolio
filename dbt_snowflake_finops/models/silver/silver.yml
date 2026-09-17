@@ -1,0 +1,27 @@
+version: 2
+
+models:
+  - name: silver_usage_priced
+    description: "Deduplicated usage rows priced at list rate, joined to the rate card."
+    columns:
+      - name: usage_date
+        tests: [not_null]
+      - name: tenant_id
+        tests: [not_null]
+      - name: list_cost
+        tests: [not_null]
+
+  - name: silver_daily_tenant_cost
+    description: "One row per tenant per day: rolled-up list cost, discounted actual cost, and chargeback revenue."
+    columns:
+      - name: tenant_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_tenant_contracts')
+                field: tenant_id
+      - name: actual_cost
+        tests: [not_null]
+      - name: chargeback_revenue
+        tests: [not_null]

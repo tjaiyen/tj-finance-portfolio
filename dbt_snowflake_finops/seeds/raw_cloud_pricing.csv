@@ -1,0 +1,6 @@
+service,resource_type,region,unit,list_unit_price
+compute,vm.standard,us-west-2,hour,0.096
+compute,vm.gpu,us-east-1,hour,3.912
+storage,object.standard,us-west-2,gb,0.023
+storage,object.standard,us-east-1,gb,0.025
+network,egress,us-west-2,gb,0.09

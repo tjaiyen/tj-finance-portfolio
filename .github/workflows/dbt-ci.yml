@@ -81,6 +81,39 @@ jobs:
           DBT_PROFILES_DIR: .
         run: dbt build
 
+  dbt-build-snowflake-finops:
+    runs-on: ubuntu-latest
+    # Skips cleanly (not a failure) until real Snowflake credentials exist as repo secrets --
+    # keeps this job from breaking the overall workflow's green status for the other,
+    # already-live dbt projects above while this one is still pre-account.
+    if: ${{ secrets.SNOWFLAKE_ACCOUNT != '' }}
+    defaults:
+      run:
+        working-directory: dbt_snowflake_finops
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dbt-snowflake
+        run: pip install dbt-snowflake
+
+      - name: dbt build (seed + bronze/silver/gold + data/unit/singular tests)
+        env:
+          DBT_PROFILES_DIR: .
+          SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+          SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
+          SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
+          SNOWFLAKE_ROLE: ${{ secrets.SNOWFLAKE_ROLE }}
+          SNOWFLAKE_DATABASE: ${{ secrets.SNOWFLAKE_DATABASE }}
+          SNOWFLAKE_WAREHOUSE: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
+          SNOWFLAKE_SCHEMA: ${{ secrets.SNOWFLAKE_SCHEMA }}
+        run: dbt build
+
   airflow-dag-validate:
     runs-on: ubuntu-latest
     steps:
