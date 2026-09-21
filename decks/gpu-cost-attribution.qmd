@@ -67,7 +67,7 @@ mart = Path("data/gpu_tenant_costs.csv")   # exported from `dbt build` (fct_dail
 if mart.exists():
     m = pd.read_csv(mart)
     g = m.groupby("customer_id").agg(rev=("revenue","sum"), cost=("total_cost","sum")).reset_index()
-    source = "dbt mart · fct_daily_tenant_costs (dbt build → 33 tests pass)"
+    source = "dbt mart · fct_daily_tenant_costs (dbt build → 24 tests pass)"
 else:  # fallback so the deck always renders without a dbt build
     b = "../dbt_gpu_cost_attribution/seeds"
     bill = pd.read_csv(f"{b}/raw_gpu_billing.csv"); use = pd.read_csv(f"{b}/raw_api_usage.csv"); con = pd.read_csv(f"{b}/raw_contracts.csv")

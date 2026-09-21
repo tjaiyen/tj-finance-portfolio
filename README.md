@@ -28,7 +28,7 @@ site/ ──> interactive sandbox (same variance + margin math, runs client-side
 git clone https://github.com/tjaiyen/tj-finance-portfolio
 cd tj-finance-portfolio/dbt_finance_variance
 pip install dbt-duckdb
-dbt build       # 14 tests pass; fct_account_variance is your mart
+dbt build       # 11 tests pass (14 objects built); fct_account_variance is your mart
 ```
 
 Want the AI layer? Set `ANTHROPIC_API_KEY` and:
@@ -46,7 +46,7 @@ python variance_agent.py sample_data/financials_q1_q2.csv --threshold 0.05  # CF
 A real **dbt** project: raw GL seed → typed **staging** model → a tested **`fct_account_variance`** mart
 (prior-vs-current variance, % change, materiality flag). Includes schema tests plus a **relationship test**
 so the mart can never reference an account that isn't in the source — data governance enforced in CI.
-Runs locally on **DuckDB** (no warehouse): `pip install dbt-duckdb` then `dbt build` → 14 tests pass.
+Runs locally on **DuckDB** (no warehouse): `pip install dbt-duckdb` then `dbt build` → 14 objects build and 11 tests pass (10 data + 1 unit).
 
 ## [`airflow_orchestration/`](./airflow_orchestration) — Airflow + Astronomer Cosmos
 The dbt project rendered into **native Airflow tasks via Cosmos**: every seed, model, and test is its own
@@ -68,7 +68,7 @@ method used to spread shared factory cost in job-order costing — and per-tenan
 **margin zone** fall out. Three test tiers guard it: data tests, a **unit test** on the allocation/margin
 logic, and **singular tests** (allocation ratios must sum to 1; no negative costs). On the synthetic data it
 surfaces a tenant running at a negative margin — the *which customer is unprofitable, and why* question, answered
-by tested models. Runs locally on **DuckDB**: `pip install dbt-duckdb` then `dbt build` → 33 tests pass.
+by tested models. Runs locally on **DuckDB**: `pip install dbt-duckdb` then `dbt build` → 33 objects build and 24 tests pass (23 data + 1 unit).
 
 ## [`dbt_snowflake_finops/`](./dbt_snowflake_finops) — the same discipline, on a cloud data warehouse
 The cost-accounting discipline pointed at multi-tenant cloud cost, run on **Snowflake** instead of DuckDB —
