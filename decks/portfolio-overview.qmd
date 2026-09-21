@@ -55,7 +55,7 @@ Raw GL → typed **staging** → a tested **`fct_account_variance`** mart
 
 - A **relationship test** means the mart can never reference an account absent from the source —
   **data governance enforced in CI**
-- Runs locally on **DuckDB**, no warehouse: `dbt build` → **14 tests pass**
+- Runs locally on **DuckDB**, no warehouse: `dbt build` → **11 tests pass**
 
 ## What the mart surfaces {.smaller}
 
@@ -90,7 +90,7 @@ The cost-accounting method pointed at **AI unit economics**.
   logic that spreads shared factory cost in job-order costing
 - Per-tenant **gross margin** + a **margin zone** fall out
 - Three test tiers (data, a **unit test** on the allocation math, **singular tests**: ratios sum to 1,
-  no negative cost) → **33 tests pass**. It surfaces a **tenant running negative margin**.
+  no negative cost) → **24 tests pass**. It surfaces a **tenant running negative margin**.
 
 ## airflow_orchestration — reliable runs
 
